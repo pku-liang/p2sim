@@ -1,3 +1,6 @@
+{%- set decl_name = "S" ~ design.name %}
+{%- set impl_name = "S" ~ design.name ~ "Impl" %}
+
 #pragma once
 
 #include <cstdint>
@@ -30,9 +33,6 @@
     {%- endfor -%}
 )
 {% endfor %}
-
-{%- set struct_name = "S" ~ design.name %}
-{%- set impl_name = "S" ~ design.name ~ "Impl" %}
 
 struct {{ impl_name }} {
     void eval_step();

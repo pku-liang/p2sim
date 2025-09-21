@@ -1,8 +1,10 @@
+{%- set decl_name = "S" ~ design_name %}
 {%- set impl_name = "S" ~ design_name ~ "Impl" %}
+{%- import "bitset-actmask.j2" as actset %}
 
 #include "{{ impl_name }}.h"
+
 {%- include "gprintf.j2" %}
-{%- import "bitset-actmask.j2" as actset %}
 
 {%- macro emit_inst(inst) %}
 {%- match inst %}

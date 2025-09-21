@@ -1,0 +1,17 @@
+{%- set decl_name = "S" ~ design.name %}
+{%- set impl_name = "S" ~ design.name ~ "Impl" %}
+
+objs := \
+	{{ impl_name }}.o
+{%- for i in 0..num_logics %} \
+	logic_{{ i }}.cpp
+{%- endfor %}
+{%- for i in 0..num_resets %} \
+	reset_{{ i }}.cpp
+{%- endfor %}
+
+sim: $(objs)
+	$(CXX) $(LDFLAGS) $^ -o $@ $(LDLIBS)
+
+%.o: %.cpp
+	$(CCACHE) $(CXX) -c $(CXXFLAGS) $^ -o $@

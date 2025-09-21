@@ -1,15 +1,15 @@
+{%- set decl_name = "S" ~ design.name %}
+{%- set impl_name = "S" ~ design.name ~ "Impl" %}
+
 #pragma once
 
 #include <cstdint>
 
-{%- set struct_name = "S" ~ design.name %}
-{%- set impl_name = "S" ~ design.name ~ "Impl" %}
-
 struct {{ impl_name }};
-struct {{ struct_name }} {
+struct {{ decl_name }} {
 public:
-    {{ struct_name }}();
-    ~{{ struct_name }}();
+    {{ decl_name }}();
+    ~{{ decl_name }}();
     void eval_step();
 {%- for state in design.states %}
     {%- if state.kind == StateKind::Input %}
