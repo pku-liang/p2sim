@@ -11,7 +11,7 @@ pub struct CGenCfg {
 }
 
 #[derive(Template)]
-#[template(path = "cgen-logic.j2", escape = "none")]
+#[template(path = "cgen-logic.cpp.j2", escape = "none")]
 struct LogicTask<'ir> {
     design_name: &'ir str,
     out_file: String,
@@ -108,9 +108,9 @@ macro_rules! import_template {
     };
 }
 
-import_template!(StructDeclH, "cgen-struct-decl-h.j2");
-import_template!(StructImplH, "cgen-struct-impl-h.j2");
-import_template!(StructImplC, "cgen-struct-impl-cpp.j2");
+import_template!(StructDeclH, "cgen-struct-decl.h.j2");
+import_template!(StructImplH, "cgen-struct-impl.h.j2");
+import_template!(StructImplC, "cgen-struct-impl.cpp.j2");
 
 pub fn cgen(d: &Design, cfg: &CGenCfg, out_dir: &str) -> std::io::Result<()> {
     if !std::fs::exists(out_dir)? {

@@ -1,6 +1,6 @@
 {%- set decl_name = "S" ~ design.name %}
 {%- set impl_name = "S" ~ design.name ~ "Impl" %}
-{%- import "bitset-actmask.j2" as actset %}
+{%- import "bitset-actmask.cpp.j2" as actset %}
 
 #include "{{ decl_name }}.h"
 #include "{{ impl_name }}.h"
