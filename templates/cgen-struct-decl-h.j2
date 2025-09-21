@@ -1,0 +1,24 @@
+#pragma once
+
+#include <cstdint>
+
+{%- set struct_name = "S" ~ design.name %}
+{%- set impl_name = "S" ~ design.name ~ "Impl" %}
+
+struct {{ impl_name }};
+struct {{ struct_name }} {
+public:
+    {{ struct_name }}();
+    ~{{ struct_name }}();
+    void eval_step();
+{%- for state in design.states %}
+    {%- if state.kind == StateKind::Input %}
+    void set_{{ state.name }}({{ state.width | int_ty }} data);
+    {%- endif %}
+    {%- if state.kind == StateKind::Output %}
+    {{ state.width | int_ty }} get_{{ state.name }}();
+    {%- endif %}
+{%- endfor %}
+private:
+    {{ impl_name }} * impl;
+};

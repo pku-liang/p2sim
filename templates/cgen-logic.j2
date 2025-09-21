@@ -1,0 +1,36 @@
+{%- set impl_name = "S" ~ design_name ~ "Impl" %}
+
+#include "{{ impl_name }}.h"
+{%- include "gprintf.j2" %}
+{%- import "bitset-actmask.j2" as actset %}
+
+{%- macro emit_inst(inst) %}
+{%- match inst %}
+{%- when Inst::Raw(inst) %}
+    {{ inst }}
+{%- when Inst::Save(name, width) %}
+    {{ width | int_ty }} {{ name }}$old = {{ name }};
+{%- when Inst::Act(Some(name), ids) %}
+    {%- set cond = name ~ "$cond" %}
+    bool {{ cond }} = {{ name }}$old != {{ name }};
+    {%- call actset::activates(cond, ids) %}
+{%- when Inst::Act(None, ids) %}
+    {%- call actset::activates("1", ids) %}
+{%- endmatch %}
+{%- endmacro %}
+
+{%- for logic in logics %}
+void {{ impl_name }}::logic_{{ logic.id.0 }}() {
+    {%- for inst in logic.insts %}
+        {%- call emit_inst(inst) %}
+    {%- endfor %}
+}
+{%- endfor %}
+
+{%- for logic in resets %}
+void {{ impl_name }}::reset_{{ logic.id }}() {
+    {%- for inst in logic.insts %}
+        {%- call emit_inst(inst) %}
+    {%- endfor %}
+}
+{%- endfor %}

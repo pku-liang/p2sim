@@ -1,0 +1,64 @@
+#pragma once
+
+#include <cstdint>
+#include <cstring>
+#include <cstdio>
+#include <cstdarg>
+#include <cassert>
+
+#define gdiv(a, b) ((b) == 0 ? 0 : (a) / (b))
+
+#ifndef __BITINT_MAXWIDTH__
+#error  BITINT support is required
+#endif
+
+#ifdef __clang__
+#if __clang_major__ < 19
+#error  Please compile with clang 19 or above
+#endif
+#endif
+
+{% for i in 2..=design.max_concat %}
+#define UINT_CONCAT{{ i }}(
+    {%- for j in 0..i -%}
+        _{{ j }} {%- if !loop.last %},{% endif %}
+    {%- endfor -%}
+) (
+    {%- for j in 0..i -%}
+        (((unsigned _BitInt({{ i * 64 }}))_{{ j }})<<{{ (i - j - 1) * 64}})
+        {%- if !loop.last %}|{% endif %}
+    {%- endfor -%}
+)
+{% endfor %}
+
+{%- set struct_name = "S" ~ design.name %}
+{%- set impl_name = "S" ~ design.name ~ "Impl" %}
+
+struct {{ impl_name }} {
+    void eval_step();
+
+{%- for state in design.states %}
+    {%- if state.kind == StateKind::Input %}
+    void set_{{ state.name }}({{ state.width | int_ty }} data);
+    {%- endif %}
+    {%- if state.kind == StateKind::Output %}
+    {{ state.width | int_ty }} get_{{ state.name }}();
+    {%- endif %}
+{%- endfor %}
+
+{%- for logic in design.logics %}
+    void logic_{{ logic.id.0 }}();
+{%- endfor %}
+{%- for reset in design.resets %}
+    void reset_{{ reset.id }}();
+{%- endfor %}
+
+    uint{{ cfg.act_pack }}_t __act_mask[{{ design.logics.len() / cfg.act_pack as usize + 1 }}];
+
+{%- for state in design.states %}
+    {{ state.width | int_ty }} {{ state.name }}
+    {%- for dim in state.dims -%}
+        [{{ dim }}]
+    {%- endfor -%};
+{%- endfor %}
+};

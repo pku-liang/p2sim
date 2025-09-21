@@ -1,0 +1,30 @@
+#pragma once
+
+{%- set struct_name = "S" ~ design.name %}
+{%- set impl_name = "S" ~ design.name ~ "Impl" %}
+{%- import "bitset-actmask.j2" as actset %}
+
+#include "{{ struct_name }}.h"
+#include "{{ impl_name }}.h"
+
+{%- for state in design.states %}
+{%- if state.kind == StateKind::Input %}
+void {{ impl_name }}::set_{{ state.name }}({{ state.width | int_ty }} data) {
+    {{ state.width | int_ty }} {{ state.name }}$old = {{ state.name }};
+    {{ state.name }} = data;
+    bool cond = {{ state.name }} != {{ state.name }}$old;
+    {% call actset::activates("cond", &state.acts) %}
+}
+void {{ struct_name }}::set_{{ state.name }}({{ state.width | int_ty }} data) {
+    impl->set_{{ state.name }}(data);
+}
+{%- endif %}
+{%- if state.kind == StateKind::Output %}
+{{ state.width | int_ty }} {{ impl_name }}::get_{{ state.name }}() {
+    return {{ state.name }};
+}
+{{ state.width | int_ty }} {{ struct_name }}::get_{{ state.name }}() {
+    return impl->get_{{ state.name }}();
+}
+{%- endif %}
+{%- endfor %}

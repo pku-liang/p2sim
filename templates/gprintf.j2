@@ -1,0 +1,27 @@
+
+void gprintf(const char *fmt, ...) {
+    FILE *fp = stderr;
+    va_list args;
+    va_start(args, fmt);
+    int fmt_idx = 0;
+    while (true) {
+        char c = fmt[fmt_idx ++];
+        switch (c) {
+            case '%': break;
+            case 0: return;
+            default: fputc(c, fp); continue;
+        }
+        uint64_t lval = 0;
+        int bits = va_arg(args, uint32_t);
+        if      (bits <= 32) { lval = va_arg(args, uint32_t); }
+        else if (bits <= 64) { lval = va_arg(args, uint64_t); }
+        else                 { assert(0); }
+        c = fmt[fmt_idx ++];
+        switch (c) {
+            case 'd': fprintf(fp, "%ld", lval); break;
+            case 'c': fputc(lval & 0xff, fp); break;
+            case 'x': fprintf(fp, "%lx", lval); break;
+            default: assert(0);
+        }
+    }
+}

@@ -1,0 +1,17 @@
+{%- macro activate(cond, id) %}
+    __act_mask[{{ id.0 / cfg.act_pack }}] |= {{ cond }} << {{ id.0 % cfg.act_pack}}; // {{ id.0 }}
+{%- endmacro %}
+
+{%- macro activates(cond, ids) %}
+    {%- if ids.len() <= 3 %}
+        {%- for id in ids %}
+            {%- call activate(cond, id) %}
+        {%- endfor %}
+    {%- else %}
+        if ({{ cond }}) {
+            {%- for id in ids %}
+                {%- call activate("1", id) %}
+            {%- endfor %}
+        }
+    {%- endif %}
+{%- endmacro %}
