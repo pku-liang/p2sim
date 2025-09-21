@@ -1,6 +1,6 @@
-{%- set decl_name = "S" ~ design_name %}
-{%- set impl_name = "S" ~ design_name ~ "Impl" %}
-{%- import "bitset-actmask.cpp.j2" as actset %}
+{%- set decl_name = "S" ~ design_name -%}
+{%- set impl_name = "S" ~ design_name ~ "Impl" -%}
+{%- import "bitset-actmask.cpp.j2" as actset -%}
 
 #include "{{ impl_name }}.h"
 
@@ -17,7 +17,7 @@
     bool {{ cond }} = {{ name }}$old != {{ name }};
     {%- call actset::activates(cond, ids) %}
 {%- when Inst::Act(None, ids) %}
-    {%- call actset::activates("1", ids) %}
+    {%- call actset::activates("1ull", ids) %}
 {%- endmatch %}
 {%- endmacro %}
 
@@ -29,10 +29,13 @@ void {{ impl_name }}::logic_{{ logic.id.0 }}() {
 }
 {%- endfor %}
 
-{%- for logic in resets %}
-void {{ impl_name }}::reset_{{ logic.id }}() {
-    {%- for inst in logic.insts %}
-        {%- call emit_inst(inst) %}
+{%- for reset in resets %}
+void {{ impl_name }}::reset_{{ reset.id }}() {
+    if ({{ reset.reset }}) [[unlikely]] {
+    {%- call actset::activates("1ull", &reset.acts) %}
+    {%- for inst in reset.insts %}
+    {%- call emit_inst(inst) %}
     {%- endfor %}
+    }
 }
 {%- endfor %}

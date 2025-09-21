@@ -45,7 +45,7 @@ fn cgen_logics(d: &Design, cfg: &CGenCfg, out_dir: &str) -> std::io::Result<CGen
     let mut tasks = vec![];
     let mut cum_insts = 0;
     let mut last_pos = 0;
-    let mut emit_idx = 0;
+    let mut num_logics = 0;
     let new_cgen_task = |out_file, logics, resets| LogicTask {
         design_name: &d.name,
         cfg,
@@ -54,28 +54,48 @@ fn cgen_logics(d: &Design, cfg: &CGenCfg, out_dir: &str) -> std::io::Result<CGen
         resets,
     };
     for (i, logic) in d.logics.iter().enumerate() {
-        if cum_insts + logic.insts.len() > cfg.split_size {
+        if cum_insts + logic.insts.len() >= cfg.split_size {
             tasks.push(new_cgen_task(
-                format!("{out_dir}/logic_{emit_idx}.cc"),
+                format!("{out_dir}/logic_{num_logics}.cc"),
                 &d.logics[last_pos..i],
                 &[],
             ));
             last_pos = i;
             cum_insts = logic.insts.len();
-            emit_idx += 1;
+            num_logics += 1;
+        } else {
+            cum_insts += logic.insts.len();
         }
     }
     tasks.push(new_cgen_task(
-        format!("{out_dir}/logic_{emit_idx}.cc"),
+        format!("{out_dir}/logic_{num_logics}.cc"),
         &d.logics[last_pos..],
         &[],
     ));
-    let num_logics = tasks.len();
+    num_logics += 1;
+    let mut cum_insts = 0;
+    let mut last_pos = 0;
+    let mut num_resets = 0;
+    for (i, reset) in d.resets.iter().enumerate() {
+        if cum_insts + reset.insts.len() >= cfg.split_size {
+            tasks.push(new_cgen_task(
+                format!("{out_dir}/reset_{num_resets}.cc"),
+                &[],
+                &d.resets[last_pos..i],
+            ));
+            last_pos = i;
+            cum_insts = reset.insts.len();
+            num_resets += 1;
+        } else {
+            cum_insts += reset.insts.len();
+        }
+    }
     tasks.push(new_cgen_task(
-        format!("{out_dir}/reset_0.cc"),
+        format!("{out_dir}/reset_{num_resets}.cc"),
         &[],
-        &d.resets[..],
+        &d.resets[last_pos..],
     ));
+    num_resets += 1;
     tasks
         .par_iter()
         .map(|task| -> std::io::Result<()> {
@@ -86,7 +106,7 @@ fn cgen_logics(d: &Design, cfg: &CGenCfg, out_dir: &str) -> std::io::Result<CGen
     // Ok(tasks.len())
     Ok(CGenFiles {
         num_logics,
-        num_resets: 1,
+        num_resets,
     })
 }
 

@@ -1,5 +1,5 @@
-{%- set decl_name = "S" ~ design.name %}
-{%- set impl_name = "S" ~ design.name ~ "Impl" %}
+{%- set decl_name = "S" ~ design.name -%}
+{%- set impl_name = "S" ~ design.name ~ "Impl" -%}
 
 #pragma once
 
@@ -10,13 +10,16 @@ struct {{ decl_name }} {
 public:
     {{ decl_name }}();
     ~{{ decl_name }}();
-    void eval_step();
+    void step();
 {%- for state in design.states %}
     {%- if state.kind == StateKind::Input %}
     void set_{{ state.name }}({{ state.width | int_ty }} data);
     {%- endif %}
     {%- if state.kind == StateKind::Output %}
     {{ state.width | int_ty }} get_{{ state.name }}();
+    {%- endif %}
+    {%- if state.kind == StateKind::Memory %}
+    void * get_{{ state.name }}();
     {%- endif %}
 {%- endfor %}
 private:

@@ -4,14 +4,14 @@
 
 {%- macro activates(cond, ids) %}
     {%- if ids.len() <= 3 %}
-        {%- for id in ids %}
-            {%- call activate(cond, id) %}
-        {%- endfor %}
+    {%- for id in ids %}
+        {%- call activate(cond, id) %}
+    {%- endfor %}
     {%- else %}
-        if ({{ cond }}) {
-            {%- for id in ids %}
-                {%- call activate("1", id) %}
-            {%- endfor %}
-        }
+    if ({{ cond }}) {
+        {%- for id in ids %}
+            {%- call activate("1ull", id) %}
+        {%- endfor %}
+    }
     {%- endif %}
 {%- endmacro %}

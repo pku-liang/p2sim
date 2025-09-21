@@ -61,7 +61,8 @@ pub struct Logic {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResetLogic {
     pub id: u32,
-    pub act: Vec<LogicId>,
+    pub reset: String,
+    pub acts: Vec<LogicId>,
     pub insts: Vec<Inst>,
 }
 
