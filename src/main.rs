@@ -1,4 +1,4 @@
-use std::{fs::File, path::{absolute, Path}};
+use std::{fs::File, path::absolute};
 
 use clap::Parser;
 use ggsim::{
