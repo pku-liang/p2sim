@@ -1,9 +1,7 @@
-{%- set decl_name = "S" ~ design.name -%}
-{%- set impl_name = "S" ~ design.name ~ "Impl" -%}
 {%- import "bitset-actmask.cpp.j2" as actset -%}
 
-#include "{{ decl_name }}.h"
-#include "{{ impl_name }}.h"
+#include "{{ file_map.decl_h }}"
+#include "{{ file_map.impl_h }}"
 
 {%- for state in design.states %}
 {%- if state.kind == StateKind::Input %}
@@ -34,18 +32,10 @@ void {{ decl_name }}::step() {
 }
 
 void {{ impl_name }}::step() {
-{%- for reset in design.resets %}
-    reset_{{ reset.id }}();
+{%- for i in 0..resets.len() %}
+    subreset_{{ i }}();
 {%- endfor %}
-{%- for p in (0..design.logics.len()).step_by(*(cfg.act_pack as usize)) %}
-    {%- set act_idx = p / cfg.act_pack as usize %}
-    if(__act_mask[{{ act_idx }}]) {
-    {%- for i in p..(p + cfg.act_pack as usize).min(design.logics.len()) %}
-        if(__act_mask[{{ act_idx }}] & (1ull << {{ i - p }})) {
-            __act_mask[{{ act_idx }}] &= ~(1ull << {{ i - p }});
-            logic_{{ design.logics[i].id.0 }}();
-        }
-    {%- endfor %}
-    }
+{%- for i in 0..logics.len() %}
+    substep_{{ i }}();
 {%- endfor %}
 }

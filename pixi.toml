@@ -1,0 +1,15 @@
+[workspace]
+authors = ["KEKE046 <zhoukexing@pku.edu.cn>"]
+channels = ["conda-forge"]
+name = "ggsim"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+clang = ">=21.1.1,<22"
+clangxx = ">=21.1.1,<22"
+lld = ">=21.1.1,<22"
+ninja = ">=1.13.1,<2"
+just = ">=1.42.4,<2"

@@ -1,41 +1,52 @@
-{%- set decl_name = "S" ~ design_name -%}
-{%- set impl_name = "S" ~ design_name ~ "Impl" -%}
 {%- import "bitset-actmask.cpp.j2" as actset -%}
 
-#include "{{ impl_name }}.h"
-
-{%- include "gprintf.j2" %}
+#include "{{ file_map.impl_h }}"
 
 {%- macro emit_inst(inst) %}
-{%- match inst %}
-{%- when Inst::Raw(inst) %}
-    {{ inst }}
-{%- when Inst::Save(name, width) %}
-    {{ width | int_ty }} {{ name }}$old = {{ name }};
-{%- when Inst::Act(Some(name), ids) %}
-    {%- set cond = name ~ "$cond" %}
-    bool {{ cond }} = {{ name }}$old != {{ name }};
-    {%- call actset::activates(cond, ids) %}
-{%- when Inst::Act(None, ids) %}
-    {%- call actset::activates("1ull", ids) %}
-{%- endmatch %}
+    {%- match inst %}
+        {%- when Inst::Raw(inst) %}
+            {{ inst }}
+        {%- when Inst::Save(name, width) %}
+            {{ width | int_ty }} {{ name }}$old = {{ name }};
+        {%- when Inst::Act(Some(name), ids) %}
+            {%- set cond = name ~ "$cond" %}
+            bool {{ cond }} = {{ name }}$old != {{ name }};
+            {%- call actset::activates(cond, ids) %}
+        {%- when Inst::Act(None, ids) %}
+            {%- call actset::activates("1ull", ids) %}
+    {%- endmatch %}
 {%- endmacro %}
 
-{%- for logic in logics %}
-void {{ impl_name }}::logic_{{ logic.id.0 }}() {
-    {%- for inst in logic.insts %}
-        {%- call emit_inst(inst) %}
+{%- if logics.len() > 0 %}
+void {{ impl_name }}::substep_{{ step_id }}() {
+{%- for (pack, groups) in self::iter_logic_groups(logics, *cfg.act_pack) %}
+    if(__act_mask[{{ pack }}]) {
+    {%- for logic in groups %}
+        {%- if !logic.always%}
+        if(__act_mask[{{ pack }}] & (1ull << {{ logic.id.0 % cfg.act_pack }})) {
+        {%- else %}
+        { // always
+        {%- endif %}
+            __act_mask[{{ pack }}] &= ~(1ull << {{ logic.id.0 % cfg.act_pack }});
+            {%- for inst in logic.insts %}
+                {%- call emit_inst(inst) %}
+            {%- endfor %}
+        }
     {%- endfor %}
-}
+    }
 {%- endfor %}
+}
+{%- endif %}
 
+{%- if resets.len() > 0 %}
+void {{ impl_name }}::subreset_{{ step_id }}() {
 {%- for reset in resets %}
-void {{ impl_name }}::reset_{{ reset.id }}() {
     if ({{ reset.reset }}) [[unlikely]] {
     {%- call actset::activates("1ull", &reset.acts) %}
     {%- for inst in reset.insts %}
     {%- call emit_inst(inst) %}
     {%- endfor %}
     }
-}
 {%- endfor %}
+}
+{%- endif %}

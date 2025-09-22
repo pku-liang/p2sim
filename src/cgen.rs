@@ -1,7 +1,7 @@
-use std::{fs::File, io::BufWriter};
+use std::{ops::Deref};
 
 use askama::Template;
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::ir::*;
 
@@ -10,14 +10,101 @@ pub struct CGenCfg {
     pub split_size: usize,
 }
 
-#[derive(Template)]
-#[template(path = "cgen-logic.cpp.j2", escape = "none")]
-struct LogicTask<'ir> {
-    design_name: &'ir str,
-    out_file: String,
+pub struct ExtraFiles<'r> {
+    pub cpp: &'r [&'r str],
+    pub hdr: &'r [&'r str],
+}
+
+struct FileMap {
+    decl_h: String,
+    impl_h: String,
+    impl_c: String,
+    gprintf_c: String,
+    makefile: String,
+}
+
+struct CGenCtx<'ir> {
+    decl_name: String,
+    impl_name: String,
+    design: &'ir Design,
     cfg: &'ir CGenCfg,
-    logics: &'ir [Logic],
-    resets: &'ir [ResetLogic],
+    logics: Vec<(String, &'ir [Logic])>,
+    resets: Vec<(String, &'ir [ResetLogic])>,
+    file_map: FileMap,
+}
+
+fn iter_logic_groups<'a>(data: &'a [Logic], pack: u32) -> impl Iterator<Item = (u32, &'a [Logic])> {
+    let mut last_pos = 0;
+    std::iter::from_fn(move || {
+        if last_pos >= data.len() {
+            None
+        } else {
+            if data[last_pos].always {
+                let res: &[Logic] = &data[last_pos..last_pos + 1];
+                return Some((data[last_pos].id.0 / pack, res));
+            }
+            let group = data[last_pos].id.0 / pack;
+            let mut pos = last_pos + 1;
+            while pos < data.len() && data[pos].id.0 / pack == group && !data[pos].always {
+                pos += 1;
+            }
+            let res = &data[last_pos..pos];
+            last_pos = pos;
+            Some((group, res))
+        }
+    })
+}
+
+fn partition_by_size<'a, T>(
+    data: &'a [T],
+    size_fn: impl Fn(&T) -> usize,
+    limit: usize,
+) -> Vec<&'a [T]> {
+    let mut cum_size = 0;
+    let mut last_pos = 0;
+    let mut result = vec![];
+    for (i, item) in data.iter().enumerate() {
+        let size = size_fn(item);
+        if cum_size + size >= limit {
+            result.push(&data[last_pos..i]);
+            last_pos = i;
+            cum_size = size;
+        } else {
+            cum_size += size;
+        }
+    }
+    result.push(&data[last_pos..]);
+    result
+}
+
+fn prepare_cgen<'ir>(design: &'ir Design, cfg: &'ir CGenCfg) -> CGenCtx<'ir> {
+    let par_logics = partition_by_size(&design.logics, |logic| logic.insts.len(), cfg.split_size);
+    let par_resets = partition_by_size(&design.resets, |reset| reset.insts.len(), cfg.split_size);
+    let logics = par_logics
+        .into_iter()
+        .enumerate()
+        .map(|(i, logics)| (format!("logic_{}.cc", i), logics))
+        .collect();
+    let resets = par_resets
+        .into_iter()
+        .enumerate()
+        .map(|(i, resets)| (format!("reset_{}.cc", i), resets))
+        .collect();
+    CGenCtx {
+        decl_name: format!("S{}", design.name),
+        impl_name: format!("S{}Impl", design.name),
+        design,
+        cfg,
+        logics,
+        resets,
+        file_map: FileMap {
+            decl_h: format!("S{}.h", design.name),
+            impl_h: format!("S{}Impl.h", design.name),
+            impl_c: format!("S{}Impl.cc", design.name),
+            gprintf_c: format!("gprintf.cc"),
+            makefile: format!("Makefile"),
+        }
+    }
 }
 
 mod filters {
@@ -35,110 +122,87 @@ mod filters {
     }
 }
 
-#[allow(dead_code)]
-struct CGenFiles {
-    num_logics: usize,
-    num_resets: usize,
+#[derive(Template)]
+#[template(path = "cgen-logic.cpp.j2", escape = "none")]
+struct LogicTask<'ir> {
+    ctx: &'ir CGenCtx<'ir>,
+    step_id: usize,
+    out_file: &'ir str,
+    logics: &'ir [Logic],
+    resets: &'ir [ResetLogic],
 }
 
-fn cgen_logics(d: &Design, cfg: &CGenCfg, out_dir: &str) -> std::io::Result<CGenFiles> {
-    let mut tasks = vec![];
-    let mut cum_insts = 0;
-    let mut last_pos = 0;
-    let mut num_logics = 0;
-    let new_cgen_task = |out_file, logics, resets| LogicTask {
-        design_name: &d.name,
-        cfg,
-        out_file,
-        logics,
-        resets,
-    };
-    for (i, logic) in d.logics.iter().enumerate() {
-        if cum_insts + logic.insts.len() >= cfg.split_size {
-            tasks.push(new_cgen_task(
-                format!("{out_dir}/logic_{num_logics}.cc"),
-                &d.logics[last_pos..i],
-                &[],
-            ));
-            last_pos = i;
-            cum_insts = logic.insts.len();
-            num_logics += 1;
-        } else {
-            cum_insts += logic.insts.len();
-        }
+impl<'ir> Deref for LogicTask<'ir> {
+    type Target = CGenCtx<'ir>;
+    fn deref(&self) -> &Self::Target {
+        self.ctx
     }
-    tasks.push(new_cgen_task(
-        format!("{out_dir}/logic_{num_logics}.cc"),
-        &d.logics[last_pos..],
-        &[],
-    ));
-    num_logics += 1;
-    let mut cum_insts = 0;
-    let mut last_pos = 0;
-    let mut num_resets = 0;
-    for (i, reset) in d.resets.iter().enumerate() {
-        if cum_insts + reset.insts.len() >= cfg.split_size {
-            tasks.push(new_cgen_task(
-                format!("{out_dir}/reset_{num_resets}.cc"),
-                &[],
-                &d.resets[last_pos..i],
-            ));
-            last_pos = i;
-            cum_insts = reset.insts.len();
-            num_resets += 1;
-        } else {
-            cum_insts += reset.insts.len();
-        }
+}
+
+fn cgen_logics(ctx: &CGenCtx, out_dir: &str) -> std::io::Result<()> {
+    let mut tasks = Vec::with_capacity(ctx.logics.len() + ctx.resets.len());
+    for (step_id, (out_file, logics)) in ctx.logics.iter().enumerate() {
+        tasks.push(LogicTask {
+            ctx,
+            step_id,
+            out_file: out_file.as_str(),
+            logics: logics,
+            resets: &[],
+        });
     }
-    tasks.push(new_cgen_task(
-        format!("{out_dir}/reset_{num_resets}.cc"),
-        &[],
-        &d.resets[last_pos..],
-    ));
-    num_resets += 1;
+    for (step_id, (out_file, resets)) in ctx.resets.iter().enumerate() {
+        tasks.push(LogicTask {
+            ctx,
+            step_id,
+            out_file: out_file.as_str(),
+            logics: &[],
+            resets: resets,
+        });
+    }
     tasks
-        .par_iter()
-        .map(|task| -> std::io::Result<()> {
-            let f = File::create(&task.out_file)?;
-            task.write_into(&mut BufWriter::new(f))
+        .into_par_iter()
+        .map(|task| {
+            let out_file = format!("{out_dir}/{}", task.out_file);
+            task.write_into_file(&out_file)
         })
-        .collect::<std::io::Result<()>>()?;
-    // Ok(tasks.len())
-    Ok(CGenFiles {
-        num_logics,
-        num_resets,
-    })
+        .collect()
 }
 
 macro_rules! import_template {
     ($vis:vis $name:ident, $file:expr) => {
         #[derive(Template)]
         #[template(path = $file, escape = "none")]
-        #[allow(dead_code)]
-        $vis struct $name<'ir> {
-            cfg: &'ir CGenCfg,
-            design: &'ir Design,
-        }
-        impl<'ir> $name<'ir> {
-            $vis fn cgen(out_file: &str, cfg: &'ir CGenCfg, design: &'ir Design) -> std::io::Result<()> {
-                let f = File::create(out_file)?;
-                Self { cfg, design }.write_into(&mut BufWriter::new(f))
+        $vis struct $name<'ir>(&'ir CGenCtx<'ir>);
+        impl<'ir> Deref for $name<'ir> {
+            type Target = CGenCtx<'ir>;
+            fn deref(&self) -> &Self::Target {
+                self.0
             }
         }
-    };
+        impl<'ir> $name<'ir> {
+            $vis fn cgen(ctx: &'ir CGenCtx<'ir>, out_dir: &str, file: &str) -> std::io::Result<()> {
+                Self(ctx).write_into_file(format!("{out_dir}/{file}"))
+            }
+        }
+    }
 }
 
 import_template!(StructDeclH, "cgen-struct-decl.h.j2");
 import_template!(StructImplH, "cgen-struct-impl.h.j2");
 import_template!(StructImplC, "cgen-struct-impl.cpp.j2");
+import_template!(Makefile, "cgen-makefile.mk.j2");
+import_template!(Gprintf, "gprintf.j2");
 
 pub fn cgen(d: &Design, cfg: &CGenCfg, out_dir: &str) -> std::io::Result<()> {
     if !std::fs::exists(out_dir)? {
         std::fs::create_dir_all(out_dir)?;
     }
-    StructDeclH::cgen(&format!("{out_dir}/S{}.h", d.name), cfg, d)?;
-    StructImplH::cgen(&format!("{out_dir}/S{}Impl.h", d.name), cfg, d)?;
-    StructImplC::cgen(&format!("{out_dir}/S{}Impl.cc", d.name), cfg, d)?;
-    cgen_logics(d, cfg, out_dir)?;
+    let ctx = prepare_cgen(d, cfg);
+    cgen_logics(&ctx, out_dir)?;
+    StructDeclH::cgen(&ctx, out_dir, &ctx.file_map.decl_h)?;
+    StructImplH::cgen(&ctx, out_dir, &ctx.file_map.impl_h)?;
+    StructImplC::cgen(&ctx, out_dir, &ctx.file_map.impl_c)?;
+    Makefile::cgen(&ctx, out_dir, &ctx.file_map.makefile)?;
+    Gprintf::cgen(&ctx, out_dir, &ctx.file_map.gprintf_c)?;
     Ok(())
 }

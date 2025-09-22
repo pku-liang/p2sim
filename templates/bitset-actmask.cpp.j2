@@ -1,5 +1,5 @@
 {%- macro activate(cond, id) %}
-    __act_mask[{{ id.0 / cfg.act_pack }}] |= {{ cond }} << {{ id.0 % cfg.act_pack}}; // {{ id.0 }}
+            __act_mask[{{ id.0 / cfg.act_pack }}] |= {{ cond }} << {{ id.0 % cfg.act_pack}}; // {{ id.0 }}
 {%- endmacro %}
 
 {%- macro activates(cond, ids) %}
@@ -8,10 +8,10 @@
         {%- call activate(cond, id) %}
     {%- endfor %}
     {%- else %}
-    if ({{ cond }}) {
-        {%- for id in ids %}
-            {%- call activate("1ull", id) %}
-        {%- endfor %}
-    }
+        if ({{ cond }}) {
+            {%- for id in ids %}
+                {%- call activate("1ull", id) %}
+            {%- endfor %}
+        }
     {%- endif %}
 {%- endmacro %}
