@@ -1,6 +1,6 @@
 #include "{{ file_map.impl_h }}"
 
-void gprintf(const char *fmt, ...) {
+void {{ impl_name }}::gprintf(const char *fmt, ...) {
     FILE *fp = stderr;
     va_list args;
     va_start(args, fmt);

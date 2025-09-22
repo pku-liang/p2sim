@@ -7,6 +7,14 @@ objs := \
 {%- for reset in resets %}\
 	{{ reset.0 }}.o
 {%- endfor %}
+{%- for extra in file_map.extra %}\
+	{{ extra | hashed_name }}.o
+{%- endfor %}
+
+CXXFLAGS += -I.
+CXXFLAGS += -O2
+CXXFLAGS += -DDUT_NAME="{{ decl_name }}"
+CXXFLAGS += -DDUT_HEADER="\"{{ file_map.decl_h }}\""
 
 sim: $(objs)
 	$(CXX) $(LDFLAGS) $^ -o $@ $(LDLIBS)
@@ -16,3 +24,8 @@ sim: $(objs)
 
 %.cc.o: %.cc {{ file_map.impl_h }}
 	$(CCACHE) $(CXX) -c $(CFLAGS) $(CXXFLAGS) $< -o $@
+
+{%- for extra in file_map.extra %}
+{{ extra | hashed_name }}.o: {{ extra }}
+	$(CCACHE) $(CXX) -c $(CFLAGS) $(CXXFLAGS) $< -o $@
+{%- endfor %}

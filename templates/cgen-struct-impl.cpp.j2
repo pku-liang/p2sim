@@ -39,3 +39,13 @@ void {{ impl_name }}::step() {
     substep_{{ i }}();
 {%- endfor %}
 }
+
+void {{ impl_name }}::init() {
+    memset(this, 0, sizeof({{ impl_name }}));
+    memset(__act_mask, 0xff, sizeof(__act_mask));
+}
+
+{{ decl_name }}::{{ decl_name }}() {
+    impl = new {{ impl_name }}();
+    impl -> init();
+}

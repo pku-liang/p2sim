@@ -18,8 +18,6 @@
 #endif
 #endif
 
-void gprintf(const char *fmt, ...);
-
 {% for i in 2..=design.max_concat %}
 #define UINT_CONCAT{{ i }}(
     {%- for j in 0..i -%}
@@ -35,6 +33,9 @@ void gprintf(const char *fmt, ...);
 
 struct {{ impl_name }} {
     void step();
+    void init();
+
+    static void gprintf(const char *fmt, ...);
 
 {%- for state in design.states %}
     {%- if state.kind == StateKind::Input %}

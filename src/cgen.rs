@@ -10,17 +10,13 @@ pub struct CGenCfg {
     pub split_size: usize,
 }
 
-pub struct ExtraFiles<'r> {
-    pub cpp: &'r [&'r str],
-    pub hdr: &'r [&'r str],
-}
-
 struct FileMap {
     decl_h: String,
     impl_h: String,
     impl_c: String,
     gprintf_c: String,
     makefile: String,
+    extra: Vec<String>,
 }
 
 struct CGenCtx<'ir> {
@@ -77,7 +73,7 @@ fn partition_by_size<'a, T>(
     result
 }
 
-fn prepare_cgen<'ir>(design: &'ir Design, cfg: &'ir CGenCfg) -> CGenCtx<'ir> {
+fn prepare_cgen<'ir>(design: &'ir Design, cfg: &'ir CGenCfg, extra: Vec<String>) -> CGenCtx<'ir> {
     let par_logics = partition_by_size(&design.logics, |logic| logic.insts.len(), cfg.split_size);
     let par_resets = partition_by_size(&design.resets, |reset| reset.insts.len(), cfg.split_size);
     let logics = par_logics
@@ -103,12 +99,13 @@ fn prepare_cgen<'ir>(design: &'ir Design, cfg: &'ir CGenCfg) -> CGenCtx<'ir> {
             impl_c: format!("S{}Impl.cc", design.name),
             gprintf_c: format!("gprintf.cc"),
             makefile: format!("Makefile"),
+            extra,
         }
     }
 }
 
 mod filters {
-    use std::borrow::Cow;
+    use std::{borrow::Cow, path::Path};
 
     pub fn int_ty(width: &usize, _: &dyn askama::Values) -> askama::Result<Cow<'static, str>> {
         Ok(match width {
@@ -119,6 +116,19 @@ mod filters {
             65..=128 => Cow::Borrowed("__uint128_t"),
             _ => Cow::Owned(format!("unsigned _BitInt({width})")),
         })
+    }
+
+    pub fn hashed_name(name: &str, _: &dyn askama::Values) -> askama::Result<String> {
+        use sha1::{Digest, Sha1};
+        let mut hasher = Sha1::new();
+        hasher.update(name.as_bytes());
+        let result = hasher.finalize();
+        let hex = format!("{:x}", result);
+        let file_name = match Path::new(name).file_stem() {
+            Some(name) => &name.to_string_lossy(),
+            None => "unknown",
+        };
+        Ok(format!("{}.{}", file_name, &hex[..8]))
     }
 }
 
@@ -193,11 +203,11 @@ import_template!(StructImplC, "cgen-struct-impl.cpp.j2");
 import_template!(Makefile, "cgen-makefile.mk.j2");
 import_template!(Gprintf, "gprintf.j2");
 
-pub fn cgen(d: &Design, cfg: &CGenCfg, out_dir: &str) -> std::io::Result<()> {
+pub fn cgen(d: &Design, cfg: &CGenCfg, out_dir: &str, extra: Vec<String>) -> std::io::Result<()> {
     if !std::fs::exists(out_dir)? {
         std::fs::create_dir_all(out_dir)?;
     }
-    let ctx = prepare_cgen(d, cfg);
+    let ctx = prepare_cgen(d, cfg, extra);
     cgen_logics(&ctx, out_dir)?;
     StructDeclH::cgen(&ctx, out_dir, &ctx.file_map.decl_h)?;
     StructImplH::cgen(&ctx, out_dir, &ctx.file_map.impl_h)?;
