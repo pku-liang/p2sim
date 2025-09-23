@@ -1,13 +1,19 @@
-use std::{ops::Deref};
+use std::ops::Deref;
 
 use askama::Template;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
+use crate::TemplateExt;
 use crate::ir::*;
 
 pub struct CGenCfg {
     pub act_pack: u32,
     pub split_size: usize,
+}
+
+pub struct ExtraCfg {
+    pub cpp: Vec<String>,
+    pub define: Vec<String>,
 }
 
 struct FileMap {
@@ -16,7 +22,6 @@ struct FileMap {
     impl_c: String,
     gprintf_c: String,
     makefile: String,
-    extra: Vec<String>,
 }
 
 struct CGenCtx<'ir> {
@@ -27,6 +32,7 @@ struct CGenCtx<'ir> {
     logics: Vec<(String, &'ir [Logic])>,
     resets: Vec<(String, &'ir [ResetLogic])>,
     file_map: FileMap,
+    extra: &'ir ExtraCfg,
 }
 
 fn iter_logic_groups<'a>(data: &'a [Logic], pack: u32) -> impl Iterator<Item = (u32, &'a [Logic])> {
@@ -73,7 +79,7 @@ fn partition_by_size<'a, T>(
     result
 }
 
-fn prepare_cgen<'ir>(design: &'ir Design, cfg: &'ir CGenCfg, extra: Vec<String>) -> CGenCtx<'ir> {
+fn prepare_cgen<'ir>(design: &'ir Design, cfg: &'ir CGenCfg, extra: &'ir ExtraCfg) -> CGenCtx<'ir> {
     let par_logics = partition_by_size(&design.logics, |logic| logic.insts.len(), cfg.split_size);
     let par_resets = partition_by_size(&design.resets, |reset| reset.insts.len(), cfg.split_size);
     let logics = par_logics
@@ -93,14 +99,14 @@ fn prepare_cgen<'ir>(design: &'ir Design, cfg: &'ir CGenCfg, extra: Vec<String>)
         cfg,
         logics,
         resets,
+        extra,
         file_map: FileMap {
             decl_h: format!("S{}.h", design.name),
             impl_h: format!("S{}Impl.h", design.name),
             impl_c: format!("S{}Impl.cc", design.name),
             gprintf_c: format!("gprintf.cc"),
             makefile: format!("Makefile"),
-            extra,
-        }
+        },
     }
 }
 
@@ -203,7 +209,7 @@ import_template!(StructImplC, "cgen-struct-impl.cpp.j2");
 import_template!(Makefile, "cgen-makefile.mk.j2");
 import_template!(Gprintf, "gprintf.j2");
 
-pub fn cgen(d: &Design, cfg: &CGenCfg, out_dir: &str, extra: Vec<String>) -> std::io::Result<()> {
+pub fn cgen(d: &Design, cfg: &CGenCfg, out_dir: &str, extra: &ExtraCfg) -> std::io::Result<()> {
     if !std::fs::exists(out_dir)? {
         std::fs::create_dir_all(out_dir)?;
     }

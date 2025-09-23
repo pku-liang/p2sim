@@ -2,9 +2,7 @@ use std::{fs::File, path::absolute};
 
 use clap::Parser;
 use ggsim::{
-    cgen::{CGenCfg, cgen},
-    compile::parse,
-    ir::Design,
+    analysis::{dump_logic_graph_gephi, print_logic_info, GephiDumpCfg}, cgen::{cgen, CGenCfg, ExtraCfg}, compile::parse, ir::Design
 };
 use memmap2::Mmap;
 
@@ -12,7 +10,11 @@ use memmap2::Mmap;
 struct Cli {
     input: Vec<String>,
     #[arg(short, long)]
-    output: String,
+    output: Option<String>,
+    #[arg(long)]
+    dump_gephi: Option<String>,
+    #[arg(short = 'D')]
+    defines: Vec<String>,
 }
 
 struct Input {
@@ -23,8 +25,16 @@ struct Input {
 impl Input {
     fn new(inputs: Vec<String>) -> Self {
         Self {
-            sexpr: inputs.iter().filter(|s| s.ends_with(".sexp") || s.ends_with(".sexpr")).cloned().collect(),
-            cpp: inputs.iter().filter(|s| s.ends_with(".cpp") || s.ends_with(".cc")).cloned().collect(),
+            sexpr: inputs
+                .iter()
+                .filter(|s| s.ends_with(".sexp") || s.ends_with(".sexpr"))
+                .cloned()
+                .collect(),
+            cpp: inputs
+                .iter()
+                .filter(|s| s.ends_with(".cpp") || s.ends_with(".cc"))
+                .cloned()
+                .collect(),
         }
     }
 }
@@ -45,9 +55,20 @@ fn main() {
         act_pack: 32,
         split_size: 8192,
     };
-    let mut extra = vec![];
-    for cpp in input.cpp {
-        extra.push(absolute(&cpp).unwrap().to_string_lossy().to_string());
+    print_logic_info(&d);
+    if let Some(dump_gephi) = cli.dump_gephi {
+        let cfg = GephiDumpCfg::from_prefix(&dump_gephi);
+        dump_logic_graph_gephi(&d, &cfg).unwrap();
     }
-    cgen(&d, &cfg, &cli.output, extra).unwrap();
+    if let Some(output) = cli.output {
+        let mut cpp = vec![];
+        for file in input.cpp {
+            cpp.push(absolute(&file).unwrap().to_string_lossy().to_string());
+        }
+        let extra = ExtraCfg {
+            cpp,
+            define: cli.defines,
+        };
+        cgen(&d, &cfg, &output, &extra).unwrap();
+    }
 }

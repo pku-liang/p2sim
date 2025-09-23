@@ -8,6 +8,7 @@ ariadne = { version = "0.5.1", features = ["auto-color"] }
 askama = "0.14.0"
 clap = { version = "4.5.48", features = ["derive"] }
 memmap2 = "0.9.8"
+petgraph = "0.8.2"
 rayon = "1.11.0"
 serde = { version = "1.0.226", features = ["derive"] }
 serde-lexpr = "0.1.3"

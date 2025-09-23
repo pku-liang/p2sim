@@ -13,7 +13,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#define __DUT_ysyx3__
 #define GSIM
 
 #define CYCLE_STEP_PERCENT 1
@@ -24,17 +23,17 @@
 #define CYCLE_MAX_PERF 5000000
 #define CYCLE_MAX_SIM  11000000
 #elif defined(__DUT_NutShell__)
-#define DUT_MEMORY mem$rdata_mem$mem
+#define DUT_MEMORY get_mem$rdata_mem$mem
 #define REF_MEMORY SimTop__DOT__mem__DOT__rdata_mem__DOT__mem_ext__DOT__Memory
 #define CYCLE_MAX_PERF 50000000
 #define CYCLE_MAX_SIM  250000000
 #elif defined(__DUT_rocket__)
-#define DUT_MEMORY mem$srams$mem
+#define DUT_MEMORY get_mem$srams$mem
 #define REF_MEMORY TestHarness__DOT__mem__DOT__srams__DOT__mem_ext__DOT__Memory
 #define CYCLE_MAX_PERF 2000000
 #define CYCLE_MAX_SIM  4200000
 #elif defined(__DUT_large_boom__) || defined(__DUT_small_boom__)
-#define DUT_MEMORY mem$srams$mem
+#define DUT_MEMORY get_mem$srams$mem
 #define REF_MEMORY TestHarness__DOT__mem__DOT__srams__DOT__mem_ext__DOT__Memory
 #define CYCLE_MAX_PERF 1000000
 #ifdef __DUT_large_boom__
@@ -43,7 +42,7 @@
 #define CYCLE_MAX_SIM  5400000
 #endif
 #elif defined(__DUT_minimal_xiangshan__) || defined(__DUT_default_xiangshan__)
-#define DUT_MEMORY memory$ram$rdata_mem$mem
+#define DUT_MEMORY get_memory$ram$rdata_mem$mem
 #define REF_MEMORY SimTop__DOT__memory__DOT__ram__DOT__rdata_mem__DOT__mem_ext__DOT__Memory
 #define CYCLE_MAX_PERF 500000
 #ifdef __DUT_default_xiangshan__
