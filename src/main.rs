@@ -2,7 +2,10 @@ use std::{fs::File, path::absolute};
 
 use clap::Parser;
 use ggsim::{
-    analysis::{dump_logic_graph_gephi, print_logic_info, GephiDumpCfg}, cgen::{cgen, CGenCfg, ExtraCfg}, compile::parse, ir::Design
+    analysis::{GephiDumpCfg, dump_logic_graph_gephi, print_logic_info},
+    cgen::{CGenCfg, ExtraCfg, cgen},
+    compile::parse,
+    ir::Design,
 };
 use memmap2::Mmap;
 

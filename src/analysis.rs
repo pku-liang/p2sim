@@ -1,7 +1,13 @@
+use std::{
+    fs::File,
+    io::{BufWriter, Write},
+    path::PathBuf,
+};
 
-use std::{fs::File, io::{BufWriter, Write}, path::PathBuf};
-
-use petgraph::{graph::{node_index, DiGraph, NodeIndex}, Direction};
+use petgraph::{
+    Direction,
+    graph::{DiGraph, NodeIndex, node_index},
+};
 
 use crate::ir::*;
 
@@ -13,14 +19,11 @@ pub fn compute_inst_costs(insts: &[Inst]) -> f64 {
             Inst::Raw(s) => {
                 if s.starts_with("if") {
                     coef *= 0.5;
-                }
-                else if s.starts_with("} else") {
+                } else if s.starts_with("} else") {
                     // do nothing
-                }
-                else if s.starts_with("}") {
+                } else if s.starts_with("}") {
                     coef *= 2.0;
-                }
-                else {
+                } else {
                     cost += coef * 2.0;
                 }
             }
@@ -55,7 +58,14 @@ pub fn dump_logic_graph_gephi(design: &Design, cfg: &GephiDumpCfg) -> std::io::R
     writeln!(node_file, "ID,Label,Order,Weight")?;
     writeln!(edge_file, "Source,Target")?;
     for logic in &design.logics {
-        writeln!(node_file, "{},{},{},{}", logic.id.0, logic.id.0, logic.id.0, logic.insts.len())?;
+        writeln!(
+            node_file,
+            "{},{},{},{}",
+            logic.id.0,
+            logic.id.0,
+            logic.id.0,
+            logic.insts.len()
+        )?;
     }
     for logic in &design.logics {
         for next in &logic.next {
@@ -88,7 +98,11 @@ pub fn logics_to_petgraph(design: &Design) -> DiGraph<f64, ()> {
 pub fn compute_depth<N, E>(g: &DiGraph<N, E>, dir: Direction) -> Vec<usize> {
     let mut dep = vec![0; g.node_count()];
     let mut update = |node: NodeIndex| {
-        dep[node.index()] = g.neighbors_directed(node, dir).map(|n| dep[n.index()] + 1).max().unwrap_or(0);
+        dep[node.index()] = g
+            .neighbors_directed(node, dir)
+            .map(|n| dep[n.index()] + 1)
+            .max()
+            .unwrap_or(0);
     };
     if matches!(dir, Direction::Incoming) {
         for node in g.node_indices() {
@@ -122,8 +136,14 @@ pub fn print_logic_info(design: &Design) {
     let graph = logics_to_petgraph(design);
     let avg_degree = graph.edge_count() as f64 / graph.node_count() as f64;
     let avg_cost = graph.node_weights().sum::<f64>() / graph.node_count() as f64;
-    let num_sinks = graph.node_indices().filter(|&node| graph.neighbors_directed(node, Direction::Outgoing).count() == 0).count();
-    let num_sources = graph.node_indices().filter(|&node| graph.neighbors_directed(node, Direction::Incoming).count() == 0).count();
+    let num_sinks = graph
+        .node_indices()
+        .filter(|&node| graph.neighbors_directed(node, Direction::Outgoing).count() == 0)
+        .count();
+    let num_sources = graph
+        .node_indices()
+        .filter(|&node| graph.neighbors_directed(node, Direction::Incoming).count() == 0)
+        .count();
     let topo_gen = compute_topo_gen(&graph);
     let mut avg_depth = 0.0;
     for (i, w) in topo_gen.iter().enumerate() {
@@ -138,11 +158,13 @@ pub fn print_logic_info(design: &Design) {
     eprintln!("Sources:  {}", num_sources);
     eprintln!("Topo gen: {}", topo_gen.len());
     eprintln!("Avg Depth: {:.2}", avg_depth);
-    eprintln!("Avg Width: {:.2}", graph.node_count() as f64 / num_sinks as f64);
+    eprintln!(
+        "Avg Width: {:.2}",
+        graph.node_count() as f64 / num_sinks as f64
+    );
     eprint!("    GEN:");
     for w in topo_gen {
         eprint!(" {:.1}", w);
     }
     eprintln!();
 }
-

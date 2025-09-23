@@ -13,3 +13,9 @@ clangxx = ">=21.1.1,<22"
 lld = ">=21.1.1,<22"
 ninja = ">=1.13.1,<2"
 just = ">=1.42.4,<2"
+ccache = ">=4.11.3,<5"
+
+[activation.env]
+CXX = "clang++"
+CC = "clang"
+CCACHE = "ccache"
