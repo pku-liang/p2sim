@@ -9,7 +9,7 @@ void {{ impl_name }}::set_{{ state.name }}({{ state.width | int_ty }} data) {
     {{ state.width | int_ty }} {{ state.name }}$old = {{ state.name }};
     {{ state.name }} = data;
     bool cond = {{ state.name }} != {{ state.name }}$old;
-    {% call actset::activates("cond", &state.acts) %}
+    {% call actset::activates("cond", &state.acts, u32::MAX) %}
 }
 void {{ decl_name }}::set_{{ state.name }}({{ state.width | int_ty }} data) {
     impl->set_{{ state.name }}(data);
@@ -49,3 +49,16 @@ void {{ impl_name }}::init() {
     impl = new {{ impl_name }}();
     impl -> init();
 }
+
+{% if cfg.count_act %}
+bool {{ impl_name }}::dump_act_count(const char * filename) {
+    FILE * f = fopen(filename, "w");
+    if(!f) return false;
+    fwrite(__act_count, sizeof(__act_count), 1, f);
+    fclose(f);
+    return true;
+}
+bool {{ decl_name }}::dump_act_count(const char * filename) {
+    return impl->dump_act_count(filename);
+}
+{% endif %}

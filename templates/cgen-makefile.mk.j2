@@ -17,6 +17,9 @@ CXXFLAGS += -DDUT_NAME="{{ decl_name }}"
 CXXFLAGS += -DDUT_HEADER="\"{{ file_map.decl_h }}\""
 
 EXTRA_CXXFLAGS = {%- for define in extra.define %} -D{{ define }} {%- endfor %}
+{%- if cfg.count_act%}
+EXTRA_CXXFLAGS += -DCOUNT_ACT="\"$(CURDIR)/act_count.bin\""
+{%- endif %}
 
 sim: $(objs)
 	$(CXX) $(LDFLAGS) $^ -o $@ $(LDLIBS)

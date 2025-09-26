@@ -9,6 +9,7 @@ use crate::ir::*;
 pub struct CGenCfg {
     pub act_pack: u32,
     pub split_size: usize,
+    pub count_act: bool,
 }
 
 pub struct ExtraCfg {

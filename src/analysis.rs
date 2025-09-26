@@ -81,13 +81,13 @@ impl LogicId {
     }
 }
 
-pub fn logics_to_petgraph(design: &Design) -> DiGraph<f64, ()> {
+pub fn logics_to_petgraph(logics: &[Logic]) -> DiGraph<f64, ()> {
     let mut graph = DiGraph::new();
-    for logic in &design.logics {
+    for logic in logics {
         let cost = compute_inst_costs(&logic.insts);
         graph.add_node(cost);
     }
-    for logic in &design.logics {
+    for logic in logics {
         for next in &logic.next {
             graph.add_edge(logic.id.to_nodeid(), next.to_nodeid(), ());
         }
@@ -133,7 +133,7 @@ pub fn compute_topo_gen<N, E>(g: &DiGraph<N, E>) -> Vec<f64> {
 }
 
 pub fn print_logic_info(design: &Design) {
-    let graph = logics_to_petgraph(design);
+    let graph = logics_to_petgraph(&design.logics);
     let avg_degree = graph.edge_count() as f64 / graph.node_count() as f64;
     let avg_cost = graph.node_weights().sum::<f64>() / graph.node_count() as f64;
     let num_sinks = graph

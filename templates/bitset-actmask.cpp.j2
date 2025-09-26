@@ -1,16 +1,19 @@
-{%- macro activate(cond, id) %}
+{%- macro activate(cond, id, own_id) %}
             __act_mask[{{ id.0 / cfg.act_pack }}] |= {{ cond }} << {{ id.0 % cfg.act_pack}}; // {{ id.0 }}
+            {%- if cfg.count_act && own_id != u32::MAX %}
+            __act_count[{{ own_id }}][{{ id.0 }}] += 1;
+            {%- endif %}
 {%- endmacro %}
 
-{%- macro activates(cond, ids) %}
+{%- macro activates(cond, ids, own_id) %}
     {%- if ids.len() <= 3 %}
     {%- for id in ids %}
-        {%- call activate(cond, id) %}
+        {%- call activate(cond, id, own_id) %}
     {%- endfor %}
     {%- else %}
         if ({{ cond }}) {
             {%- for id in ids %}
-                {%- call activate("1ull", id) %}
+                {%- call activate("1ull", id, own_id) %}
             {%- endfor %}
         }
     {%- endif %}

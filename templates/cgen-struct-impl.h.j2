@@ -59,4 +59,9 @@ struct {{ impl_name }} {
         [{{ dim }}]
     {%- endfor -%};
 {%- endfor %}
+
+{%- if cfg.count_act%}
+    uint64_t __act_count[{{ design.logics.len() }}][{{ design.logics.len() }}];
+    bool dump_act_count(const char * filename);
+{%- endif%}
 };

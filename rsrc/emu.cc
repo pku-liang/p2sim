@@ -13,8 +13,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#define GSIM
-
 #define CYCLE_STEP_PERCENT 1
 
 #if defined(__DUT_ysyx3__)
@@ -97,7 +95,6 @@ extern "C" void sd_read(int* data){
 #error Unsupport DUT = DUT_NAME
 #endif
 
-#if defined(GSIM)
 #include DUT_HEADER
 static DUT_NAME* dut;
 
@@ -129,61 +126,6 @@ void dut_hook(DUT_NAME *dut) {
   }
 #endif
 }
-#endif
-
-#if defined(VERILATOR)
-#include "verilated.h"
-#include REF_HEADER
-static REF_NAME* ref;
-
-void ref_init(REF_NAME *ref) {
-#if defined(__DUT_NutShell__)
-  ref->rootp->difftest_logCtrl_begin = ref->rootp->difftest_logCtrl_begin = 0;
-  ref->rootp->difftest_uart_in_valid = -1;
-#elif defined(__DUT_minimal_xiangshan__) || defined(__DUT_default_xiangshan__)
-  ref->difftest_perfCtrl_clean = ref->difftest_perfCtrl_dump = 0;
-  ref->difftest_uart_in_ch = -1;
-  ref->difftest_uart_in_valid = 0;
-#endif
-}
-
-void ref_hook(REF_NAME *ref) {
-#if defined(__DUT_NutShell__)
-  if (ref->rootp->difftest_uart_out_valid) {
-    printf("%c", ref->rootp->difftest_uart_out_ch);
-    fflush(stdout);
-  }
-#elif defined(__DUT_minimal_xiangshan__) || defined(__DUT_default_xiangshan__)
-  if (ref->difftest_uart_out_valid) {
-    printf("%c", ref->difftest_uart_out_ch);
-    fflush(stdout);
-  }
-#endif
-}
-#endif
-
-#if defined(GSIM_DIFF)
-#include <top_ref.h>
-REF_NAME* ref;
-
-void ref_init(REF_NAME* ref) {
-#if defined(__DUT_NutShell__)
-  ref->set_difftest$$logCtrl$$begin(0);
-  ref->set_difftest$$logCtrl$$end(0);
-  ref->set_difftest$$uart$$in$$ch(-1);
-#elif defined(__DUT_minimal_xiangshan__) || defined(__DUT_default_xiangshan__)
-#if 0
-  ref->set_difftest$$perfCtrl$$clean(0);
-  ref->set_difftest$$perfCtrl$$dump(0);
-  ref->set_difftest$$logCtrl$$begin(0);
-  ref->set_difftest$$logCtrl$$end(0);
-  ref->set_difftest$$logCtrl$$level(0);
-#endif
-  ref->set_difftest$$uart$$in$$ch(-1);
-#endif
-}
-
-#endif
 
 static int program_sz = 0;
 static int program_fd = 0;
@@ -225,122 +167,36 @@ static void close_program() {
   close(program_fd);
 }
 
-#ifdef GSIM
 void dut_cycle(int n) { while (n --) dut->step(); }
 void dut_reset() { dut->set_reset(1); dut_cycle(10); dut->set_reset(0); }
-#endif
-#ifdef VERILATOR
-void ref_cycle(int n) {
-  while (n --) {
-    ref->clock = 0; ref->eval();
-    ref->clock = 1; ref->eval();
-  }
-}
-void ref_reset() { ref->reset = 1; ref_cycle(10); ref->reset = 0; }
-#endif
-#ifdef GSIM_DIFF
-void ref_cycle(int n) { while (n --) ref->step(); }
-void ref_reset() { ref->set_reset(1); ref_cycle(10); ref->set_reset(0); }
-#endif
-
-#if (defined(VERILATOR) || defined(GSIM_DIFF)) && defined(GSIM)
-bool checkSig(bool display, REF_NAME* ref, DUT_NAME* dut);
-bool checkSignals(bool display) {
-  return checkSig(display, ref, dut);
-}
-#endif
 
 int main(int argc, char** argv) {
   load_program(argv[1]);
-#ifdef GSIM
   dut = new DUT_NAME();
   memcpy(dut->DUT_MEMORY(), program, program_sz);
   dut_init(dut);
   dut_reset();
-#endif
-#ifdef VERILATOR
-  ref = new REF_NAME();
-  memcpy(&ref->rootp->REF_MEMORY, program, program_sz);
-  ref_init(ref);
-  ref_reset();
-#endif
-#ifdef GSIM_DIFF
-  ref = new REF_NAME();
-  memcpy(&ref->DUT_MEMORY, program, program_sz);
-  ref_init(ref);
-  ref_reset();
-#endif
   close_program();
-
   std::cout << "start testing.....\n";
   std::signal(SIGINT, [](int){ dut_end = true; });
   std::signal(SIGTERM, [](int){ dut_end = true; });
   uint64_t cycles = 0;
-#ifdef PERF
-  FILE* activeFp = fopen(ACTIVE_FILE, "w");
-#endif
   auto start = std::chrono::system_clock::now();
   while (!dut_end) {
-#if defined(GSIM)
     dut_cycle(1);
     dut_hook(dut);
-#endif
-#ifdef VERILATOR
-    ref_cycle(1);
-    ref_hook(ref);
-#endif
-#ifdef GSIM_DIFF
-    ref_cycle(1);
-#endif
     cycles ++;
-#if (defined(VERILATOR) || defined(GSIM_DIFF)) && defined(GSIM)
-    bool isDiff = checkSignals(false);
-    if(isDiff) {
-      printf("all Sigs:\n -----------------\n");
-      checkSignals(true);
-      printf("ALL diffs: dut -- ref\n");
-      printf("Failed after %ld cycles\n", cycles);
-      checkSignals(false);
-      return -1;
-    }
-#endif
     if (cycles % (CYCLE_MAX_SIM / (CYCLE_STEP_PERCENT * 100)) == 0 && cycles <= CYCLE_MAX_SIM) {
       auto dur = std::chrono::system_clock::now() - start;
       auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
       fprintf(stderr, "cycles %ld (%ld ms, %ld per sec) simulation process %.2lf%% \n",
           cycles, msec.count(), cycles * 1000 / msec.count(), (double)cycles * 100 / CYCLE_MAX_SIM);
-#ifdef PERF
-      size_t totalActives = 0;
-      size_t validActives = 0;
-      size_t nodeActives = 0;
-      for (size_t i = 0; i < sizeof(dut->activeTimes) / sizeof(dut->activeTimes[0]); i ++) {
-        totalActives += dut->activeTimes[i];
-        validActives += dut->validActive[i];
-        nodeActives += dut->nodeNum[i] * dut->activeTimes[i];
-      }
-      printf("nodeNum %ld totalActives %ld activePerCycle %ld totalValid %ld validPerCycle %ld nodeActive %ld\n",
-          nodeNum, totalActives, totalActives / cycles, validActives, validActives / cycles, nodeActives);
-      fprintf(activeFp, "totalActives %ld activePerCycle %ld totalValid %ld validPerCycle %ld\n",
-          totalActives, totalActives / cycles, validActives, validActives / cycles);
-      for (size_t i = 1; i < sizeof(dut->activeTimes) / sizeof(dut->activeTimes[0]); i ++) {
-        fprintf(activeFp, "%ld: activeTimes %ld validActive %ld\n", i, dut->activeTimes[i], dut->validActive[i]);
-      }
-
-      std::ofstream out("data/active/activeTimes" + std::to_string(cycles / 10000000) + ".txt");
-      std::vector<uint64_t> activeTimes(dut->allActiveTimes);
-      std::vector<uint64_t> sorted = sort_indexes(activeTimes);
-      out << "posActives " << dut->posActivate << " " << dut->posActivate / cycles << " actives " << dut->activeNum / cycles << std::endl;
-      out << "funcTime " << dut->funcTime << " activeTime " << dut->activeTime << " regsTime " << dut->regsTime << " memoryTime " << dut->memoryTime << std::endl;
-      for (int i = sorted.size()-1; i >= 0; i --) {
-        if (dut->allNames[sorted[i]].length() == 0) continue;
-        out << dut->allNames[sorted[i]] << " " << dut->nodeNum[sorted[i]] << " " << (double)activeTimes[sorted[i]] / cycles << " " << activeTimes[sorted[i]] << " " \
-            << dut->posActives[sorted[i]] << " "  << (double)dut->posActives[sorted[i]] / activeTimes[sorted[i]] << std::endl;
-      }
-#endif
-#if defined(PERF) || defined(PERF_CYCLE)
-      if (cycles >= CYCLE_MAX_PERF) return 0;
-#endif
-      if (cycles == CYCLE_MAX_SIM) return 0;
+      if (cycles == CYCLE_MAX_SIM) break;
     }
   }
+#if defined(COUNT_ACT)
+  fprintf(stderr, "dump act_count.bin\n");
+  assert(dut->dump_act_count(COUNT_ACT));
+#endif
+  return 0;
 }

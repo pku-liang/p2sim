@@ -2,7 +2,7 @@
 
 #include "{{ file_map.impl_h }}"
 
-{%- macro emit_inst(inst) %}
+{%- macro emit_inst(inst, own_id) %}
     {%- match inst %}
         {%- when Inst::Raw(inst) %}
             {{ inst }}
@@ -11,9 +11,9 @@
         {%- when Inst::Act(Some(name), ids) %}
             {%- set cond = name ~ "$cond" %}
             bool {{ cond }} = {{ name }}$old != {{ name }};
-            {%- call actset::activates(cond, ids) %}
+            {%- call actset::activates(cond, ids, own_id) %}
         {%- when Inst::Act(None, ids) %}
-            {%- call actset::activates("1ull", ids) %}
+            {%- call actset::activates("1ull", ids, own_id) %}
     {%- endmatch %}
 {%- endmacro %}
 
@@ -29,7 +29,7 @@ void {{ impl_name }}::substep_{{ step_id }}() {
         {%- endif %}
             __act_mask[{{ pack }}] &= ~(1ull << {{ logic.id.0 % cfg.act_pack }});
             {%- for inst in logic.insts %}
-                {%- call emit_inst(inst) %}
+                {%- call emit_inst(inst, logic.id.0) %}
             {%- endfor %}
         }
     {%- endfor %}
@@ -42,9 +42,9 @@ void {{ impl_name }}::substep_{{ step_id }}() {
 void {{ impl_name }}::subreset_{{ step_id }}() {
 {%- for reset in resets %}
     if ({{ reset.reset }}) [[unlikely]] {
-    {%- call actset::activates("1ull", &reset.acts) %}
+    {%- call actset::activates("1ull", &reset.acts, u32::MAX) %}
     {%- for inst in reset.insts %}
-    {%- call emit_inst(inst) %}
+    {%- call emit_inst(inst, u32::MAX) %}
     {%- endfor %}
     }
 {%- endfor %}

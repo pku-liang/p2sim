@@ -8,6 +8,9 @@ public:
     {{ decl_name }}();
     ~{{ decl_name }}();
     void step();
+{%- if cfg.count_act%}
+    bool dump_act_count(const char * filename);
+{%- endif%}
 {%- for state in design.states %}
     {%- if state.kind == StateKind::Input %}
     void set_{{ state.name }}({{ state.width | int_ty }} data);
