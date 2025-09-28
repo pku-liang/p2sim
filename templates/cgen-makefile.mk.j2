@@ -4,11 +4,11 @@ objs := \
 {%- for logic in logics %}\
 	{{ logic.0 }}.o
 {%- endfor %}
-{%- for reset in resets %}\
-	{{ reset.0 }}.o
-{%- endfor %}
 {%- for extra in extra.cpp %}\
 	{{ extra | hashed_name }}.o
+{%- endfor %}
+{%- for reset in resets %}\
+	{{ reset.0 }}.o
 {%- endfor %}
 
 CXXFLAGS += -I.

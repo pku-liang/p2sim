@@ -57,7 +57,7 @@ fn main() {
     let cfg = CGenCfg {
         act_pack: 32,
         split_size: 8192,
-        count_act: true,
+        count_act: false,
     };
     print_logic_info(&d);
     if let Some(dump_gephi) = cli.dump_gephi {

@@ -14,6 +14,7 @@ pub enum StateKind {
     Reader,
     Writer,
     Memory,
+    Reset,
 }
 
 index_ext! {
@@ -32,6 +33,9 @@ pub struct State {
     pub name: String,
     pub width: usize,
     pub dims: Vec<usize>,
+    pub writes: Vec<LogicId>,
+    pub creads: Vec<LogicId>,
+    pub sreads: Vec<LogicId>,
     pub acts: Vec<LogicId>,
 }
 
@@ -45,8 +49,8 @@ impl State {
 #[serde(rename_all = "kebab-case")]
 pub enum Inst {
     Raw(String),
-    Save(String, usize),
-    Act(Option<String>, Vec<LogicId>),
+    Save(StateId, String, bool, usize),
+    Act(StateId, String, bool, Vec<LogicId>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -54,7 +58,6 @@ pub struct Logic {
     pub id: LogicId,
     pub always: bool,
     pub next: Vec<LogicId>,
-    pub owned: Vec<StateId>,
     pub insts: Vec<Inst>,
 }
 

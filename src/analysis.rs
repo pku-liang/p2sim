@@ -30,7 +30,7 @@ pub fn compute_inst_costs(insts: &[Inst]) -> f64 {
             Inst::Save(..) => {
                 cost += coef;
             }
-            Inst::Act(_, acts) => {
+            Inst::Act(_, _, _, acts) => {
                 cost += coef * acts.len() as f64;
             }
         }

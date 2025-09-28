@@ -5,6 +5,7 @@ pub mod cgen;
 pub mod compile;
 pub mod ir;
 pub mod repcut;
+pub mod rpart;
 
 use std::{
     fs::File,

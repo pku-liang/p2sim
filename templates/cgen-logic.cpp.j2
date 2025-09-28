@@ -6,13 +6,14 @@
     {%- match inst %}
         {%- when Inst::Raw(inst) %}
             {{ inst }}
-        {%- when Inst::Save(name, width) %}
+        {%- when Inst::Save(_, name, false, width) %}
+        {%- when Inst::Save(_, name, true, width) %}
             {{ width | int_ty }} {{ name }}$old = {{ name }};
-        {%- when Inst::Act(Some(name), ids) %}
+        {%- when Inst::Act(_, name, true, ids) %}
             {%- set cond = name ~ "$cond" %}
             bool {{ cond }} = {{ name }}$old != {{ name }};
             {%- call actset::activates(cond, ids, own_id) %}
-        {%- when Inst::Act(None, ids) %}
+        {%- when Inst::Act(_, _, false, ids) %}
             {%- call actset::activates("1ull", ids, own_id) %}
     {%- endmatch %}
 {%- endmacro %}
