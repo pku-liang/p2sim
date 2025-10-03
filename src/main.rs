@@ -2,10 +2,11 @@ use std::{fs::File, path::absolute};
 
 use clap::Parser;
 use ggsim::{
-    analysis::{dump_logic_graph_gephi, print_logic_info, GephiDumpCfg},
-    cgen::{cgen, CGenCfg, ExtraCfg},
+    analysis::{GephiDumpCfg, dump_logic_graph_gephi, print_logic_info},
+    cgen::{CGenCfg, ExtraCfg, cgen},
     compile::parse,
-    ir::Design, repcut,
+    ir::Design,
+    repcut,
 };
 use memmap2::Mmap;
 
@@ -50,6 +51,7 @@ fn parse_file(input: &str) -> Design {
 }
 
 fn main() {
+    env_logger::init();
     let cli = Cli::parse();
     let input = Input::new(cli.input);
     assert!(input.sexpr.len() == 1, "only one sexpr file is supported");
