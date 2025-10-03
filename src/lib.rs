@@ -5,7 +5,6 @@ pub mod cgen;
 pub mod compile;
 pub mod ir;
 pub mod repcut;
-pub mod rpart;
 
 use std::{
     fs::File,
@@ -35,6 +34,10 @@ macro_rules! index_ext {
         impl From<usize> for $name {
             #[inline]
             fn from(value: usize) -> Self { $name(value as $idx) }
+        }
+        impl Into<usize> for $name {
+            #[inline]
+            fn into(self) -> usize { self.0 as usize }
         }
         impl $name {
             #[inline]

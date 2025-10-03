@@ -1,192 +1,286 @@
-// use std::cmp::Ordering;
+use itertools::Itertools;
+use ordered_float::OrderedFloat;
+use petgraph::{Direction, algo::toposort, graph::DiGraph};
+use priority_queue::PriorityQueue;
 
-// use ordered_float::OrderedFloat;
-// use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use crate::{analysis::compute_inst_costs, index_ext, ir::*, IndexExt};
 
-// use crate::ir::*;
+pub fn build_logic_graph(design: &Design) -> DiGraph<(), ()> {
+    let mut graph = DiGraph::new();
+    for _ in &design.logics {
+        graph.add_node(());
+    }
+    for state in &design.states {
+        for read in &state.creads {
+            for write in &state.writes {
+                graph.add_edge(write.to_nodeid(), read.to_nodeid(), ());
+            }
+        }
+    }
+    assert!(toposort(&graph, Default::default()).is_ok());
+    graph
+}
 
-// pub struct HyperGraph {
-//     pub nodes: Vec<LogicId>,
-//     pub edges: Vec<Vec<LogicId>>,
-//     pub edge_weights: Vec<usize>,
-//     pub node_weights: Vec<usize>,
-//     pub node_view: Vec<Vec<(usize, usize)>>,
-// }
+pub struct UFP<T: Copy + Eq + From<usize> + Into<usize>> {
+    pub parent: Vec<T>,
+}
 
-// impl HyperGraph {
-//     pub fn similarity(&self, a: usize, b: usize) -> f64 {
-//         iou(&self.node_view[a], &self.node_view[b])
-//     }
-// }
+impl<T: Copy + Eq + From<usize> + Into<usize>> UFP<T> {
+    pub fn new(n: usize) -> Self {
+        Self {
+            parent: (0..n).map(T::from).collect(),
+        }
+    }
+    pub fn find(&self, x: T) -> T {
+        let mut root = x;
+        while self.parent[root.into()] != root {
+            root = self.parent[root.into()];
+        }
+        root
+    }
+    pub fn find_mut(&mut self, x: T) -> T {
+        let mut root = x;
+        while self.parent[root.into()] != root {
+            root = self.parent[root.into()];
+        }
+        let mut ptr = x;
+        while ptr != root {
+            ptr = self.parent[ptr.into()];
+            self.parent[ptr.into()] = root;
+        }
+        root
+    }
+    pub fn update_all(&mut self) {
+        for i in 0..self.parent.len() {
+            self.find_mut(i.into());
+        }
+    }
+    pub fn merge_to(&mut self, x: T, y: T) -> bool {
+        let rx = self.find_mut(x);
+        let ry = self.find_mut(y);
+        if rx == ry {
+            return false;
+        }
+        self.parent[rx.into()] = ry;
+        return true;
+    }
+}
 
-// pub fn iou(a: &[(usize, usize)], b: &[(usize, usize)]) -> f64 {
-//     let mut union = 1;
-//     let mut inters = 1;
-//     let mut i = 0;
-//     let mut j = 0;
-//     while i < a.len() && j < b.len() {
-//         match a[i].0.cmp(&b[j].0) {
-//             Ordering::Equal => {
-//                 inters += a[i].1.min(b[j].1);
-//                 union += a[i].1.max(b[j].1);
-//                 i += 1;
-//                 j += 1;
-//             }
-//             Ordering::Less => {
-//                 union += a[i].1;
-//                 i += 1;
-//             }
-//             Ordering::Greater => {
-//                 union += b[j].1;
-//                 j += 1;
-//             }
-//         }
-//     }
-//     while i < a.len() {
-//         union += a[i].1;
-//         i += 1;
-//     }
-//     while j < b.len() {
-//         union += b[j].1;
-//         j += 1;
-//     }
-//     inters as f64 / union as f64
-// }
+pub fn check_pinned(design: &Design, id: LogicId) -> bool {
+    let logic = &design.logics[id];
+    // foreign logic
+    if logic.always {
+        return true;
+    }
+    // large array
+    for own in &logic.own {
+        if design.states[*own].element_count() > 128 {
+            return true;
+        }
+    }
+    return false;
+}
 
-// pub fn compute_dup_cost(states: &[State], logic: &Logic) -> usize {
-//     let mut cost = 0;
-//     for state in &logic.owned {
-//         let state = &states[state.index()];
-//         let prod_dims = state.dims.iter().fold(1, |acc, x| acc * *x);
-//         cost += (state.width + 7) / 8 * prod_dims as usize;
-//     }
-//     cost
-// }
+#[derive(Default, Clone)]
+pub struct SinkView {
+    nodes: Vec<LogicId>,
+    edges: Vec<LogicId>,
+    total_weight: f64,
+}
 
-// pub fn build_hyper_graph(design: &Design) -> HyperGraph {
-//     let logics = &design.logics;
-//     let mut nodes = vec![];
-//     let mut node_weights = vec![];
-//     let mut edges = vec![vec![]; logics.len()];
-//     let mut edge_weights = vec![0; logics.len()];
-//     for i in (0..logics.len()).rev() {
-//         let weight = compute_dup_cost(&design.states, &logics[i]);
-//         if logics[i].next.is_empty() {
-//             nodes.push(logics[i].id);
-//             node_weights.push(weight);
-//         }
-//         let mut cur_edges: Vec<LogicId> = vec![];
-//         for next in &logics[i].next {
-//             cur_edges.extend(edges[next.index()].iter().cloned());
-//         }
-//         cur_edges.sort();
-//         cur_edges.dedup();
-//         edges[i] = cur_edges;
-//         edge_weights[i] = weight;
-//     }
-//     nodes.reverse();
-//     node_weights.reverse();
-//     let mut node_view = vec![vec![]; nodes.len()];
-//     for (i, (e, w)) in edges.iter().zip(edge_weights.iter()).enumerate() {
-//         for edge in e {
-//             node_view[edge.0 as usize].push((i, *w));
-//         }
-//     }
-//     HyperGraph {
-//         nodes,
-//         edges,
-//         edge_weights,
-//         node_weights,
-//         node_view,
-//     }
-// }
+impl SinkView {
+    pub fn present(&self) -> bool {
+        !self.nodes.is_empty()
+    }
+}
 
-// pub fn dist_matrix(graph: &HyperGraph) -> Vec<Vec<f64>> {
-//     (0..graph.nodes.len())
-//         .into_par_iter()
-//         .map(|i| {
-//             (0..graph.nodes.len())
-//                 .map(|j| graph.similarity(i, j))
-//                 .collect()
-//         })
-//         .collect()
-// }
+pub struct HGraph {
+    is_sink: Vec<bool>,       // whether the node is a sink
+    edges: Vec<Vec<LogicId>>, // edges of the hyper graph
+    edge_weights: Vec<f64>,   // weights of the edges
+    sinks: Vec<SinkView>,
+}
 
-// pub fn mst(dist: &[Vec<f64>]) -> Vec<(usize, usize, f64)> {
-//     let mut min_dist = vec![f64::MAX; dist.len()];
-//     let mut prev = vec![None; dist.len()];
-//     let mut used = vec![false; dist.len()];
-//     for _ in 0..dist.len() {
-//         let u = min_dist
-//             .iter()
-//             .enumerate()
-//             .filter(|(x, _)| !used[*x])
-//             .min_by_key(|(_, d)| OrderedFloat(**d));
-//         let Some((u, _)) = u else { break };
-//         used[u] = true;
-//         for v in 0..dist.len() {
-//             if !used[v] && dist[u][v] < min_dist[v] {
-//                 min_dist[v] = dist[u][v];
-//                 prev[v] = Some(u);
-//             }
-//         }
-//     }
-//     let mut res = vec![];
-//     for (i, p) in prev.iter().enumerate() {
-//         if let Some(p) = p {
-//             res.push((*p, i, min_dist[i]));
-//         }
-//     }
-//     res
-// }
+impl HGraph {
+    pub fn iou(&self, a: LogicId, b: LogicId) -> f64 {
+        let mut union = 1.0;
+        let mut inters = 0.0;
+        let mut pa = 0;
+        let mut pb = 0;
+        let sa = &self.sinks[a.0 as usize];
+        let sb = &self.sinks[b.0 as usize];
+        while pa < sa.edges.len() && pb < sb.edges.len() {
+            if sa.edges[pa] == sb.edges[pb] {
+                inters += self.edge_weights[sa.edges[pa]];
+                union += self.edge_weights[sa.edges[pa]];
+                pa += 1;
+                pb += 1;
+            } else if sa.edges[pa] < sb.edges[pb] {
+                union += self.edge_weights[sa.edges[pa]];
+                pa += 1;
+            } else {
+                union += self.edge_weights[sb.edges[pb]];
+                pb += 1;
+            }
+        }
+        while pa < sa.edges.len() {
+            union += self.edge_weights[sa.edges[pa]];
+            pa += 1;
+        }
+        while pb < sb.edges.len() {
+            union += self.edge_weights[sb.edges[pb]];
+            pb += 1;
+        }
+        inters / union
+    }
+    pub fn merge_sinks(&mut self, a: LogicId, b: LogicId) -> LogicId {
+        assert!(self.is_sink[a] && self.is_sink[b]);
+        assert!(self.sinks[a.0 as usize].present() && self.sinks[b.0 as usize].present());
+        let sink = std::mem::take(&mut self.sinks[a.0 as usize]);
+        let target = &mut self.sinks[b.0 as usize];
+        target.nodes.extend(sink.nodes.into_iter());
+        target.nodes.sort();
+        for &eid in &sink.edges {
+            self.edges[eid].retain(|&node| node != a);
+        }
+        target.edges.extend(sink.edges.into_iter());
+        target.edges.sort();
+        target.edges.dedup();
+        let mut total_weight = 0.0;
+        for eid in target.edges.iter() {
+            total_weight += self.edge_weights[*eid];
+        }
+        target.total_weight += total_weight;
+        b
+    }
+    pub fn sinks(&self) -> impl Iterator<Item = LogicId> + '_ {
+        self.sinks
+            .iter()
+            .enumerate()
+            .filter_map(|(i, sink)| sink.present().then_some(i.into()))
+    }
+    pub fn neighbors(&self, id: LogicId) -> impl Iterator<Item = LogicId> + '_ {
+        self.sinks[id.0 as usize]
+            .edges
+            .iter()
+            .flat_map(|&eid| self.edges[eid].iter().cloned())
+            .unique()
+    }
+}
 
-// pub struct UFP {
-//     parent: Vec<usize>,
-//     rank: Vec<u8>,
-// }
+pub fn build_hgraph(design: &Design) -> HGraph {
+    let mut is_sink = vec![false; design.logics.len()];
+    let mut sink_ufp = UFP::new(design.logics.len());
+    let mut is_pinned = vec![false; design.logics.len()];
+    let graph = build_logic_graph(design);
+    for logic in &design.logics {
+        is_pinned[logic.id] = check_pinned(design, logic.id);
+        let has_seq_read = logic
+            .own
+            .iter()
+            .find(|own| !design.states[**own].sreads.is_empty())
+            .is_some();
+        let has_no_succ = graph
+            .neighbors_directed(logic.id.to_nodeid(), Direction::Outgoing)
+            .count()
+            == 0;
+        for prev in graph.neighbors_directed(logic.id.to_nodeid(), Direction::Incoming) {
+            if is_pinned[prev.index()] {
+                is_pinned[logic.id] = true;
+                sink_ufp.merge_to(logic.id, prev.index().into());
+                break;
+            }
+        }
+        if (has_seq_read && has_no_succ) || is_pinned[logic.id] {
+            is_sink[logic.id] = true;
+        }
+    }
+    sink_ufp.update_all();
+    let mut edges: Vec<Vec<LogicId>> = vec![vec![]; design.logics.len()];
+    let mut edge_weights = vec![0.0; design.logics.len()];
+    for id in design.logics.ids().rev() {
+        let mut cur_edges = vec![];
+        if is_sink[id] {
+            cur_edges.push(id);
+        }
+        for succ in graph.neighbors_directed(id.to_nodeid(), Direction::Outgoing) {
+            cur_edges.extend(edges[succ.index()].iter().cloned());
+        }
+        for edge in cur_edges.iter_mut() {
+            *edge = sink_ufp.parent[edge.0 as usize];
+        }
+        cur_edges.sort();
+        cur_edges.dedup();
+        edges[id] = cur_edges;
+        edge_weights[id] = compute_inst_costs(&design.logics[id].insts);
+    }
+    let mut sinks = vec![SinkView::default(); design.logics.len()];
+    for (i, &prt) in sink_ufp.parent.iter().enumerate() {
+        sinks[prt].nodes.push(i.into());
+    }
+    for (i, edges) in edges.iter().enumerate() {
+        for &id in edges {
+            sinks[id].edges.push(i.into());
+            sinks[id].total_weight += edge_weights[i];
+        }
+    }
+    HGraph {
+        is_sink,
+        edges,
+        edge_weights,
+        sinks,
+    }
+}
 
-// impl UFP {
-//     pub fn new(n: usize) -> Self {
-//         Self {
-//             parent: (0..n).collect(),
-//             rank: vec![0; n],
-//         }
-//     }
-//     pub fn find(&self, mut x: usize) -> usize {
-//         while self.parent[x] != x {
-//             x = self.parent[x];
-//         }
-//         x
-//     }
-//     pub fn union(&mut self, x: usize, y: usize) {
-//         let rx = self.find(x);
-//         let ry = self.find(y);
-//         if rx == ry {
-//             return;
-//         }
-//         if self.rank[rx] < self.rank[ry] {
-//             self.parent[rx] = ry;
-//         } else if self.rank[rx] > self.rank[ry] {
-//             self.parent[ry] = rx;
-//         } else {
-//             self.parent[ry] = rx;
-//             self.rank[rx] += 1;
-//         }
-//     }
-// }
+index_ext!(containers LogicId, SinkView, f64, Vec<LogicId>);
 
-// pub fn mst_partition(graph: &HyperGraph, threshold: f64) -> Vec<Vec<LogicId>> {
-//     let dist = dist_matrix(graph);
-//     let mst = mst(&dist);
-//     let mut ufp = UFP::new(graph.nodes.len());
-//     for (u, v, d) in mst {
-//         if d >= threshold {
-//             ufp.union(u, v);
-//         }
-//     }
-//     let mut res = vec![vec![]; graph.nodes.len()];
-//     for (i, p) in graph.nodes.iter().enumerate() {
-//         res[ufp.find(i)].push(*p);
-//     }
-//     res.into_iter().filter(|x| !x.is_empty()).collect()
-// }
+pub fn partition(hg: &mut HGraph, threshold: f64) {
+    let mut pq = PriorityQueue::new();
+    for s in hg.sinks() {
+        for nei in hg.neighbors(s) {
+            pq.push((s, nei), OrderedFloat(hg.iou(s, nei)));
+        }
+    }
+    while let Some(((s, nei), _w)) = pq.pop() {
+        if !hg.sinks[s].present() || !hg.sinks[nei].present() {
+            continue;
+        }
+        // eprintln!("try merge {:?} and {:?}, cost={}, weights=[{}, {}]", s, nei, _w.0, hg.sinks[s].total_weight, hg.sinks[nei].total_weight);
+        // if hg.sinks[s].total_weight + hg.sinks[nei].total_weight > threshold {
+        //     continue;
+        // }
+        if _w.0 < 0.0001 {
+            continue;
+        }
+        eprintln!("merge {:?} and {:?}, cost={}", s, nei, _w.0);
+        let merged = hg.merge_sinks(s, nei);
+        for nei in hg.neighbors(merged) {
+            pq.change_priority(&(merged, nei), OrderedFloat(hg.iou(merged, nei)));
+            pq.change_priority(&(nei, merged), OrderedFloat(hg.iou(nei, merged)));
+        }
+    }
+}
+
+pub fn print_partition_stat(design: &Design, hg: &HGraph) {
+    let num_sinks = hg.sinks().count();
+    eprintln!("num_sinks: {}", num_sinks);
+}
+
+pub struct ThreadPart {
+
+}
+
+pub fn generate_thread(design: &Design, logics: &[LogicId]) {
+    
+}
+
+pub fn partition_design(design: &Design, hg: &HGraph) {
+    todo!()
+}
+
+pub fn repcut(design: &Design) {
+    let mut hg = build_hgraph(design);
+    print_partition_stat(design, &hg);
+    partition(&mut hg, 1000000.0);
+    print_partition_stat(design, &hg);
+}

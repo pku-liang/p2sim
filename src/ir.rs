@@ -43,6 +43,9 @@ impl State {
     pub fn is_array(&self) -> bool {
         !self.dims.is_empty()
     }
+    pub fn element_count(&self) -> usize {
+        self.dims.iter().product()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -57,6 +60,7 @@ pub enum Inst {
 pub struct Logic {
     pub id: LogicId,
     pub always: bool,
+    pub own: Vec<StateId>,
     pub next: Vec<LogicId>,
     pub insts: Vec<Inst>,
 }

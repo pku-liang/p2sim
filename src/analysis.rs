@@ -76,7 +76,7 @@ pub fn dump_logic_graph_gephi(design: &Design, cfg: &GephiDumpCfg) -> std::io::R
 }
 
 impl LogicId {
-    fn to_nodeid(self) -> NodeIndex {
+    pub fn to_nodeid(self) -> NodeIndex {
         node_index(self.0 as usize)
     }
 }

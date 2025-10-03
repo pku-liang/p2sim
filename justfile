@@ -14,9 +14,7 @@ run DESIGN: (compile DESIGN)
 
 init:
     git submodule update --init --recursive
-    cd gsim/ready-to-run          && for f in *.tar.bz2; do tar xvf $f; done
-    cd gsim/ready-to-run/bin      && for f in *.tar.bz2; do tar xvf $f; done
-    cd gsim/ready-to-run/difftest && for f in *.tar.bz2; do tar xvf $f; done
+    cd gsim/ready-to-run && pixi run bash ./init.sh
     cd gsim && pixi run bear -- make build-gsim
 
 gen target:

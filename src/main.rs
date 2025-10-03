@@ -2,10 +2,10 @@ use std::{fs::File, path::absolute};
 
 use clap::Parser;
 use ggsim::{
-    analysis::{GephiDumpCfg, dump_logic_graph_gephi, print_logic_info},
-    cgen::{CGenCfg, ExtraCfg, cgen},
+    analysis::{dump_logic_graph_gephi, print_logic_info, GephiDumpCfg},
+    cgen::{cgen, CGenCfg, ExtraCfg},
     compile::parse,
-    ir::Design,
+    ir::Design, repcut,
 };
 use memmap2::Mmap;
 
@@ -64,6 +64,7 @@ fn main() {
         let cfg = GephiDumpCfg::from_prefix(&dump_gephi);
         dump_logic_graph_gephi(&d, &cfg).unwrap();
     }
+    repcut::repcut(&d);
     if let Some(output) = cli.output {
         let mut cpp = vec![];
         for file in input.cpp {
