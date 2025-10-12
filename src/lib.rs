@@ -1,6 +1,9 @@
 #![feature(step_trait)]
 
+pub mod cgen;
+pub mod comp;
 pub mod ir;
+pub mod pass;
 
 use std::{
     fs::File,

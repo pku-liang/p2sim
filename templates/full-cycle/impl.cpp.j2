@@ -1,0 +1,50 @@
+#include "{{ ctx.smap.decl_h }}"
+
+void {{ ctx.name }}::step() {
+{%- for grp_id in 0..ctx.reset_groups.len() %}
+    reset_{{ grp_id }}();
+{%- endfor %}
+{%- for grp_id in 0..ctx.block_groups.len() %}
+    step_{{ grp_id }}();
+{%- endfor %}
+}
+
+void {{ ctx.name }}::init() {
+    memset(this, 0, sizeof({{ ctx.name }}));
+}
+
+{%- for state in ctx.iter_ext_state() %}
+{{ ctx.int_ty(state) }} {{ ctx.name }}::get_{{ ctx.name(state) }}() {
+    return {{ ctx.name(state) }};
+}
+void {{ ctx.name }}::set_{{ ctx.name(state) }}({{ ctx.int_ty(state) }} __value) {
+    {{ ctx.name(state) }} = __value;
+}
+{%- endfor %}
+
+void {{ ctx.name }}::gprintf(const char *fmt, ...) {
+    FILE *fp = stderr;
+    va_list args;
+    va_start(args, fmt);
+    int fmt_idx = 0;
+    while (true) {
+        char c = fmt[fmt_idx ++];
+        switch (c) {
+            case '%': break;
+            case 0: return;
+            default: fputc(c, fp); continue;
+        }
+        uint64_t lval = 0;
+        int bits = va_arg(args, uint32_t);
+        if      (bits <= 32) { lval = va_arg(args, uint32_t); }
+        else if (bits <= 64) { lval = va_arg(args, uint64_t); }
+        else                 { assert(0); }
+        c = fmt[fmt_idx ++];
+        switch (c) {
+            case 'd': fprintf(fp, "%ld", lval); break;
+            case 'c': fputc(lval & 0xff, fp); break;
+            case 'x': fprintf(fp, "%lx", lval); break;
+            default: assert(0);
+        }
+    }
+}

@@ -1,0 +1,45 @@
+CXX = clang++
+CXXFLAGS += -O2 -pthread
+LDFLAGS += -fuse-ld=lld -pthread
+
+objs = \
+	{{ ctx.smap.impl_cc }}.o
+{%- for grp_id in 0..ctx.block_groups.len() %} \
+	{{ ctx.smap.block_group(*grp_id) }}.o
+{%- endfor %}
+{%- for grp_id in 0..ctx.reset_groups.len() %} \
+	{{ ctx.smap.reset_group(*grp_id) }}.o
+{%- endfor %}
+{%- for extra in ctx.smap.extra_cpp %} \
+	{{ ctx.smap.extra_obj(extra) }}.o
+{%- endfor %}
+
+LDFLAGS +=
+{%- for link_dir in ctx.cfg.ccargs.link_dirs %} \
+	-L{{ link_dir }}
+{%- endfor %}
+{%- for link_lib in ctx.cfg.ccargs.link_libs %} \
+	-l{{ link_lib }}
+{%- endfor %}
+
+EXTRA_CXXFLAGS = \
+	-I$(CURDIR)
+{%- for inc_dir in ctx.cfg.ccargs.inc_dirs %} \
+	-I{{ inc_dir }}
+{%- endfor %}
+
+ifneq ($(CONDA_PREFIX),)
+EXTRA_CXXFLAGS += -I$(CONDA_PREFIX)/include
+LDFLAGS += -L$(CONDA_PREFIX)/lib
+endif
+
+sim: $(objs)
+	$(CXX) $^ -o $@ $(LDFLAGS) $(LDLIBS)
+
+%.cc.o: %.cc {{ ctx.smap.decl_h }}
+	$(CCACHE) $(CXX) -c $(CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+
+{%- for extra in ctx.smap.extra_cpp %}
+{{ ctx.smap.extra_obj(extra) }}.o: {{ extra }}
+	$(CCACHE) $(CXX) -c $(CFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(EXTRA_CXXFLAGS) -o $@ $<
+{%- endfor %}

@@ -1,0 +1,15 @@
+#include "{{ ctx.smap.decl_h }}"
+
+void {{ ctx.name }}::reset_{{ group_id }}() {
+    {%- for (id, reset) in ctx.iter_reset_group(*group_id) %}
+    { // reset {{ id.0 }}
+    {%- for inst in reset.insts %}
+    {%- match inst %}
+        {%- when Inst::CppCode(code) %}
+        {{ code }}
+        {%- when _ %}
+    {%- endmatch %}
+    {%- endfor %}
+    }
+    {%- endfor %}
+}

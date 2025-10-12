@@ -4,7 +4,7 @@ use index_vec_ext::index_ext;
 
 index_ext! {
     #[derive(Serialize, Deserialize)]
-    pub struct BlockId(pub u32) for Block
+    pub struct BlockId(pub u32) for Block, Reset
 }
 
 index_ext! {
@@ -17,7 +17,10 @@ index_ext! {
 pub struct State {
     pub name: String,
     pub width: usize,
+    #[serde(default)]
     pub dims: Vec<usize>,
+    #[serde(default)]
+    pub is_ext: bool,
     #[serde(default)]
     pub is_local: bool,
 }
@@ -38,10 +41,7 @@ pub enum Inst {
     /// ```cpp
     /// ty name = state[sid]
     /// ```
-    Read {
-        name: String,
-        sid: StateId,
-    },
+    Read { name: String, sid: StateId },
 
     /// Prepare for copy on write on state[sid]
     /// ```cpp
@@ -52,10 +52,7 @@ pub enum Inst {
     /// ty & name = state[sid]
     /// ty name$old = state[sid]
     /// ```
-    WritePre {
-        name: String,
-        sid: StateId,
-    },
+    WritePre { name: String, sid: StateId },
 
     /// Execute C++ code
     /// ```cpp
@@ -73,10 +70,7 @@ pub enum Inst {
     /// bool diff = name != name$old;
     /// activate(diff, sid)
     /// ```
-    WritePost {
-        name: String,
-        sid: StateId,
-    }
+    WritePost { name: String, sid: StateId },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -97,10 +91,10 @@ pub struct Reset {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-
 pub struct Design {
     pub name: String,
     pub max_concat: u32,
+    pub ext_fns: Vec<String>,
     pub states: Vec<State>,
     pub blocks: Vec<Block>,
     pub resets: Vec<Reset>,

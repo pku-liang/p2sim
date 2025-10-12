@@ -1,0 +1,60 @@
+#pragma once
+
+#include <cstdint>
+#include <cstring>
+#include <cstdio>
+#include <cstdarg>
+#include <cassert>
+
+#define gdiv(a, b) ((b) == 0 ? 0 : (a) / (b))
+#define gAssert(cond, ...) do {if (!(cond)) {fprintf(stderr, "\33[1;31m");fprintf(stderr, __VA_ARGS__);fprintf(stderr, "\33[0m\n");assert(cond);}} while (0)
+
+#ifndef __BITINT_MAXWIDTH__
+#error  BITINT support is required
+#endif
+
+#ifdef __clang__
+#if __clang_major__ < 19
+#error  Please compile with clang 19 or above
+#endif
+#endif
+
+{% for i in 2..=ctx.max_concat %}
+#define UINT_CONCAT{{ i }}(
+    {%- for j in 0..i -%}
+        _{{ j }} {%- if !loop.last %},{% endif %}
+    {%- endfor -%}
+) (
+    {%- for j in 0..i -%}
+        (((unsigned _BitInt({{ i * 64 }}))_{{ j }})<<{{ (i - j - 1) * 64}})
+        {%- if !loop.last %}|{% endif %}
+    {%- endfor -%}
+)
+{% endfor %}
+
+{%- for ext in ctx.ext_fns %}
+{{ ext }}
+{%- endfor %}
+
+struct {{ ctx.name }} {
+    void step();
+    void init();
+    static void gprintf(const char *fmt, ...);
+
+    {%- for state in ctx.iter_ext_state() %}
+    {{ ctx.int_ty(state) }} get_{{ ctx.name(state) }}();
+    void set_{{ ctx.name(state) }}({{ ctx.int_ty(state) }} value);
+    {%- endfor %}
+
+    {%- for grp_id in 0..ctx.block_groups.len() %}
+    void step_{{ grp_id }}();
+    {%- endfor %}
+    {%- for grp_id in 0..ctx.reset_groups.len() %}
+    void reset_{{ grp_id }}();
+    {%- endfor %}
+
+    {%- for state in ctx.states %}
+    {{ state.width | int_ty }} {{ state.name }}
+    {%- for dim in state.dims -%} [{{ dim }}] {%- endfor -%};
+    {%- endfor %}
+};

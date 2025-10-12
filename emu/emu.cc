@@ -17,7 +17,7 @@
 
 #define CYCLE_STEP_PERCENT 1
 
-static STestHarness * dut = nullptr;
+static TestHarness * dut = nullptr;
 static dtm_t * dtm = nullptr;
 
 void dut_cycle(int n) { while (n --) dut->step(); }
@@ -91,7 +91,8 @@ void SimDTM(
 
 int main(int argc, char** argv) {
   dtm = new dtm_t(argc, argv);
-  dut = new STestHarness();
+  dut = new TestHarness();
+  dut->init();
   dut->set_reset(1);
   dut_cycle(10);
   dut->set_reset(0);

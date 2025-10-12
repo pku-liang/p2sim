@@ -1,0 +1,15 @@
+#include "{{ ctx.smap.decl_h }}"
+
+void {{ ctx.name }}::step_{{ group_id }}() {
+    {%- for (id, block) in ctx.iter_block_group(*group_id) %}
+    { // block {{ id.0 }}
+    {%- for inst in block.insts %}
+    {%- match inst %}
+        {%- when Inst::CppCode(code) %}
+        {{ code }}
+        {%- when _ %}
+    {%- endmatch %}
+    {%- endfor %}
+    }
+    {%- endfor %}
+}
