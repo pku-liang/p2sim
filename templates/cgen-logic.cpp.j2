@@ -5,8 +5,9 @@
 {%- macro emit_inst(inst, own_id) %}
     {%- match inst %}
         {%- when Inst::Raw(inst) %}
-            {{ inst }}
-        {%- when Inst::Save(_, name, false, width) %}
+        {{ inst }}
+        {%- when _ -%}
+        {# {%- when Inst::Save(_, name, false, width) %}
         {%- when Inst::Save(_, name, true, width) %}
             {{ width | int_ty }} {{ name }}$old = {{ name }};
         {%- when Inst::Act(_, name, true, ids) %}
@@ -14,27 +15,20 @@
             bool {{ cond }} = {{ name }}$old != {{ name }};
             {%- call actset::activates(cond, ids, own_id) %}
         {%- when Inst::Act(_, _, false, ids) %}
-            {%- call actset::activates("1ull", ids, own_id) %}
+            {%- call actset::activates("1ull", ids, own_id) %} #}
     {%- endmatch %}
 {%- endmacro %}
 
 {%- if logics.len() > 0 %}
 void {{ impl_name }}::substep_{{ step_id }}() {
 {%- for (pack, groups) in self::iter_logic_groups(logics, *cfg.act_pack) %}
-    if(__act_mask[{{ pack }}]) {
     {%- for logic in groups %}
-        {%- if !logic.always%}
-        if(__act_mask[{{ pack }}] & (1ull << {{ logic.id.0 % cfg.act_pack }})) {
-        {%- else %}
-        { // always
-        {%- endif %}
-            __act_mask[{{ pack }}] &= ~(1ull << {{ logic.id.0 % cfg.act_pack }});
-            {%- for inst in logic.insts %}
-                {%- call emit_inst(inst, logic.id.0) %}
-            {%- endfor %}
-        }
-    {%- endfor %}
+    {
+        {%- for inst in logic.insts %}
+        {%- call emit_inst(inst, logic.id.0) %}
+        {%- endfor %}
     }
+    {%- endfor %}
 {%- endfor %}
 }
 {%- endif %}
@@ -42,8 +36,9 @@ void {{ impl_name }}::substep_{{ step_id }}() {
 {%- if resets.len() > 0 %}
 void {{ impl_name }}::subreset_{{ step_id }}() {
 {%- for reset in resets %}
-    if ({{ reset.reset }}) [[unlikely]] {
-    {%- call actset::activates("1ull", &reset.acts, u32::MAX) %}
+    {# if ({{ reset.reset }}) [[unlikely]]  #}
+    {
+    {# {%- call actset::activates("1ull", &reset.acts, u32::MAX) %} #}
     {%- for inst in reset.insts %}
     {%- call emit_inst(inst, u32::MAX) %}
     {%- endfor %}
