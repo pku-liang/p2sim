@@ -5,3 +5,6 @@
 *.egg-info
 
 /build
+
+/rsrc
+/designs

@@ -1,28 +1,10 @@
 use serde::{Deserialize, Serialize};
-use serde_tuple::{Deserialize_tuple, Serialize_tuple};
 
-use crate::index_ext;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum StateKind {
-    RegSrc,
-    RegDst,
-    Input,
-    Output,
-    Others,
-    Reader,
-    Writer,
-    Memory,
-    Reset,
-    ExtIn,
-    ExtOut,
-    Readwriter,
-}
+use index_vec_ext::index_ext;
 
 index_ext! {
     #[derive(Serialize, Deserialize)]
-    pub struct LogicId(pub u32) for Logic
+    pub struct BlockId(pub u32) for Block
 }
 
 index_ext! {
@@ -30,16 +12,14 @@ index_ext! {
     pub struct StateId(pub u32) for State
 }
 
-#[derive(Debug, Clone, Serialize_tuple, Deserialize_tuple)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct State {
-    pub kind: StateKind,
     pub name: String,
     pub width: usize,
     pub dims: Vec<usize>,
-    pub is_seq: bool,
-    pub uses: Vec<LogicId>,
-    pub modifies: Vec<LogicId>,
-    pub acts: Vec<LogicId>,
+    #[serde(default)]
+    pub is_local: bool,
 }
 
 impl State {
@@ -54,71 +34,74 @@ impl State {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Inst {
-    Raw(String),
-    Save(StateId, String, bool, usize),
-    Act(StateId, String, bool, Vec<LogicId>),
+    /// Read state[sid] and assign to name
+    /// ```cpp
+    /// ty name = state[sid]
+    /// ```
+    Read {
+        name: String,
+        sid: StateId,
+    },
+
+    /// Prepare for copy on write on state[sid]
+    /// ```cpp
+    /// ty name = state[sid]
+    /// ```
+    /// alt.
+    /// ```cpp
+    /// ty & name = state[sid]
+    /// ty name$old = state[sid]
+    /// ```
+    WritePre {
+        name: String,
+        sid: StateId,
+    },
+
+    /// Execute C++ code
+    /// ```cpp
+    /// { code }
+    /// ```
+    CppCode(String),
+
+    /// Post write operation
+    /// ```cpp
+    /// if(name != state[sid]) state[sid] = name
+    /// activate(diff, sid)
+    /// ```
+    /// alt.
+    /// ```cpp
+    /// bool diff = name != name$old;
+    /// activate(diff, sid)
+    /// ```
+    WritePost {
+        name: String,
+        sid: StateId,
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Logic {
-    pub id: LogicId,
-    pub always: bool,
-    pub own: Vec<StateId>,
-    pub next: Vec<LogicId>,
-    pub insts: Vec<Inst>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResetLogic {
-    pub id: u32,
-    pub reset: String,
-    pub acts: Vec<LogicId>,
+#[serde(rename_all = "kebab-case")]
+pub struct Block {
+    pub reads: Vec<StateId>,
+    pub writes: Vec<StateId>,
     pub insts: Vec<Inst>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+pub struct Reset {
+    pub reset: StateId,
+    pub insts: Vec<Inst>,
+    pub acts: Vec<BlockId>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+
 pub struct Design {
     pub name: String,
     pub max_concat: u32,
     pub states: Vec<State>,
-    pub logics: Vec<Logic>,
-    pub resets: Vec<ResetLogic>,
-}
-
-pub fn print_design_info(design: &Design) {
-    eprintln!("Design: {}", design.name);
-    eprintln!("  States: {}", design.states.len());
-    let num_seq = design.states.iter().filter(|s| s.is_seq).count();
-    eprintln!(
-        "    Seq: {} ({:.2}%)",
-        num_seq,
-        num_seq as f64 / design.states.len() as f64 * 100.0
-    );
-    let num_mem = design
-        .states
-        .iter()
-        .filter(|s| s.kind == StateKind::Memory)
-        .count();
-    eprintln!(
-        "    Mem: {} ({:.2}%)",
-        num_mem,
-        num_mem as f64 / design.states.len() as f64 * 100.0
-    );
-    eprintln!("  Logics: {}", design.logics.len());
-    let total_next_num = design.logics.iter().map(|l| l.next.len()).sum::<usize>();
-    eprintln!(
-        "    Avg Next: {:.2}",
-        total_next_num as f64 / design.logics.len() as f64
-    );
-    let total_own_num = design.logics.iter().map(|l| l.own.len()).sum::<usize>();
-    eprintln!(
-        "    Avg Own: {:.2}",
-        total_own_num as f64 / design.logics.len() as f64
-    );
-    let total_inst_num = design.logics.iter().map(|l| l.insts.len()).sum::<usize>();
-    eprintln!(
-        "    Avg Inst: {:.2}",
-        total_inst_num as f64 / design.logics.len() as f64
-    );
+    pub blocks: Vec<Block>,
+    pub resets: Vec<Reset>,
 }
