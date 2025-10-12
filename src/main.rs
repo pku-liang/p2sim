@@ -27,6 +27,8 @@ struct Cli {
     repr_cc: ReprCCArgs,
     #[arg(short, long)]
     output: String,
+    #[arg(long)]
+    build: bool,
 }
 
 struct InputFiles {
@@ -77,7 +79,7 @@ fn main() {
 
     let cfg = CGenCfg {
         file_inst_size: 8192,
-        output_dir: output_dir_abs,
+        output_dir: output_dir_abs.clone(),
         ccargs: CCArgs {
             extra_cpp: to_abs_path_vec(&inputs.cpp),
             inc_dirs: to_abs_path_vec(&args.repr_cc.inc_dirs),
@@ -87,4 +89,21 @@ fn main() {
     };
     info!("Generating code for {}", design.name);
     cgen::full_cycle_gen(&design, &cfg).unwrap();
+
+    if args.build {
+        let num_threads = rayon::current_num_threads();
+        let status = std::process::Command::new("make")
+            .arg("-C")
+            .arg(&output_dir_abs)
+            .arg("-j")
+            .arg(num_threads.to_string())
+            .stdout(std::process::Stdio::inherit())
+            .stderr(std::process::Stdio::inherit())
+            .stdin(std::process::Stdio::null())
+            .status()
+            .unwrap();
+        if status.code() != Some(0) {
+            panic!("Failed to build {}", design.name);
+        }
+    }
 }

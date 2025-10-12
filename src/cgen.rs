@@ -239,7 +239,11 @@ pub fn full_cycle_gen(d: &Design, cfg: &CGenCfg) -> std::io::Result<()> {
     let ctx = CGenCtx::new(cfg, d);
     let map = &ctx.smap;
 
-    info!("Generate fc_block_tasks={}, fc_reset_tasks={}", ctx.block_groups.len(), ctx.reset_groups.len());
+    info!(
+        "Generate fc_block_tasks={}, fc_reset_tasks={}",
+        ctx.block_groups.len(),
+        ctx.reset_groups.len()
+    );
     let fc_block_tasks = (0..ctx.block_groups.len())
         .map(|group_id| FCBlockGen {
             ctx: &ctx,
