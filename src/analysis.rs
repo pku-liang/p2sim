@@ -4,6 +4,8 @@ use std::{
     path::PathBuf,
 };
 
+use itertools::Itertools;
+use ordered_float::OrderedFloat;
 use petgraph::{
     Direction,
     graph::{DiGraph, NodeIndex, node_index},
@@ -150,19 +152,42 @@ pub fn print_logic_info(design: &Design) {
         avg_depth += w * i as f64;
     }
     avg_depth /= topo_gen.iter().sum::<f64>();
-    eprintln!("Edges:    {}", graph.edge_count());
-    eprintln!("Nodes:    {}", graph.node_count());
-    eprintln!("Avg deg:  {:.2}", avg_degree);
-    eprintln!("Avg cst:  {:.2}", avg_cost);
-    eprintln!("Sinks:    {}", num_sinks);
-    eprintln!("Sources:  {}", num_sources);
-    eprintln!("Topo gen: {}", topo_gen.len());
-    eprintln!("Avg Depth: {:.2}", avg_depth);
+
+    let cost_hist = graph
+        .node_weights()
+        .map(|x| OrderedFloat(*x))
+        .sorted()
+        .collect::<Vec<_>>();
+    let mut hist = vec![];
+    for i in 0..11 {
+        let idx = i * (cost_hist.len() - 1) / 10;
+        hist.push(cost_hist[idx].0);
+    }
+    eprintln!("  Cost hist: {:?}", hist);
+
+    eprintln!("Logic info:");
+    eprintln!("  Edges:    {}", graph.edge_count());
+    eprintln!("  Nodes:    {}", graph.node_count());
     eprintln!(
-        "Avg Width: {:.2}",
+        "  MaxCost:  {:.2}",
+        graph
+            .node_weights()
+            .map(|x| OrderedFloat(*x))
+            .max()
+            .unwrap_or(OrderedFloat(0.0))
+            .0
+    );
+    eprintln!("  Avg deg:  {:.2}", avg_degree);
+    eprintln!("  Avg cst:  {:.2}", avg_cost);
+    eprintln!("  Sinks:    {}", num_sinks);
+    eprintln!("  Sources:  {}", num_sources);
+    eprintln!("  Topo gen: {}", topo_gen.len());
+    eprintln!("  Avg Depth: {:.2}", avg_depth);
+    eprintln!(
+        "  Avg Width: {:.2}",
         graph.node_count() as f64 / num_sinks as f64
     );
-    eprint!("    GEN:");
+    eprint!("      GEN:");
     for w in topo_gen {
         eprint!(" {:.1}", w);
     }

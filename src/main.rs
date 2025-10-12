@@ -5,8 +5,7 @@ use ggsim::{
     analysis::{GephiDumpCfg, dump_logic_graph_gephi, print_logic_info},
     cgen::{CGenCfg, ExtraCfg, cgen},
     compile::parse,
-    ir::Design,
-    repcut,
+    ir::{Design, print_design_info},
 };
 use memmap2::Mmap;
 
@@ -51,7 +50,8 @@ fn parse_file(input: &str) -> Design {
 }
 
 fn main() {
-    env_logger::init();
+    // env_logger::init();
+    env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
     let cli = Cli::parse();
     let input = Input::new(cli.input);
     assert!(input.sexpr.len() == 1, "only one sexpr file is supported");
@@ -61,12 +61,12 @@ fn main() {
         split_size: 8192,
         count_act: false,
     };
+    print_design_info(&d);
     print_logic_info(&d);
     if let Some(dump_gephi) = cli.dump_gephi {
         let cfg = GephiDumpCfg::from_prefix(&dump_gephi);
         dump_logic_graph_gephi(&d, &cfg).unwrap();
     }
-    repcut::repcut(&d);
     if let Some(output) = cli.output {
         let mut cpp = vec![];
         for file in input.cpp {

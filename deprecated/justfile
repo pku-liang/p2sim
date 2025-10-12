@@ -2,6 +2,7 @@ alias c := compile
 alias r := run
 
 compile DESIGN:
+    ulimit -s unlimited
     cargo run --release --bin ggsim -- \
         -D__DUT_{{ replace(DESIGN, '-', '_') }}__ \
         rsrc/{{ DESIGN }}.sexp \

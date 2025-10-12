@@ -4,7 +4,6 @@ pub mod analysis;
 pub mod cgen;
 pub mod compile;
 pub mod ir;
-pub mod repcut;
 
 use std::{
     fs::File,
