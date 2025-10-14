@@ -1,36 +1,6 @@
 #pragma once
 
-#include <cstdint>
-#include <cstring>
-#include <cstdio>
-#include <cstdarg>
-#include <cassert>
-
-#define gdiv(a, b) ((b) == 0 ? 0 : (a) / (b))
-#define gAssert(cond, ...) do {if (!(cond)) {fprintf(stderr, "\33[1;31m");fprintf(stderr, __VA_ARGS__);fprintf(stderr, "\33[0m\n");assert(cond);}} while (0)
-
-#ifndef __BITINT_MAXWIDTH__
-#error  BITINT support is required
-#endif
-
-#ifdef __clang__
-#if __clang_major__ < 19
-#error  Please compile with clang 19 or above
-#endif
-#endif
-
-{% for i in 2..=ctx.max_concat %}
-#define UINT_CONCAT{{ i }}(
-    {%- for j in 0..i -%}
-        _{{ j }} {%- if !loop.last %},{% endif %}
-    {%- endfor -%}
-) (
-    {%- for j in 0..i -%}
-        (((unsigned _BitInt({{ i * 64 }}))_{{ j }})<<{{ (i - j - 1) * 64}})
-        {%- if !loop.last %}|{% endif %}
-    {%- endfor -%}
-)
-{% endfor %}
+{% include "common/decl.h.j2" %}
 
 {%- for ext in ctx.ext_fns %}
 {{ ext }}

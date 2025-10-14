@@ -2,13 +2,22 @@
 
 use std::borrow::Cow;
 
-use clap::{Args, Parser};
+use clap::{Args, Parser, ValueEnum};
 use ggsim::{
     cgen::{self, CCArgs, CGenCfg},
-    comp::parse_file,
+    comp::parse_file, pass,
 };
 use itertools::Itertools;
 use log::info;
+use serde::{Deserialize, Serialize};
+
+#[derive(ValueEnum, Clone, Copy, PartialEq, Eq)]
+enum CompileProfile {
+    #[clap(alias="ed")]
+    EventDriven,
+    #[clap(alias="fc")]
+    FullCycle,
+}
 
 #[derive(Args)]
 struct ReprCCArgs {
@@ -25,10 +34,14 @@ struct Cli {
     inputs: Vec<String>,
     #[command(flatten)]
     repr_cc: ReprCCArgs,
+    #[arg(short, long, default_value = "fc")]
+    profile: CompileProfile,
     #[arg(short, long)]
-    output: String,
+    output: Option<String>,
     #[arg(long)]
     build: bool,
+    #[arg(long)]
+    dump_stats: Option<String>,
 }
 
 struct InputFiles {
@@ -61,49 +74,60 @@ fn main() {
     assert!(inputs.sexpr.len() == 1, "Expect exactly one sexpr file");
     let input_sexpr = &inputs.sexpr[0];
 
-    let to_abs_path = |path: &str| {
-        std::path::absolute(path)
-            .unwrap()
-            .to_string_lossy()
-            .to_string()
-    };
-    let to_abs_path_vec = |paths: &[String]| paths.iter().map(|s| to_abs_path(&s)).collect_vec();
-    let output_dir_abs = to_abs_path(&args.output);
-
     info!("Parsing design from {}", input_sexpr);
     let design = parse_file(input_sexpr).unwrap();
 
-    if !std::fs::exists(&output_dir_abs).unwrap() {
-        std::fs::create_dir_all(&output_dir_abs).unwrap();
+    if let Some(dump_stats) = args.dump_stats {
+        let stats = pass::get_dep_stats(&design);
+        std::fs::write(dump_stats, serde_json::to_string(&stats).unwrap()).unwrap();
     }
 
-    let cfg = CGenCfg {
-        file_inst_size: 8192,
-        output_dir: output_dir_abs.clone(),
-        ccargs: CCArgs {
-            extra_cpp: to_abs_path_vec(&inputs.cpp),
-            inc_dirs: to_abs_path_vec(&args.repr_cc.inc_dirs),
-            link_dirs: to_abs_path_vec(&args.repr_cc.link_dirs),
-            link_libs: args.repr_cc.link_libs,
-        },
-    };
-    info!("Generating code for {}", design.name);
-    cgen::full_cycle_gen(&design, &cfg).unwrap();
-
-    if args.build {
-        let num_threads = rayon::current_num_threads();
-        let status = std::process::Command::new("make")
-            .arg("-C")
-            .arg(&output_dir_abs)
-            .arg("-j")
-            .arg(num_threads.to_string())
-            .stdout(std::process::Stdio::inherit())
-            .stderr(std::process::Stdio::inherit())
-            .stdin(std::process::Stdio::null())
-            .status()
-            .unwrap();
-        if status.code() != Some(0) {
-            panic!("Failed to build {}", design.name);
+    if let Some(output) = args.output {
+        let to_abs_path = |path: &str| {
+            std::path::absolute(path)
+                .unwrap()
+                .to_string_lossy()
+                .to_string()
+        };
+        let to_abs_path_vec = |paths: &[String]| paths.iter().map(|s| to_abs_path(&s)).collect_vec();
+        let output_dir_abs = to_abs_path(&output);
+    
+        if !std::fs::exists(&output_dir_abs).unwrap() {
+            std::fs::create_dir_all(&output_dir_abs).unwrap();
+        }
+    
+        let cfg = CGenCfg {
+            output_dir: output_dir_abs.clone(),
+            ccargs: CCArgs {
+                extra_cpp: to_abs_path_vec(&inputs.cpp),
+                inc_dirs: to_abs_path_vec(&args.repr_cc.inc_dirs),
+                link_dirs: to_abs_path_vec(&args.repr_cc.link_dirs),
+                link_libs: args.repr_cc.link_libs,
+            },
+            ..Default::default()
+        };
+    
+        info!("Generating code for {}", design.name);
+        match args.profile {
+            CompileProfile::EventDriven => cgen::event_driven_gen(&design, &cfg).unwrap(),
+            CompileProfile::FullCycle => cgen::full_cycle_gen(&design, &cfg).unwrap(),
+        }
+    
+        if args.build {
+            let num_threads = rayon::current_num_threads();
+            let status = std::process::Command::new("make")
+                .arg("-C")
+                .arg(&output_dir_abs)
+                .arg("-j")
+                .arg(num_threads.to_string())
+                .stdout(std::process::Stdio::inherit())
+                .stderr(std::process::Stdio::inherit())
+                .stdin(std::process::Stdio::null())
+                .status()
+                .unwrap();
+            if status.code() != Some(0) {
+                panic!("Failed to build {}", design.name);
+            }
         }
     }
 }

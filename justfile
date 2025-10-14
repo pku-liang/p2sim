@@ -1,10 +1,15 @@
 build-gsim:
     pixi run make -C gsim build-gsim
 
-compile-all: (compile "rocket-m") (compile "rocket-x") (compile "boom-m") (compile "boom-l")
+run profile target: (compile profile target)
+    ./build/{{ profile }}/{{ target }}/sim exe/dhrystone.riscv
+    ./build/{{ profile }}/{{ target }}/sim exe/coremark.riscv
 
-compile target:
-    pixi run cargo run --release designs/{{ target }}.ggsim.sexp emu/emu.cc -lfesvr -o build/{{ target }} --build
+[parallel]
+compile-all profile: (compile profile "rocket-m") (compile profile "rocket-x") (compile profile "boom-m") (compile profile "boom-l")
+
+compile profile target:
+    pixi run cargo run --release designs/{{ target }}.ggsim.sexp emu/emu.cc -lfesvr -o build/{{ profile }}/{{ target }} --profile {{ profile }} --build
 
 [parallel]
 gen-all: (gen "rocket-m") (gen "rocket-x") (gen "boom-m") (gen "boom-l")

@@ -353,6 +353,7 @@ dependencies = [
  "rustc-hash",
  "serde",
  "serde-lexpr",
+ "serde_json",
  "serde_tuple",
  "sha1",
 ]

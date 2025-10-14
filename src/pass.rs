@@ -1,8 +1,11 @@
 use index_vec_ext::IndexExt;
-use petgraph::graph::{DiGraph, NodeIndex, node_index};
+use petgraph::{graph::{node_index, DiGraph, NodeIndex}, visit::EdgeRef};
 use rustc_hash::FxHashMap;
+use serde::Serialize;
 
 use crate::ir::*;
+
+pub type ActMap = FxHashMap<StateId, Vec<BlockId>>;
 
 pub struct DepInfo {
     /// combinational dependency
@@ -28,6 +31,7 @@ pub fn get_dep_info(design: &Design) -> DepInfo {
     let mut sdep = DiGraph::new();
     for _ in &design.blocks {
         cdep.add_node(());
+        sdep.add_node(());
     }
     let mut last_read_blks: FxHashMap<StateId, Vec<BlockId>> = FxHashMap::default();
     let mut last_write_blks: FxHashMap<StateId, BlockId> = FxHashMap::default();
@@ -71,13 +75,46 @@ pub fn get_dep_info(design: &Design) -> DepInfo {
             }
             // write-after-write
             if let Some(write_blk) = last_write_blks.get(write) {
-                if *write_blk != blk_id {
-                    sdep.add_edge(write_blk.node_index(), blk_id.node_index(), ());
-                }
+                sdep.add_edge(write_blk.node_index(), blk_id.node_index(), ());
             }
             last_read_blks.remove(write);
             last_write_blks.remove(write);
         }
     }
     DepInfo { cdep, sdep }
+}
+
+pub fn get_act_map(design: &Design) -> ActMap {
+    let mut act_map: ActMap = FxHashMap::default();
+    for (blk_id, block) in design.blocks.enumerate_ids() {
+        for read in &block.reads {
+            act_map.entry(*read).or_default().push(blk_id);
+        }
+    }
+    act_map
+}
+
+#[derive(Debug, Serialize)]
+pub struct DepStats {
+    pub num_cdep: usize,
+    pub cdep_edges: Vec<(usize, usize)>,
+    pub num_sdep: usize,
+    pub sdep_edges: Vec<(usize, usize)>,
+}
+
+pub fn get_dep_stats(design: &Design) -> DepStats {
+    let dep_info = get_dep_info(design);
+    let mut stats = DepStats {
+        num_cdep: dep_info.cdep.node_count(),
+        cdep_edges: Vec::new(),
+        num_sdep: dep_info.sdep.node_count(),
+        sdep_edges: Vec::new(),
+    };
+    for e in dep_info.cdep.edge_references() {
+        stats.cdep_edges.push((e.source().index(), e.target().index()));
+    }
+    for e in dep_info.sdep.edge_references() {
+        stats.sdep_edges.push((e.source().index(), e.target().index()));
+    }
+    stats
 }

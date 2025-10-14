@@ -1,14 +1,19 @@
 #![allow(unused)]
 
-use std::{borrow::Cow, ops::Range, path::Path};
+use std::{
+    borrow::Cow,
+    ops::{Deref, Range},
+    path::Path,
+};
 
 use askama::Template;
 use index_vec_ext::IndexExt;
 use itertools::Itertools;
 use log::info;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use rustc_hash::FxHashMap;
 
-use crate::{TemplateExt, ir::*};
+use crate::{TemplateExt, ir::*, pass::get_act_map};
 
 fn int_ty_impl(width: usize) -> Cow<'static, str> {
     match width {
@@ -21,7 +26,7 @@ fn int_ty_impl(width: usize) -> Cow<'static, str> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct CCArgs {
     pub extra_cpp: Vec<String>,
     pub inc_dirs: Vec<String>,
@@ -34,6 +39,18 @@ pub struct CGenCfg {
     pub file_inst_size: usize,
     pub output_dir: String,
     pub ccargs: CCArgs,
+    pub act_mask_width: u32,
+}
+
+impl Default for CGenCfg {
+    fn default() -> Self {
+        Self {
+            file_inst_size: 8192,
+            output_dir: "".to_string(),
+            ccargs: CCArgs::default(),
+            act_mask_width: 32,
+        }
+    }
 }
 
 pub struct SourceMap<'ir> {
@@ -177,6 +194,9 @@ impl<'ir> CGenCtx<'ir> {
     fn name(&self, sid: &StateId) -> &str {
         &self.states[*sid].name
     }
+    fn is_array(&self, sid: &StateId) -> bool {
+        self.states[*sid].is_array()
+    }
     fn iter_ext_state(&self) -> impl Iterator<Item = StateId> {
         self.states
             .enumerate_ids()
@@ -200,6 +220,23 @@ impl<'ir> CGenCtx<'ir> {
             .iter()
             .enumerate()
             .map(move |(i, reset)| (BlockId((i + start) as u32), reset))
+    }
+    fn iter_block_act_group(
+        &self,
+        group_id: usize,
+    ) -> impl Iterator<Item = (usize, impl Iterator<Item = (BlockId, &Block)>)> {
+        let range = self.block_groups[group_id].clone();
+        let mut last_pos = range.start;
+        std::iter::from_fn(move || {
+            if last_pos >= range.end {
+                return None;
+            }
+            let last_pos_group = last_pos / self.cfg.act_mask_width as usize;
+            let next_pos = ((last_pos_group + 1) * self.cfg.act_mask_width  as usize).min(range.end);
+            let iter = (last_pos..next_pos).map(|i| (BlockId(i as u32), &self.blocks[i]));
+            last_pos = next_pos;
+            Some((last_pos_group, iter))
+        })
     }
 }
 
@@ -235,39 +272,153 @@ struct MakefileGen<'ir> {
     ctx: &'ir CGenCtx<'ir>,
 }
 
+trait WriteToFileStr {
+    fn write_into_file_str(&self, path: &str) -> std::io::Result<()>;
+}
+impl<T: TemplateExt> WriteToFileStr for T {
+    fn write_into_file_str(&self, path: &str) -> std::io::Result<()> {
+        TemplateExt::write_into_file(self, path)
+    }
+}
+
+struct CGenTask<'ir> {
+    task: Box<dyn WriteToFileStr + Send + 'ir>,
+    file: String,
+}
+
+fn run_cgen_tasks(tasks: Vec<CGenTask>) -> std::io::Result<()> {
+    tasks
+        .into_par_iter()
+        .map(|task| task.task.write_into_file_str(&task.file))
+        .collect()
+}
+
 pub fn full_cycle_gen(d: &Design, cfg: &CGenCfg) -> std::io::Result<()> {
     let ctx = CGenCtx::new(cfg, d);
     let map = &ctx.smap;
+    let mut tasks = vec![];
+    for group_id in 0..ctx.block_groups.len() {
+        tasks.push(CGenTask {
+            task: Box::new(FCBlockGen {
+                ctx: &ctx,
+                group_id,
+            }),
+            file: map.block_group_abs(group_id),
+        });
+    }
+    for group_id in 0..ctx.reset_groups.len() {
+        tasks.push(CGenTask {
+            task: Box::new(FCResetGen {
+                ctx: &ctx,
+                group_id,
+            }),
+            file: map.reset_group_abs(group_id),
+        });
+    }
+    tasks.push(CGenTask {
+        task: Box::new(FCDeclHGen { ctx: &ctx }),
+        file: map.decl_h_abs(),
+    });
+    tasks.push(CGenTask {
+        task: Box::new(FCImplCGen { ctx: &ctx }),
+        file: map.impl_cc_abs(),
+    });
+    tasks.push(CGenTask {
+        task: Box::new(MakefileGen { ctx: &ctx }),
+        file: map.makefile_abs(),
+    });
+    info!("Running {} cgen tasks", tasks.len());
+    run_cgen_tasks(tasks)
+}
 
-    info!(
-        "Generate fc_block_tasks={}, fc_reset_tasks={}",
-        ctx.block_groups.len(),
-        ctx.reset_groups.len()
-    );
-    let fc_block_tasks = (0..ctx.block_groups.len())
-        .map(|group_id| FCBlockGen {
-            ctx: &ctx,
-            group_id,
-        })
-        .collect_vec();
-    fc_block_tasks
-        .into_par_iter()
-        .map(|task| task.write_into_file(map.block_group_abs(task.group_id)))
-        .collect::<std::io::Result<()>>()?;
-    let fc_reset_tasks = (0..ctx.reset_groups.len())
-        .map(|group_id| FCResetGen {
-            ctx: &ctx,
-            group_id,
-        })
-        .collect_vec();
-    fc_reset_tasks
-        .into_par_iter()
-        .map(|task| task.write_into_file(map.reset_group_abs(task.group_id)))
-        .collect::<std::io::Result<()>>()?;
+struct EDCGenCtx<'ir> {
+    ctx: CGenCtx<'ir>,
+    act_map: FxHashMap<StateId, Vec<BlockId>>,
+}
 
-    info!("Generate other files");
-    FCDeclHGen { ctx: &ctx }.write_into_file(map.decl_h_abs())?;
-    FCImplCGen { ctx: &ctx }.write_into_file(map.impl_cc_abs())?;
-    MakefileGen { ctx: &ctx }.write_into_file(map.makefile_abs())?;
-    Ok(())
+impl<'ir> Deref for EDCGenCtx<'ir> {
+    type Target = CGenCtx<'ir>;
+    fn deref(&self) -> &Self::Target {
+        &self.ctx
+    }
+}
+
+impl<'ir> EDCGenCtx<'ir> {
+    fn new(cfg: &'ir CGenCfg, design: &'ir Design) -> Self {
+        let act_map = get_act_map(design);
+        Self {
+            ctx: CGenCtx::new(cfg, design),
+            act_map,
+        }
+    }
+    fn act_map(&self, sid: &StateId) -> &[BlockId] {
+        if let Some(act_map) = self.act_map.get(sid) {
+            act_map
+        } else {
+            &[]
+        }
+    }
+}
+
+#[derive(Template)]
+#[template(escape = "none", path = "event-driven/block.cpp.j2")]
+struct EDBlockGen<'ir> {
+    ctx: &'ir EDCGenCtx<'ir>,
+    group_id: usize,
+}
+
+#[derive(Template)]
+#[template(escape = "none", path = "event-driven/reset.cpp.j2")]
+struct EDResetGen<'ir> {
+    ctx: &'ir EDCGenCtx<'ir>,
+    group_id: usize,
+}
+
+#[derive(Template)]
+#[template(escape = "none", path = "event-driven/decl.h.j2")]
+struct EDDeclHGen<'ir> {
+    ctx: &'ir EDCGenCtx<'ir>,
+}
+
+#[derive(Template)]
+#[template(escape = "none", path = "event-driven/impl.cpp.j2")]
+struct EDImplCGen<'ir> {
+    ctx: &'ir EDCGenCtx<'ir>,
+}
+
+pub fn event_driven_gen(d: &Design, cfg: &CGenCfg) -> std::io::Result<()> {
+    let ctx = EDCGenCtx::new(cfg, d);
+    let map = &ctx.smap;
+    let mut tasks = vec![];
+    for group_id in 0..ctx.block_groups.len() {
+        tasks.push(CGenTask {
+            task: Box::new(EDBlockGen {
+                ctx: &ctx,
+                group_id,
+            }),
+            file: map.block_group_abs(group_id),
+        });
+    }
+    for group_id in 0..ctx.reset_groups.len() {
+        tasks.push(CGenTask {
+            task: Box::new(EDResetGen {
+                ctx: &ctx,
+                group_id,
+            }),
+            file: map.reset_group_abs(group_id),
+        });
+    }
+    tasks.push(CGenTask {
+        task: Box::new(EDDeclHGen { ctx: &ctx }),
+        file: map.decl_h_abs(),
+    });
+    tasks.push(CGenTask {
+        task: Box::new(EDImplCGen { ctx: &ctx }),
+        file: map.impl_cc_abs(),
+    });
+    tasks.push(CGenTask {
+        task: Box::new(MakefileGen { ctx: &ctx }),
+        file: map.makefile_abs(),
+    });
+    run_cgen_tasks(tasks)
 }

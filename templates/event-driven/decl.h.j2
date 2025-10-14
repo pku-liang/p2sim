@@ -1,0 +1,32 @@
+#pragma once
+
+{% include "common/decl.h.j2" %}
+
+{%- for ext in ctx.ext_fns %}
+{{ ext }}
+{%- endfor %}
+
+struct {{ ctx.name }} {
+    void step();
+    void init();
+    static void gprintf(const char *fmt, ...);
+
+    uint8_t __act_mask[{{ ctx.blocks.len() as u32 / ctx.cfg.act_mask_width + 1 }}];
+
+    {%- for state in ctx.iter_ext_state() %}
+    {{ ctx.int_ty(state) }} get_{{ ctx.name(state) }}();
+    void set_{{ ctx.name(state) }}({{ ctx.int_ty(state) }} value);
+    {%- endfor %}
+
+    {%- for grp_id in 0..ctx.block_groups.len() %}
+    void step_{{ grp_id }}();
+    {%- endfor %}
+    {%- for grp_id in 0..ctx.reset_groups.len() %}
+    void reset_{{ grp_id }}();
+    {%- endfor %}
+
+    {%- for state in ctx.states %}
+    {{ state.width | int_ty }} {{ state.name }}
+    {%- for dim in state.dims -%} [{{ dim }}] {%- endfor -%};
+    {%- endfor %}
+};

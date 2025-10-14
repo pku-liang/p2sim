@@ -1,0 +1,29 @@
+#include "{{ ctx.smap.decl_h }}"
+
+{% include "common/gprintf.cpp.j2" %}
+
+void {{ ctx.name }}::step() {
+{%- for grp_id in 0..ctx.reset_groups.len() %}
+    reset_{{ grp_id }}();
+{%- endfor %}
+{%- for grp_id in 0..ctx.block_groups.len() %}
+    step_{{ grp_id }}();
+{%- endfor %}
+}
+
+void {{ ctx.name }}::init() {
+    memset(this, 0, sizeof({{ ctx.name }}));
+    memset(__act_mask, 0xff, sizeof(__act_mask));
+}
+
+{%- for state in ctx.iter_ext_state() %}
+{{ ctx.int_ty(state) }} {{ ctx.name }}::get_{{ ctx.name(state) }}() {
+    return {{ ctx.name(state) }};
+}
+void {{ ctx.name }}::set_{{ ctx.name(state) }}({{ ctx.int_ty(state) }} __value) {
+    {{ ctx.name(state) }} = __value;
+    {%- for blk_id in ctx.act_map(state) %}
+    __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= 1 << {{ blk_id.0 % ctx.cfg.act_mask_width }};
+    {%- endfor %}
+}
+{%- endfor %}

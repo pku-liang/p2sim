@@ -1,0 +1,37 @@
+#include "{{ ctx.smap.decl_h }}"
+
+void {{ ctx.name }}::step_{{ group_id }}() {
+    {%- for (id, block) in ctx.iter_block_group(*group_id) %}
+    if(__act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] & (1ull << {{ id.0 % ctx.cfg.act_mask_width }})) {
+        __act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] &= ~(1ull << {{ id.0 % ctx.cfg.act_mask_width }});
+        {%- for inst in block.insts %}
+        {%- match inst %}
+        {%- when Inst::CppCode(code) %}
+        {{ code }}
+        {%- when Inst::Read{ name, sid } %}
+        {%- when Inst::WritePre{ name, sid } %}
+        {%- if !ctx.is_array(sid) %}
+        {{ ctx.int_ty(sid) }} {{ name }}$OLD${{ sid.0 }} = {{ ctx.name(sid) }};
+        {%- endif %}
+        {%- when Inst::WritePost{ name, sid } %}
+        {%- if !ctx.is_array(sid) %}
+        bool {{ name }}$CHG = {{ ctx.name(sid) }} != {{ name }}$OLD${{ sid.0 }};
+        {%- else %}
+        bool {{ name }}$CHG = true;
+        {%- endif %}
+        {%- if ctx.act_map(sid).len() < 5 %}
+        {%- for blk_id in ctx.act_map(sid) %}
+        __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= (uint{{ ctx.cfg.act_mask_width }}_t){{ name }}$CHG << {{ blk_id.0 % ctx.cfg.act_mask_width }};
+        {%- endfor %}
+        {%- else %}
+        if({{ name }}$CHG) {
+            {%- for blk_id in ctx.act_map(sid) %}
+            __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= 1 << {{ blk_id.0 % ctx.cfg.act_mask_width }};
+            {%- endfor %}
+        }
+        {%- endif %}
+        {%- endmatch %}
+        {%- endfor %}
+    }
+    {%- endfor %}
+}
