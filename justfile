@@ -18,3 +18,8 @@ gen-all: (gen "rocket-m") (gen "rocket-x") (gen "boom-m") (gen "boom-l")
 
 gen target: (build-gsim)
     gsim/build/gsim/gsim --output designs/{{ target }}.ggsim.sexp emu/rsrc/{{ target }}.gsim.fir
+
+[parallel]
+test-all profile: (test profile "rocket-m") (test profile "rocket-x") (test profile "boom-m") (test profile "boom-l")
+
+test profile target: (gen target) (run profile target) 
