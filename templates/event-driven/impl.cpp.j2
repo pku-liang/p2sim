@@ -12,7 +12,7 @@ void {{ ctx.name }}::step() {
 }
 
 void {{ ctx.name }}::init() {
-    memset(this, 0, sizeof({{ ctx.name }}));
+    memset(__syms_start, 0, __syms_end - __syms_start);
     memset(__act_mask, 0xff, sizeof(__act_mask));
 }
 

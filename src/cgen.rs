@@ -39,6 +39,7 @@ pub struct CGenCfg {
     pub file_inst_size: usize,
     pub output_dir: String,
     pub ccargs: CCArgs,
+    pub diff_test: bool,
     pub act_mask_width: u32,
 }
 
@@ -48,6 +49,7 @@ impl Default for CGenCfg {
             file_inst_size: 8192,
             output_dir: "".to_string(),
             ccargs: CCArgs::default(),
+            diff_test: false,
             act_mask_width: 32,
         }
     }

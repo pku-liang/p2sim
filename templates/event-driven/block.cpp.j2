@@ -2,7 +2,10 @@
 
 void {{ ctx.name }}::step_{{ group_id }}() {
     {%- for (grp, iter) in ctx.iter_block_act_group(*group_id) %}
-    if(__act_mask[{{ grp }}]) {
+    {% if !ctx.cfg.diff_test %}
+    if(__act_mask[{{ grp }}])
+    {%- endif %}
+    {
         {%- for (id, block) in iter %}
         {%- if !block.always  %}
         if(__act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] & ((act_t)1 << {{ id.0 % ctx.cfg.act_mask_width }}))

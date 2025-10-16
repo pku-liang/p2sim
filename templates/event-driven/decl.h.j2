@@ -6,7 +6,16 @@
 {{ ext }}
 {%- endfor %}
 
-struct {{ ctx.name }} {
+struct {{ ctx.name }}Syms {
+    char __syms_start[0];
+    {%- for state in ctx.states %}
+    {{ state.width | int_ty }} {{ state.name }}
+    {%- for dim in state.dims -%} [{{ dim }}] {%- endfor -%};
+    {%- endfor %}
+    char __syms_end[0];
+};
+
+struct {{ ctx.name }}: public {{ ctx.name }}Syms {
     using act_t = uint{{ ctx.cfg.act_mask_width }}_t;
 
     void step();
@@ -27,8 +36,4 @@ struct {{ ctx.name }} {
     void reset_{{ grp_id }}();
     {%- endfor %}
 
-    {%- for state in ctx.states %}
-    {{ state.width | int_ty }} {{ state.name }}
-    {%- for dim in state.dims -%} [{{ dim }}] {%- endfor -%};
-    {%- endfor %}
 };
