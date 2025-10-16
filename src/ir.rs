@@ -70,12 +70,13 @@ pub enum Inst {
     /// bool diff = name != name$old;
     /// activate(diff, sid)
     /// ```
-    WritePost { name: String, sid: StateId },
+    WritePost { name: String, sid: StateId, acts: Vec<BlockId>},
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Block {
+    pub always: bool,
     pub reads: Vec<StateId>,
     pub writes: Vec<StateId>,
     pub insts: Vec<Inst>,

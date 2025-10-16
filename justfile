@@ -1,9 +1,11 @@
 build-gsim:
     pixi run make -C gsim build-gsim
 
+run-all profile: (run profile "rocket-m") (run profile "rocket-x") (run profile "boom-m") (run profile "boom-l")
+
 run profile target: (compile profile target)
-    ./build/{{ profile }}/{{ target }}/sim exe/dhrystone.riscv
     ./build/{{ profile }}/{{ target }}/sim exe/coremark.riscv
+    ./build/{{ profile }}/{{ target }}/sim exe/dhrystone.riscv
 
 [parallel]
 compile-all profile: (compile profile "rocket-m") (compile profile "rocket-x") (compile profile "boom-m") (compile profile "boom-l")

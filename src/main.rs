@@ -77,6 +77,8 @@ fn main() {
     info!("Parsing design from {}", input_sexpr);
     let design = parse_file(input_sexpr).unwrap();
 
+    pass::verify_dep(&design);
+
     if let Some(dump_stats) = args.dump_stats {
         let stats = pass::get_dep_stats(&design);
         std::fs::write(dump_stats, serde_json::to_string(&stats).unwrap()).unwrap();

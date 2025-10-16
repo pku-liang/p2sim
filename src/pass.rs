@@ -1,4 +1,5 @@
 use index_vec_ext::IndexExt;
+use log::warn;
 use petgraph::{graph::{node_index, DiGraph, NodeIndex}, visit::EdgeRef};
 use rustc_hash::FxHashMap;
 use serde::Serialize;
@@ -117,4 +118,21 @@ pub fn get_dep_stats(design: &Design) -> DepStats {
         stats.sdep_edges.push((e.source().index(), e.target().index()));
     }
     stats
+}
+
+pub fn verify_dep(design: &Design) {
+    let act_map = get_act_map(design);
+    for block in &design.blocks {
+        for inst in &block.insts {
+            if let Inst::WritePost { sid, acts, .. } = inst {
+                let act_map_acts = act_map.get(sid).map(|x| &x[..]).unwrap_or(&[]);
+                for a in acts {
+                    assert!(act_map_acts.contains(a), "Act {} doesn't include {:?}, ({:?})", design.states[*sid].name, a, act_map_acts);
+                }
+                if acts.len() < act_map_acts.len() {
+                    warn!("Actmap acts more than insts: {} {} => {}", design.states[*sid].name, acts.len(), act_map_acts.len());
+                }
+            } 
+        }
+    }
 }

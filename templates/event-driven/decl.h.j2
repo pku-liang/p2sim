@@ -7,11 +7,13 @@
 {%- endfor %}
 
 struct {{ ctx.name }} {
+    using act_t = uint{{ ctx.cfg.act_mask_width }}_t;
+
     void step();
     void init();
     static void gprintf(const char *fmt, ...);
 
-    uint8_t __act_mask[{{ ctx.blocks.len() as u32 / ctx.cfg.act_mask_width + 1 }}];
+    act_t __act_mask[{{ ctx.blocks.len() as u32 / ctx.cfg.act_mask_width + 1 }}];
 
     {%- for state in ctx.iter_ext_state() %}
     {{ ctx.int_ty(state) }} get_{{ ctx.name(state) }}();
