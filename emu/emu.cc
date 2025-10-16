@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
     max_cycles = std::atoi(getenv("MAX_CYCLES"));
   }
   clock_t prev = clock();
-  while (cycle < max_cycles) {
+  while (true) {
     cycle++;
     dut_cycle(1);
     if(cycle % 100000 == 0) {
@@ -112,6 +112,11 @@ int main(int argc, char** argv) {
     }
     if(cycle >= 10 && dut->get_io$$success()) {
       break;
+    }
+    if(cycle >= max_cycles) {
+      printf("cycle=%d, freq=%lf kHz\n", cycle, cycle * 1.0 / (clock() - prev) * CLOCKS_PER_SEC / 1000);
+      printf("cycle reached max cycles, this may be a bug\n");
+      exit(1);
     }
   }
   printf("cycle=%d, freq=%lf kHz\n", cycle, cycle * 1.0 / (clock() - prev) * CLOCKS_PER_SEC / 1000);

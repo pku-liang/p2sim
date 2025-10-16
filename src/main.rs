@@ -85,11 +85,6 @@ fn main() {
     pass::verify_dep(&design);
     pass::verify_never_act(&design);
 
-    if let Some(dump_stats) = args.dump_stats {
-        let stats = pass::get_dep_stats(&design);
-        std::fs::write(dump_stats, serde_json::to_string(&stats).unwrap()).unwrap();
-    }
-
     if let Some(output) = args.output {
         let to_abs_path = |path: &str| {
             std::path::absolute(path)
