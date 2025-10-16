@@ -5,7 +5,8 @@ use std::borrow::Cow;
 use clap::{Args, Parser, ValueEnum};
 use ggsim::{
     cgen::{self, CCArgs, CGenCfg},
-    comp::parse_file, pass,
+    comp::parse_file,
+    pass,
 };
 use itertools::Itertools;
 use log::info;
@@ -13,9 +14,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(ValueEnum, Clone, Copy, PartialEq, Eq)]
 enum CompileProfile {
-    #[clap(alias="ed")]
+    #[clap(alias = "ed")]
     EventDriven,
-    #[clap(alias="fc")]
+    #[clap(alias = "fc")]
     FullCycle,
 }
 
@@ -27,6 +28,8 @@ struct ReprCCArgs {
     link_dirs: Vec<String>,
     #[arg(short = 'l')]
     link_libs: Vec<String>,
+    #[arg(short = 'g')]
+    debug: bool,
 }
 
 #[derive(Parser)]
@@ -42,6 +45,8 @@ struct Cli {
     build: bool,
     #[arg(long)]
     dump_stats: Option<String>,
+    #[arg(long)]
+    diff_test: bool,
 }
 
 struct InputFiles {
@@ -78,6 +83,7 @@ fn main() {
     let design = parse_file(input_sexpr).unwrap();
 
     pass::verify_dep(&design);
+    pass::verify_never_act(&design);
 
     if let Some(dump_stats) = args.dump_stats {
         let stats = pass::get_dep_stats(&design);
@@ -91,13 +97,14 @@ fn main() {
                 .to_string_lossy()
                 .to_string()
         };
-        let to_abs_path_vec = |paths: &[String]| paths.iter().map(|s| to_abs_path(&s)).collect_vec();
+        let to_abs_path_vec =
+            |paths: &[String]| paths.iter().map(|s| to_abs_path(&s)).collect_vec();
         let output_dir_abs = to_abs_path(&output);
-    
+
         if !std::fs::exists(&output_dir_abs).unwrap() {
             std::fs::create_dir_all(&output_dir_abs).unwrap();
         }
-    
+
         let cfg = CGenCfg {
             output_dir: output_dir_abs.clone(),
             ccargs: CCArgs {
@@ -105,16 +112,18 @@ fn main() {
                 inc_dirs: to_abs_path_vec(&args.repr_cc.inc_dirs),
                 link_dirs: to_abs_path_vec(&args.repr_cc.link_dirs),
                 link_libs: args.repr_cc.link_libs,
+                debug: args.repr_cc.debug,
             },
+            diff_test: args.diff_test,
             ..Default::default()
         };
-    
+
         info!("Generating code for {}", design.name);
         match args.profile {
             CompileProfile::EventDriven => cgen::event_driven_gen(&design, &cfg).unwrap(),
             CompileProfile::FullCycle => cgen::full_cycle_gen(&design, &cfg).unwrap(),
         }
-    
+
         if args.build {
             let num_threads = rayon::current_num_threads();
             let status = std::process::Command::new("make")

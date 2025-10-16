@@ -1,6 +1,8 @@
 #include "{{ ctx.smap.decl_h }}"
 
-{% include "common/gprintf.cpp.j2" %}
+{%- import "common/gprintf.cpp.j2" as gprintf -%}
+
+{%- call gprintf::emit_gprintf(ctx.name ~ "::gprintf") %}
 
 void {{ ctx.name }}::step() {
 {%- for grp_id in 0..ctx.reset_groups.len() %}

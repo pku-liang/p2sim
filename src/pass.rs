@@ -1,7 +1,10 @@
 use index_vec_ext::IndexExt;
 use log::warn;
-use petgraph::{graph::{node_index, DiGraph, NodeIndex}, visit::EdgeRef};
-use rustc_hash::FxHashMap;
+use petgraph::{
+    graph::{DiGraph, NodeIndex, node_index},
+    visit::EdgeRef,
+};
+use rustc_hash::{FxHashMap, FxHashSet};
 use serde::Serialize;
 
 use crate::ir::*;
@@ -112,10 +115,14 @@ pub fn get_dep_stats(design: &Design) -> DepStats {
         sdep_edges: Vec::new(),
     };
     for e in dep_info.cdep.edge_references() {
-        stats.cdep_edges.push((e.source().index(), e.target().index()));
+        stats
+            .cdep_edges
+            .push((e.source().index(), e.target().index()));
     }
     for e in dep_info.sdep.edge_references() {
-        stats.sdep_edges.push((e.source().index(), e.target().index()));
+        stats
+            .sdep_edges
+            .push((e.source().index(), e.target().index()));
     }
     stats
 }
@@ -127,12 +134,40 @@ pub fn verify_dep(design: &Design) {
             if let Inst::WritePost { sid, acts, .. } = inst {
                 let act_map_acts = act_map.get(sid).map(|x| &x[..]).unwrap_or(&[]);
                 for a in acts {
-                    assert!(act_map_acts.contains(a), "Act {} doesn't include {:?}, ({:?})", design.states[*sid].name, a, act_map_acts);
+                    assert!(
+                        act_map_acts.contains(a),
+                        "Act {} doesn't include {:?}, ({:?})",
+                        design.states[*sid].name,
+                        a,
+                        act_map_acts
+                    );
                 }
                 if acts.len() < act_map_acts.len() {
-                    warn!("Actmap acts more than insts: {} {} => {}", design.states[*sid].name, acts.len(), act_map_acts.len());
+                    warn!(
+                        "Actmap acts more than insts: {} {} => {}",
+                        design.states[*sid].name,
+                        acts.len(),
+                        act_map_acts.len()
+                    );
                 }
-            } 
+            }
+        }
+    }
+}
+pub fn verify_never_act(design: &Design) {
+    let mut all_acts = FxHashSet::default();
+    for block in &design.blocks {
+        for inst in &block.insts {
+            if let Inst::WritePost { acts, .. } = inst {
+                for a in acts {
+                    all_acts.insert(a);
+                }
+            }
+        }
+    }
+    for (blk_id, block) in design.blocks.enumerate_ids() {
+        if !block.always && !all_acts.contains(&blk_id) {
+            warn!("Block {:?} never acts", blk_id);
         }
     }
 }

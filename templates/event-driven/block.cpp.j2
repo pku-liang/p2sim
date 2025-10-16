@@ -7,10 +7,31 @@ void {{ ctx.name }}::step_{{ group_id }}() {
     {%- endif %}
     {
         {%- for (id, block) in iter %}
+        {%- if ctx.cfg.diff_test %}
+        { // block {{ id.0 }}
+            bool cur_act_bit = (__act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] & ((act_t)1 << {{ id.0 % ctx.cfg.act_mask_width }})) != 0;
+            {%- for inst in block.insts %}
+            {%- match inst %}
+            {%- when Inst::Read{name, sid} %}
+            {%- if ctx.is_array(sid) %}
+            {%- if ctx.is_small_array(sid) %}
+            gAssert(memcmp(&{{ ctx.name(sid) }}, &diff->{{ ctx.name(sid) }}, sizeof({{ ctx.name(sid) }})) == 0, "{{ ctx.name(sid) }} input mismatch act=%d cycles=%d", (int)cur_act_bit, __cycles);
+            {%- endif %}
+            {%- else %}
+            gAssert({{ ctx.name(sid) }} == diff->{{ ctx.name(sid) }}, "{{ ctx.name(sid) }} input mismatch act=%d cycles=%d", (int)cur_act_bit, __cycles);
+            {%- endif %}
+            {%- when _ %}
+            {%- endmatch %}
+            {%- endfor %}
+            {%- if !block.always %}
+            diff->ministep_{{ id.0 }}();
+            {%- endif %}
+        {%- endif %}
         {%- if !block.always  %}
         if(__act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] & ((act_t)1 << {{ id.0 % ctx.cfg.act_mask_width }}))
         {%- endif %}
         {
+            // block {{ id.0 }}
             __act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] &= ~((act_t)1 << {{ id.0 % ctx.cfg.act_mask_width }});
             {%- for inst in block.insts %}
             {%- match inst %}
@@ -29,19 +50,59 @@ void {{ ctx.name }}::step_{{ group_id }}() {
             {%- endif %}
             {%- if ctx.act_map(sid).len() < 5 %}
             {%- for blk_id in ctx.act_map(sid) %}
-            __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= (act_t){{ name }}$CHG << {{ blk_id.0 % ctx.cfg.act_mask_width }};
+            __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= (act_t){{ name }}$CHG << {{ blk_id.0 % ctx.cfg.act_mask_width }}; // activate {{ blk_id.0 }}
             {%- endfor %}
             {%- else %}
             if({{ name }}$CHG) {
                 {%- for blk_id in ctx.act_map(sid) %}
-                __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= (act_t)1 << {{ blk_id.0 % ctx.cfg.act_mask_width }};
+                __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= (act_t)1 << {{ blk_id.0 % ctx.cfg.act_mask_width }}; // activate {{ blk_id.0 }}
                 {%- endfor %}
             }
             {%- endif %}
             {%- endmatch %}
             {%- endfor %}
         }
+        {%- if ctx.cfg.diff_test %}
+            {%- for inst in block.insts %}
+            {%- match inst %}
+            {%- when Inst::WritePost{ name, sid, ..} %}
+            {%- if block.always %}
+            diff->{{ ctx.name(sid) }} = {{ ctx.name(sid) }};
+            {%- else %}
+            {%- if ctx.is_array(sid) %}
+            {%- if ctx.is_small_array(sid) %}
+            gAssert(memcmp(&{{ ctx.name(sid) }}, &diff->{{ ctx.name(sid) }}, sizeof({{ ctx.name(sid) }})) == 0, "{{ ctx.name(sid) }} output mismatch act=%d cycles=%d", (int)cur_act_bit, __cycles);
+            {%- endif %}
+            {%- else %}
+            gAssert({{ ctx.name(sid) }} == diff->{{ ctx.name(sid) }}, "{{ ctx.name(sid) }} output mismatch act=%d cycles=%d", (int)cur_act_bit, __cycles);
+            {%- endif %}
+            {%- endif %}
+            {%- when _ %}
+            {%- endmatch %}
+            {%- endfor %}
+        }
+        {%- endif %}
         {%- endfor %}
     }
     {%- endfor %}
 }
+
+{%- if ctx.cfg.diff_test %}
+
+{%- for (grp, iter) in ctx.iter_block_act_group(*group_id) %}
+{%- for (id, block) in iter %}
+
+void {{ ctx.name }}Diff::ministep_{{ id.0 }}() {
+    {%- for inst in block.insts %}
+    {%- match inst %}
+    {%- when Inst::CppCode(code) %}
+    {{ code }}
+    {%- when _ %}
+    {%- endmatch %}
+    {%- endfor %}
+}
+
+{%- endfor %}
+{%- endfor %}
+
+{%- endif %}

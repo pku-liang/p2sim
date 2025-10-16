@@ -17,7 +17,7 @@ compile profile target:
 gen-all: (gen "rocket-m") (gen "rocket-x") (gen "boom-m") (gen "boom-l")
 
 gen target: (build-gsim)
-    gsim/build/gsim/gsim --supernode-max-size=18 --output designs/{{ target }}.ggsim.sexp emu/rsrc/{{ target }}.gsim.fir
+    gsim/build/gsim/gsim --supernode-max-size=1 --output designs/{{ target }}.ggsim.sexp emu/rsrc/{{ target }}.gsim.fir
 
 [parallel]
 test-all profile: (test profile "rocket-m") (test profile "rocket-x") (test profile "boom-m") (test profile "boom-l")

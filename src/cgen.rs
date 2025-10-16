@@ -32,6 +32,7 @@ pub struct CCArgs {
     pub inc_dirs: Vec<String>,
     pub link_dirs: Vec<String>,
     pub link_libs: Vec<String>,
+    pub debug: bool,
 }
 
 #[derive(Debug)]
@@ -132,6 +133,7 @@ struct CGenCtx<'ir> {
     block_groups: Vec<Range<usize>>,
     reset_groups: Vec<Range<usize>>,
     smap: SourceMap<'ir>,
+    reset_states: Vec<StateId>,
 }
 
 mod filters {
@@ -177,6 +179,13 @@ impl<'ir> CGenCtx<'ir> {
             blocks: &design.blocks,
             resets: &design.resets,
             ext_fns: &design.ext_fns,
+            reset_states: design
+                .resets
+                .iter()
+                .map(|reset| reset.reset)
+                .sorted()
+                .dedup()
+                .collect(),
             block_groups: partition_by_size(
                 &design.blocks,
                 |block| block.insts.len(),
@@ -198,6 +207,9 @@ impl<'ir> CGenCtx<'ir> {
     }
     fn is_array(&self, sid: &StateId) -> bool {
         self.states[*sid].is_array()
+    }
+    fn is_small_array(&self, sid: &StateId) -> bool {
+        self.states[*sid].is_array() && self.states[*sid].element_count() < 64
     }
     fn iter_ext_state(&self) -> impl Iterator<Item = StateId> {
         self.states
@@ -234,7 +246,7 @@ impl<'ir> CGenCtx<'ir> {
                 return None;
             }
             let last_pos_group = last_pos / self.cfg.act_mask_width as usize;
-            let next_pos = ((last_pos_group + 1) * self.cfg.act_mask_width  as usize).min(range.end);
+            let next_pos = ((last_pos_group + 1) * self.cfg.act_mask_width as usize).min(range.end);
             let iter = (last_pos..next_pos).map(|i| (BlockId(i as u32), &self.blocks[i]));
             last_pos = next_pos;
             Some((last_pos_group, iter))

@@ -1,4 +1,5 @@
-void {{ ctx.name }}::gprintf(const char *fmt, ...) {
+{% macro emit_gprintf(func_name) %}
+void {{ func_name }}(const char *fmt, ...) {
     FILE *fp = stderr;
     va_list args;
     va_start(args, fmt);
@@ -24,3 +25,4 @@ void {{ ctx.name }}::gprintf(const char *fmt, ...) {
         }
     }
 }
+{%- endmacro %}

@@ -1,6 +1,8 @@
 #include "{{ ctx.smap.decl_h }}"
 
-{% include "common/gprintf.cpp.j2" %}
+{%- import "common/gprintf.cpp.j2" as gprintf -%}
+
+{%- call gprintf::emit_gprintf(ctx.name ~ "Syms::gprintf") %}
 
 void {{ ctx.name }}::step() {
 {%- for grp_id in 0..ctx.reset_groups.len() %}
@@ -9,11 +11,16 @@ void {{ ctx.name }}::step() {
 {%- for grp_id in 0..ctx.block_groups.len() %}
     step_{{ grp_id }}();
 {%- endfor %}
+    __cycles++;
 }
 
 void {{ ctx.name }}::init() {
     memset(__syms_start, 0, __syms_end - __syms_start);
     memset(__act_mask, 0xff, sizeof(__act_mask));
+    {%- if ctx.cfg.diff_test %}
+    diff = new {{ ctx.name }}Diff();
+    memset(diff->__syms_start, 0, diff->__syms_end - diff->__syms_start);
+    {%- endif %}
 }
 
 {%- for state in ctx.iter_ext_state() %}
@@ -22,6 +29,9 @@ void {{ ctx.name }}::init() {
 }
 void {{ ctx.name }}::set_{{ ctx.name(state) }}({{ ctx.int_ty(state) }} __value) {
     {{ ctx.name(state) }} = __value;
+    {%- if ctx.cfg.diff_test %}
+    diff->{{ ctx.name(state) }} = __value;
+    {%- endif %}
     {%- for blk_id in ctx.act_map(state) %}
     __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= 1 << {{ blk_id.0 % ctx.cfg.act_mask_width }};
     {%- endfor %}

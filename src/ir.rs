@@ -70,7 +70,11 @@ pub enum Inst {
     /// bool diff = name != name$old;
     /// activate(diff, sid)
     /// ```
-    WritePost { name: String, sid: StateId, acts: Vec<BlockId>},
+    WritePost {
+        name: String,
+        sid: StateId,
+        acts: Vec<BlockId>,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

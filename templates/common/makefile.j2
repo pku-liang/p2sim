@@ -1,6 +1,12 @@
 CXX = clang++
-CXXFLAGS += -O2 -pthread
+CXXFLAGS += -pthread
 LDFLAGS += -fuse-ld=lld -pthread
+
+{%- if ctx.cfg.ccargs.debug %}
+CXXFLAGS += -g
+{%- else %}
+CXXFLAGS += -O2
+{%- endif %}
 
 objs = \
 	{{ ctx.smap.impl_cc }}.o

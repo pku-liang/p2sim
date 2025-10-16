@@ -13,20 +13,28 @@ struct {{ ctx.name }}Syms {
     {%- for dim in state.dims -%} [{{ dim }}] {%- endfor -%};
     {%- endfor %}
     char __syms_end[0];
+    static void gprintf(const char *fmt, ...);
 };
+
+{%- if ctx.cfg.diff_test %}
+struct {{ ctx.name }}Diff;
+{%- endif %}
 
 struct {{ ctx.name }}: public {{ ctx.name }}Syms {
     using act_t = uint{{ ctx.cfg.act_mask_width }}_t;
 
     void step();
     void init();
-    static void gprintf(const char *fmt, ...);
 
     act_t __act_mask[{{ ctx.blocks.len() as u32 / ctx.cfg.act_mask_width + 1 }}];
 
     {%- for state in ctx.iter_ext_state() %}
     {{ ctx.int_ty(state) }} get_{{ ctx.name(state) }}();
     void set_{{ ctx.name(state) }}({{ ctx.int_ty(state) }} value);
+    {%- endfor %}
+
+    {%- for reset in ctx.reset_states %}
+    {{ ctx.int_ty(reset) }} {{ ctx.name(reset) }}$LAST;
     {%- endfor %}
 
     {%- for grp_id in 0..ctx.block_groups.len() %}
@@ -36,4 +44,19 @@ struct {{ ctx.name }}: public {{ ctx.name }}Syms {
     void reset_{{ grp_id }}();
     {%- endfor %}
 
+{%- if ctx.cfg.diff_test %}
+    {{ ctx.name }}Diff * diff;
+{%- endif %}
+    uint32_t __cycles;
 };
+
+{%- if ctx.cfg.diff_test %}
+struct {{ ctx.name }}Diff: public {{ ctx.name }}Syms {
+    {%- for blk_id in 0..ctx.blocks.len() %}
+    void ministep_{{ blk_id }}();
+    {%- endfor %}
+    {%- for reset_id in 0..ctx.resets.len() %}
+    void minireset_{{ reset_id }}();
+    {%- endfor %}
+};
+{%- endif %}
