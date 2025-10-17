@@ -81,9 +81,14 @@ fn main() {
 
     info!("Parsing design from {}", input_sexpr);
     let design = parse_file(input_sexpr).unwrap();
+    info!("Design stats: blocks={}, states={}, resets={}", design.blocks.len(), design.states.len(), design.resets.len());
 
-    pass::verify_dep(&design);
+    pass::verify_act_map(&design);
     pass::verify_never_act(&design);
+    pass::verify_dep_info(&design);
+    let pdesign = pass::partition(&design);
+    pass::print_pdesign_stats(&pdesign);
+    // pass::verify_cs_states(&design);
 
     if let Some(output) = args.output {
         let to_abs_path = |path: &str| {
