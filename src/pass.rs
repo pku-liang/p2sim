@@ -1,19 +1,14 @@
-use std::collections::BTreeSet;
-
 use index_vec_ext::{IndexExt, index_ext};
 use itertools::Itertools;
 use log::{info, warn};
-use mt_kahypar::{Context, Objective, Preset};
 use petgraph::{
     Direction,
-    algo::{toposort, tred},
+    algo::toposort,
     graph::{DiGraph, NodeIndex, node_index},
-    visit::IntoNeighbors,
 };
 use rustc_hash::{FxHashMap, FxHashSet};
-use tabular::{Row, Table};
 
-use crate::ir::*;
+use crate::{act::ActInfo, ir::*, sch::{linear_schedule, LinearSchOptions, Perm, SchProblem}};
 
 pub type ActMap = FxHashMap<StateId, Vec<BlockId>>;
 
@@ -92,14 +87,14 @@ impl RWEntry {
     }
     pub fn is_comb(&self) -> bool {
         if self.reads.is_empty() || self.writes.is_empty() {
-            false
+            true
         } else {
             self.writes.last().unwrap() < self.reads.first().unwrap()
         }
     }
     pub fn is_seq(&self) -> bool {
         if self.reads.is_empty() || self.writes.is_empty() {
-            true
+            false
         } else {
             self.reads.last().unwrap() <= self.writes.first().unwrap()
         }
@@ -234,233 +229,269 @@ pub fn verify_dep_info(design: &Design) {
     toposort(&rw.cdep, Default::default()).expect("cycle in cdep");
 }
 
-struct HPG {
-    num_nodes: usize,
-    indices: Vec<usize>,
-    edges: Vec<usize>,
-    edge_weights: Vec<i32>,
-    node_weights: Vec<i32>,
-}
-
-impl HPG {
-    fn new(node_weights: Vec<i32>) -> Self {
-        Self {
-            num_nodes: node_weights.len(),
-            indices: vec![0],
-            edges: vec![],
-            edge_weights: vec![],
-            node_weights,
-        }
-    }
-    fn add_edge(&mut self, weight: i32, edges: impl IntoIterator<Item = impl Clone + Into<usize>>) {
-        for e in edges {
-            self.edges.push(e.clone().into());
-        }
-        let idx = self.edges.len();
-        self.indices.push(idx);
-        self.edge_weights.push(weight);
-    }
-    fn build<'ctx>(
-        &'ctx self,
-        ctx: &'ctx mt_kahypar::Context,
-    ) -> Result<mt_kahypar::Hypergraph<'ctx>, mt_kahypar::Error> {
-        mt_kahypar::Hypergraph::from_adjacency(
-            ctx,
-            self.num_nodes,
-            &self.indices,
-            &self.edges,
-            Some(&self.edge_weights),
-            Some(&self.node_weights),
-        )
-    }
-}
-
-#[derive(Default, Clone)]
-pub struct Part {
-    pub seq_reads: BTreeSet<StateId>,
-    pub seq_writes: BTreeSet<StateId>,
-    pub comb_states: BTreeSet<StateId>,
-    pub resets: Vec<Reset>,
-    pub blocks: Vec<Block>,
-}
-
-pub struct PartDesign {
-    pub max_concat: u32,
-    pub ext_fns: Vec<String>,
-    pub states: Vec<State>,
-    pub parts: Vec<Part>,
-}
-
-index_ext! {pub struct PartId(pub u32) for Part}
-
-// 图分割时，分割的实际是状态，而非逻辑
-// 1. 状态数量太多，用逻辑表示它所有的时序状态
-// 2. 边表示将一个状态分给两个线程的代价
-// 考虑几种情况
-// 1. 大数组，不适合分割 => 加一条权重非常大的边
-// 2. 多个写，放一个线程里 => 添加 wuw 依赖，w 不会有其它 read，只能放一个线程里
-pub fn partition(design: &Design) -> PartDesign {
-    info!("Start repcut partition");
-
-    info!("1. Build transitive closure");
+pub fn reorder_blocks(design: &mut Design, act: &ActInfo) -> Perm {
     let dep = get_dep_info(design);
-    let toposort = (0..design.blocks.len()).map(node_index).collect_vec();
-    let (succs, _) = tred::dag_to_toposorted_adjacency_list::<_, u32>(&dep.cdep, &toposort);
-    let (_, tclos) = tred::dag_transitive_reduction_closure::<_, u32>(&succs);
-
-    info!("2. Find sink nodes");
-    let mut sinks = vec![];
-    let mut sink_size = vec![];
-    let mut sink_map = vec![None; design.blocks.len()];
-    for bid in design.blocks.ids() {
-        if dep.is_sink(bid) {
-            let sink_id = sinks.len();
-            sinks.push(bid);
-            sink_size.push(dep.get_sink_states(bid).count() as i32);
-            sink_map[bid.0 as usize] = Some(sink_id);
-        }
-    }
-
-    info!("3. Build Hypergraph");
-    let mut builder = HPG::new(sink_size);
-    let get_edges = |blk_id: BlockId| {
-        tclos
-            .neighbors(blk_id.0)
-            .filter_map(|x| sink_map[x as usize])
+    let edges = dep.cdep.raw_edges();
+    let g: DiGraph<(), i64> = dep.cdep.map(|_, n | *n, |eid, _| {
+        let src = edges[eid.index()].source();
+        let dst = edges[eid.index()].target();
+        ActInfo::HASH_WIDTH as i64 - act.query_similarity_nodiv(src.index(), dst.index()) as i64
+    });
+    let prob = SchProblem {
+        graph: &g,
+        edge_weight_div: ActInfo::HASH_WIDTH as i64,
     };
-    for (blk_id, block) in design.blocks.enumerate_ids() {
-        let weight = block.insts.len() as i32 / 32 + 1;
-        builder.add_edge(weight, get_edges(blk_id));
-    }
-    for (sid, rw) in dep.rw.enumerate_ids() {
-        if design.states[sid].element_count() > 32 {
-            let weight = rw.writes.len() as i32 / 32 + 1;
-            let mut edges = vec![];
-            for r_blk_id in rw.reads.iter() {
-                edges.extend(get_edges(*r_blk_id));
-            }
-            for w_blk_id in rw.writes.iter() {
-                edges.extend(get_edges(*w_blk_id));
-            }
-            builder.add_edge(weight, edges);
+    let opt = LinearSchOptions {
+        prev_factor: num::Rational64::new(1, 10),
+        max_iter: 10,
+        verbose: true,
+    };
+    let perm = linear_schedule(prob, &opt);
+    assert!(perm.ord.len() == perm.ord.iter().sorted().dedup().count());
+    let mut new_blocks = Vec::with_capacity(design.blocks.len());
+    for (p, &i) in perm.ord.iter().enumerate() {
+        let id = node_index(i);
+        for v in g.neighbors_directed(id, Direction::Outgoing) {
+            assert!(perm.rnk[v.index()] > p);
         }
     }
-
-    let k: usize = 8;
-
-    info!("4. Partition");
-    let ctx = Context::builder()
-        .preset(Preset::Deterministic)
-        .k(k as i32)
-        .epsilon(0.03)
-        .objective(Objective::Km1)
-        .seed(42)
-        .verbose(false)
-        .build()
-        .unwrap();
-    let hpg = builder.build(&ctx).unwrap();
-
-    info!("5. Extract partition");
-    let part = hpg.partition().unwrap();
-    let partition = part.extract_partition();
-    assert!(partition.len() == sinks.len());
-
-    let mut part_sinks = vec![vec![]; k];
-    let mut inside_part = vec![BTreeSet::default(); design.blocks.len()];
-    for i in design.blocks.ids() {
-        if let Some(node_id) = sink_map[i.0 as usize] {
-            let part_id = partition[node_id] as usize;
-            inside_part[i.0 as usize].insert(part_id);
-            part_sinks[part_id].push(i);
-        }
+    for i in 0..design.blocks.len() {
+        let block = std::mem::take(&mut design.blocks[perm.ord[i]]);
+        new_blocks.push(block);
     }
-    for i in design.blocks.ids().rev() {
-        let mut insides = vec![];
-        let succ_iter = dep
-            .cdep
-            .neighbors_directed(i.node_index(), Direction::Outgoing);
-        for j in succ_iter {
-            insides.extend(inside_part[j.index()].iter().cloned());
-        }
-        inside_part[i.0 as usize].extend(insides);
-    }
-
-    let mut parts = vec![Part::default(); k];
-    for (i, block) in design.blocks.enumerate_ids() {
-        for part_id in inside_part[i.0 as usize].iter() {
-            parts[*part_id].blocks.push(block.clone());
-        }
-    }
-    for reset in design.resets.iter() {
-        let mut need_add_reset = FxHashSet::default();
-        for act in reset.acts.iter() {
-            need_add_reset.extend(inside_part[act.0 as usize].iter().cloned());
-        }
-        for part_id in need_add_reset {
-            parts[part_id].resets.push(reset.clone());
-        }
-    }
-    for (part_id, part) in parts.iter_mut().enumerate() {
-        for sink in part_sinks[part_id].iter() {
-            part.seq_writes.extend(dep.get_sink_states(*sink));
-        }
-        eprintln!("part: {} sinks: {}", part_id, part_sinks[part_id].len());
-        let mut writes = BTreeSet::default();
-        for block in part.blocks.iter() {
-            for read in block.reads.iter() {
-                if dep.rw[*read].is_seq() {
-                    part.seq_reads.insert(*read);
-                } else if dep.rw[*read].is_comb() {
-                    part.comb_states.insert(*read);
-                } else {
-                    panic!("read {:?} is not seq or comb", read);
-                }
-            }
-            for write in block.writes.iter() {
-                if dep.rw[*write].is_comb() {
-                    writes.insert(*write);
-                }
-            }
-        }
-        let diff = part.comb_states.difference(&writes).cloned().collect_vec();
-        if !diff.is_empty() {
-            let first = diff.first().unwrap();
-            panic!(
-                "comb state {:?} {:?} is not written by this thread, and {} other comb states",
-                first,
-                design.states[*first],
-                diff.len()
-            );
-        }
-    }
-
-    PartDesign {
-        max_concat: design.max_concat,
-        ext_fns: design.ext_fns.clone(),
-        states: design.states.clone(),
-        parts,
-    }
+    design.blocks = new_blocks;
+    prob.print_stat(&perm);
+    perm
 }
 
-pub fn print_pdesign_stats(pdesign: &PartDesign) {
-    let mut table = Table::new("{:>}  {:>} {:>} {:>}  {:>} {:>} {:>}");
-    table.add_row(Row::from_cells([
-        "Id", "Blks", "Rsts", "Insts", "SReads", "SWrites", "CStates"
-    ]));
-    let mut total_blocks = 0;
-    for (part_id, part) in pdesign.parts.iter().enumerate() {
-        let total_insts = part.blocks.iter().map(|block| block.insts.len()).sum::<usize>();
-        total_blocks += part.blocks.len();
-        table.add_row(Row::from_cells([
-            part_id.to_string(),
-            part.blocks.len().to_string(),
-            part.resets.len().to_string(),
-            total_insts.to_string(),
-            part.seq_reads.len().to_string(),
-            part.seq_writes.len().to_string(),
-            part.comb_states.len().to_string(),
-        ]));
-    }
-    info!("Block Partition Stats:\n{}", table);
-    info!("Total blocks: {}", total_blocks);
-}
+// use mt_kahypar::{Context, Objective, Preset};
+// struct HPG {
+//     num_nodes: usize,
+//     indices: Vec<usize>,
+//     edges: Vec<usize>,
+//     edge_weights: Vec<i32>,
+//     node_weights: Vec<i32>,
+// }
+
+// impl HPG {
+//     fn new(node_weights: Vec<i32>) -> Self {
+//         Self {
+//             num_nodes: node_weights.len(),
+//             indices: vec![0],
+//             edges: vec![],
+//             edge_weights: vec![],
+//             node_weights,
+//         }
+//     }
+//     fn add_edge(&mut self, weight: i32, edges: impl IntoIterator<Item = impl Clone + Into<usize>>) {
+//         for e in edges {
+//             self.edges.push(e.clone().into());
+//         }
+//         let idx = self.edges.len();
+//         self.indices.push(idx);
+//         self.edge_weights.push(weight);
+//     }
+//     fn build<'ctx>(
+//         &'ctx self,
+//         ctx: &'ctx mt_kahypar::Context,
+//     ) -> Result<mt_kahypar::Hypergraph<'ctx>, mt_kahypar::Error> {
+//         mt_kahypar::Hypergraph::from_adjacency(
+//             ctx,
+//             self.num_nodes,
+//             &self.indices,
+//             &self.edges,
+//             Some(&self.edge_weights),
+//             Some(&self.node_weights),
+//         )
+//     }
+// }
+
+// #[derive(Default, Clone)]
+// pub struct Part {
+//     pub seq_reads: BTreeSet<StateId>,
+//     pub seq_writes: BTreeSet<StateId>,
+//     pub comb_states: BTreeSet<StateId>,
+//     pub resets: Vec<Reset>,
+//     pub blocks: Vec<Block>,
+// }
+
+// pub struct PartDesign {
+//     pub max_concat: u32,
+//     pub ext_fns: Vec<String>,
+//     pub states: Vec<State>,
+//     pub parts: Vec<Part>,
+// }
+
+// index_ext! {pub struct PartId(pub u32) for Part}
+
+// // 图分割时，分割的实际是状态，而非逻辑
+// // 1. 状态数量太多，用逻辑表示它所有的时序状态
+// // 2. 边表示将一个状态分给两个线程的代价
+// // 考虑几种情况
+// // 1. 大数组，不适合分割 => 加一条权重非常大的边
+// // 2. 多个写，放一个线程里 => 添加 wuw 依赖，w 不会有其它 read，只能放一个线程里
+// pub fn partition(design: &Design) -> PartDesign {
+//     info!("Start repcut partition");
+
+//     info!("1. Build transitive closure");
+//     let dep = get_dep_info(design);
+//     let toposort = (0..design.blocks.len()).map(node_index).collect_vec();
+//     let (succs, _) = tred::dag_to_toposorted_adjacency_list::<_, u32>(&dep.cdep, &toposort);
+//     let (_, tclos) = tred::dag_transitive_reduction_closure::<_, u32>(&succs);
+
+//     info!("2. Find sink nodes");
+//     let mut sinks = vec![];
+//     let mut sink_size = vec![];
+//     let mut sink_map = vec![None; design.blocks.len()];
+//     for bid in design.blocks.ids() {
+//         if dep.is_sink(bid) {
+//             let sink_id = sinks.len();
+//             sinks.push(bid);
+//             sink_size.push(dep.get_sink_states(bid).count() as i32);
+//             sink_map[bid.0 as usize] = Some(sink_id);
+//         }
+//     }
+
+//     info!("3. Build Hypergraph");
+//     let mut builder = HPG::new(sink_size);
+//     let get_edges = |blk_id: BlockId| {
+//         tclos
+//             .neighbors(blk_id.0)
+//             .filter_map(|x| sink_map[x as usize])
+//     };
+//     for (blk_id, block) in design.blocks.enumerate_ids() {
+//         let weight = block.insts.len() as i32 / 32 + 1;
+//         builder.add_edge(weight, get_edges(blk_id));
+//     }
+//     for (sid, rw) in dep.rw.enumerate_ids() {
+//         if design.states[sid].element_count() > 32 {
+//             let weight = rw.writes.len() as i32 / 32 + 1;
+//             let mut edges = vec![];
+//             for r_blk_id in rw.reads.iter() {
+//                 edges.extend(get_edges(*r_blk_id));
+//             }
+//             for w_blk_id in rw.writes.iter() {
+//                 edges.extend(get_edges(*w_blk_id));
+//             }
+//             builder.add_edge(weight, edges);
+//         }
+//     }
+
+//     let k: usize = 8;
+
+//     info!("4. Partition");
+//     let ctx = Context::builder()
+//         .preset(Preset::Deterministic)
+//         .k(k as i32)
+//         .epsilon(0.03)
+//         .objective(Objective::Km1)
+//         .seed(42)
+//         .verbose(false)
+//         .build()
+//         .unwrap();
+//     let hpg = builder.build(&ctx).unwrap();
+
+//     info!("5. Extract partition");
+//     let part = hpg.partition().unwrap();
+//     let partition = part.extract_partition();
+//     assert!(partition.len() == sinks.len());
+
+//     let mut part_sinks = vec![vec![]; k];
+//     let mut inside_part = vec![BTreeSet::default(); design.blocks.len()];
+//     for i in design.blocks.ids() {
+//         if let Some(node_id) = sink_map[i.0 as usize] {
+//             let part_id = partition[node_id] as usize;
+//             inside_part[i.0 as usize].insert(part_id);
+//             part_sinks[part_id].push(i);
+//         }
+//     }
+//     for i in design.blocks.ids().rev() {
+//         let mut insides = vec![];
+//         let succ_iter = dep
+//             .cdep
+//             .neighbors_directed(i.node_index(), Direction::Outgoing);
+//         for j in succ_iter {
+//             insides.extend(inside_part[j.index()].iter().cloned());
+//         }
+//         inside_part[i.0 as usize].extend(insides);
+//     }
+
+//     let mut parts = vec![Part::default(); k];
+//     for (i, block) in design.blocks.enumerate_ids() {
+//         for part_id in inside_part[i.0 as usize].iter() {
+//             parts[*part_id].blocks.push(block.clone());
+//         }
+//     }
+//     for reset in design.resets.iter() {
+//         let mut need_add_reset = FxHashSet::default();
+//         for act in reset.acts.iter() {
+//             need_add_reset.extend(inside_part[act.0 as usize].iter().cloned());
+//         }
+//         for part_id in need_add_reset {
+//             parts[part_id].resets.push(reset.clone());
+//         }
+//     }
+//     for (part_id, part) in parts.iter_mut().enumerate() {
+//         for sink in part_sinks[part_id].iter() {
+//             part.seq_writes.extend(dep.get_sink_states(*sink));
+//         }
+//         eprintln!("part: {} sinks: {}", part_id, part_sinks[part_id].len());
+//         let mut writes = BTreeSet::default();
+//         for block in part.blocks.iter() {
+//             for read in block.reads.iter() {
+//                 if dep.rw[*read].is_seq() {
+//                     part.seq_reads.insert(*read);
+//                 } else if dep.rw[*read].is_comb() {
+//                     part.comb_states.insert(*read);
+//                 } else {
+//                     panic!("read {:?} is not seq or comb", read);
+//                 }
+//             }
+//             for write in block.writes.iter() {
+//                 if dep.rw[*write].is_comb() {
+//                     writes.insert(*write);
+//                 }
+//             }
+//         }
+//         let diff = part.comb_states.difference(&writes).cloned().collect_vec();
+//         if !diff.is_empty() {
+//             let first = diff.first().unwrap();
+//             panic!(
+//                 "comb state {:?} {:?} is not written by this thread, and {} other comb states",
+//                 first,
+//                 design.states[*first],
+//                 diff.len()
+//             );
+//         }
+//     }
+
+//     PartDesign {
+//         max_concat: design.max_concat,
+//         ext_fns: design.ext_fns.clone(),
+//         states: design.states.clone(),
+//         parts,
+//     }
+// }
+
+// pub fn print_pdesign_stats(pdesign: &PartDesign) {
+//     let mut table = Table::new("{:>}  {:>} {:>} {:>}  {:>} {:>} {:>}");
+//     table.add_row(Row::from_cells([
+//         "Id", "Blks", "Rsts", "Insts", "SReads", "SWrites", "CStates"
+//     ]));
+//     let mut total_blocks = 0;
+//     for (part_id, part) in pdesign.parts.iter().enumerate() {
+//         let total_insts = part.blocks.iter().map(|block| block.insts.len()).sum::<usize>();
+//         total_blocks += part.blocks.len();
+//         table.add_row(Row::from_cells([
+//             part_id.to_string(),
+//             part.blocks.len().to_string(),
+//             part.resets.len().to_string(),
+//             total_insts.to_string(),
+//             part.seq_reads.len().to_string(),
+//             part.seq_writes.len().to_string(),
+//             part.comb_states.len().to_string(),
+//         ]));
+//     }
+//     info!("Block Partition Stats:\n{}", table);
+//     info!("Total blocks: {}", total_blocks);
+// }

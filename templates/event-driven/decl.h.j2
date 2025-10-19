@@ -1,6 +1,7 @@
 #pragma once
 
 {% include "common/decl.h.j2" %}
+#include <immintrin.h>
 
 {%- for ext in ctx.ext_fns %}
 {{ ext }}
@@ -27,6 +28,16 @@ struct {{ ctx.name }}: public {{ ctx.name }}Syms {
     void init();
 
     act_t __act_mask[{{ ctx.blocks.len() as u32 / ctx.cfg.act_mask_width + 1 }}];
+
+{%- if ctx.cfg.prof %}
+    static constexpr int PROF_HASH_WIDTH = 32;
+    using prof_hash_t = __m256i_u[2];
+    uint32_t __act_count[{{ ctx.blocks.len() }}];
+    prof_hash_t __act_hash[{{ ctx.blocks.len() }}];
+    prof_hash_t __act_hash_cur_cycle;
+    std::mt19937_64 __rng;
+    bool dump_act_info(const char * filename);
+{%- endif %}
 
     {%- for state in ctx.iter_ext_state() %}
     {{ ctx.int_ty(state) }} get_{{ ctx.name(state) }}();

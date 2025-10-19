@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cstdarg>
 #include <cassert>
+#include <random>
 
 #define gdiv(a, b) ((b) == 0 ? 0 : (a) / (b))
 #define gAssert(cond, ...) do {if (!(cond)) {fprintf(stderr, "\33[1;31m");fprintf(stderr, __VA_ARGS__);fprintf(stderr, "\33[0m\n");assert(cond);}} while (0)

@@ -1,5 +1,5 @@
 CXX = clang++
-CXXFLAGS += -pthread
+CXXFLAGS += -pthread -march=native
 LDFLAGS += -fuse-ld=lld -pthread
 
 {%- if ctx.cfg.ccargs.debug %}
@@ -33,6 +33,10 @@ EXTRA_CXXFLAGS = \
 {%- for inc_dir in ctx.cfg.ccargs.inc_dirs %} \
 	-I{{ inc_dir }}
 {%- endfor %}
+
+{%- if ctx.cfg.prof %}
+EXTRA_CXXFLAGS += -DPROFILE
+{%- endif %}
 
 ifneq ($(CONDA_PREFIX),)
 EXTRA_CXXFLAGS += -I$(CONDA_PREFIX)/include

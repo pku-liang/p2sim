@@ -102,6 +102,11 @@ int main(int argc, char** argv) {
   if(getenv("MAX_CYCLES")) {
     max_cycles = std::atoi(getenv("MAX_CYCLES"));
   }
+  #ifdef PROFILE
+  if(!getenv("ACT_INFO_FILE")) {
+    printf("ACT_INFO_FILE is not set, please set it to the file to dump act info\n");
+  }
+  #endif
   clock_t prev = clock();
   while (true) {
     cycle++;
@@ -119,6 +124,11 @@ int main(int argc, char** argv) {
       exit(1);
     }
   }
+#ifdef PROFILE
+  if(getenv("ACT_INFO_FILE")) {
+    dut->dump_act_info(getenv("ACT_INFO_FILE"));
+  }
+#endif
   printf("cycle=%d, freq=%lf kHz\n", cycle, cycle * 1.0 / (clock() - prev) * CLOCKS_PER_SEC / 1000);
-  return 0;
+  exit(0);
 }

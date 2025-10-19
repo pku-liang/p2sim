@@ -5,6 +5,22 @@
 {%- call gprintf::emit_gprintf(ctx.name ~ "Syms::gprintf") %}
 
 void {{ ctx.name }}::step() {
+{%- if ctx.cfg.prof %}
+    union {
+        uint64_t val64[4];
+        __m256i_u val;
+    } val;
+    val.val64[0] = __rng();
+    val.val64[1] = __rng();
+    val.val64[2] = __rng();
+    val.val64[3] = __rng();
+    __act_hash_cur_cycle[0] = val.val;
+    val.val64[0] = __rng();
+    val.val64[1] = __rng();
+    val.val64[2] = __rng();
+    val.val64[3] = __rng();
+    __act_hash_cur_cycle[1] = val.val;
+{%- endif %}
 {%- for grp_id in 0..ctx.reset_groups.len() %}
     reset_{{ grp_id }}();
 {%- endfor %}
@@ -20,6 +36,9 @@ void {{ ctx.name }}::init() {
     {%- if ctx.cfg.diff_test %}
     diff = new {{ ctx.name }}Diff();
     memset(diff->__syms_start, 0, diff->__syms_end - diff->__syms_start);
+    {%- endif %}
+    {%- if ctx.cfg.prof %}
+    memset(__act_hash, 0xff, sizeof(__act_hash));
     {%- endif %}
 }
 
@@ -37,3 +56,17 @@ void {{ ctx.name }}::set_{{ ctx.name(state) }}({{ ctx.int_ty(state) }} __value) 
     {%- endfor %}
 }
 {%- endfor %}
+
+{%- if ctx.cfg.prof %}
+bool {{ ctx.name }}::dump_act_info(const char * filename) {
+    FILE * f = fopen(filename, "w");
+    if(!f) return false;
+    uint64_t block_count = {{ ctx.blocks.len() }};
+    fwrite(&block_count, sizeof(uint64_t), 1, f);
+    fwrite(__act_count, sizeof(uint32_t), {{ ctx.blocks.len() }}, f);
+    fwrite(&block_count, sizeof(uint64_t), 1, f);
+    fwrite(__act_hash, sizeof(prof_hash_t), {{ ctx.blocks.len() }}, f);
+    fclose(f);
+    return true;
+}
+{%- endif %}

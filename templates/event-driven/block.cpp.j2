@@ -33,6 +33,14 @@ void {{ ctx.name }}::step_{{ group_id }}() {
         {
             // block {{ id.0 }}
             __act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] &= ~((act_t)1 << {{ id.0 % ctx.cfg.act_mask_width }});
+            {%- if ctx.cfg.prof %}
+            __act_count[{{ id.0 }}]++;
+            __act_hash[{{ id.0 }}][0] = _mm256_min_epu16(__act_hash[{{ id.0 }}][0], __act_hash_cur_cycle[0]);
+            __act_hash[{{ id.0 }}][1] = _mm256_min_epu16(__act_hash[{{ id.0 }}][1], __act_hash_cur_cycle[1]);
+            {# for(int i = 0; i < 32; i++) {
+                __act_hash[{{ id.0 }}][i] = std::min(__act_hash[{{ id.0 }}][i], __act_hash_cur_cycle[i]);
+            } #}
+            {%- endif %}
             {%- for inst in block.insts %}
             {%- match inst %}
             {%- when Inst::CppCode(code) %}
