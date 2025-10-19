@@ -5,7 +5,6 @@ pub mod cgen;
 pub mod comp;
 pub mod ir;
 pub mod pass;
-pub mod sch;
 
 use std::{
     fs::File,

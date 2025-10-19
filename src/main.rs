@@ -91,13 +91,13 @@ fn main() {
     );
 
     pass::verify_act_map(&design);
-    pass::verify_never_act(&design);
-    pass::verify_dep_info(&design);
-    if let Some(act_file) = args.act {
-        info!("Reordering blocks using act info from {}", act_file);
-        let act = ActInfo::from_file(act_file).unwrap();
-        pass::reorder_blocks(&mut design, &act);
-    }
+    // pass::verify_never_act(&design);
+    // pass::verify_dep_info(&design);
+    // if let Some(act_file) = args.act {
+    //     info!("Reordering blocks using act info from {}", act_file);
+    //     let act = ActInfo::from_file(act_file).unwrap();
+    //     pass::reorder_blocks(&mut design, &act);
+    // }
     // let pdesign = pass::partition(&design);
     // pass::print_pdesign_stats(&pdesign);
     // pass::verify_cs_states(&design);

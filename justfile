@@ -11,20 +11,20 @@ run profile target: (compile profile target)
 compile-all profile: (compile profile "rocket-m") (compile profile "rocket-x") (compile profile "boom-m") (compile profile "boom-l")
 
 compile profile target:
-    pixi run cargo run --release -- \
+    cargo run --release -- \
         designs/{{ target }}.ggsim.sexp \
         emu/emu.cc \
         -lfesvr \
         -o build/{{ profile }}/{{ target }} \
         --profile {{ profile }} \
-        --build \
         --prof
+    pixi run make -C build/{{ profile }}/{{ target }}
 
 [parallel]
 gen-all: (gen "rocket-m") (gen "rocket-x") (gen "boom-m") (gen "boom-l")
 
 gen target: (build-gsim)
-    gsim/build/gsim/gsim --supernode-max-size=15 --output designs/{{ target }}.ggsim.sexp emu/rsrc/{{ target }}.gsim.fir
+    gsim/build/gsim/gsim --supernode-max-size=1 --output designs/{{ target }}.ggsim.sexp emu/rsrc/{{ target }}.gsim.fir
 
 [parallel]
 test-all profile: (test profile "rocket-m") (test profile "rocket-x") (test profile "boom-m") (test profile "boom-l")
