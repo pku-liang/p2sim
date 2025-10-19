@@ -1,7 +1,13 @@
+#include "{{ ctx.smap.decl_h }}"
+
+{%- import "common/gprintf.cpp.j2" as gprintf -%}
+
 {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
 {%- set cls = ctx.name ~ "_" ~ part_id.0 %}
 
-{{ cls }}::step() {
+{%- call gprintf::emit_gprintf(cls ~ "::gprintf") %}
+
+void {{ cls }}::step() {
 {%- for grp_id in 0..part.reset_groups.len() %}
     reset_{{ grp_id }}();
 {%- endfor %}
@@ -10,23 +16,29 @@
 {%- endfor %}
 }
 
-{{ cls }}::pull() {
+void {{ cls }}::pull() {
 {%- for (local_id, mirror) in ctx.iter_mirrors(part_id) %}
-    {%- if part.is_array(local_id) %}
+    {%- if !part.is_array(local_id) %}
     {{ part.int_ty(local_id) }} {{ part.name(local_id) }}$OLD${{ local_id.0 }} = {{ part.name(local_id) }};
     {%- endif %}
 {%- endfor %}
 {%- for (local_id, mirror) in ctx.iter_mirrors(part_id) %}
+    {%- if !part.is_array(local_id) %}
     this->{{ part.name(local_id) }} = shared->{{ mirror.name }};
+    {%- else %}
+    memcpy(this->{{ part.name(local_id) }}, shared->{{ mirror.name }}, sizeof({{ part.name(local_id) }}));
+    {%- endif %}
 {%- endfor %}
 {%- for (local_id, mirror) in ctx.iter_mirrors(part_id) %}
-    {%- if part.is_array(local_id) %}
+    {%- if !part.is_array(local_id) %}
     bool {{ part.name(local_id) }}$CHG = {{ part.name(local_id) }}$OLD${{ local_id.0 }} != {{ part.name(local_id) }};
     {%- else %}
     bool {{ part.name(local_id) }}$CHG = true;
     {%- endif %}
     {%- if part.act_map(local_id).len() < 5 %}
-    __act_mask[{{ local_id.0 / ctx.cfg.act_mask_width }}] |= (act_t){{ part.name(local_id) }}$CHG << {{ local_id.0 % ctx.cfg.act_mask_width }}; // activate {{ local_id.0 }}
+    {%- for act in part.act_map(local_id) %}
+    __act_mask[{{ act.0 / ctx.cfg.act_mask_width }}] |= (act_t){{ part.name(local_id) }}$CHG << {{ act.0 % ctx.cfg.act_mask_width }}; // activate {{ act.0 }}
+    {%- endfor %}
     {%- else %}
     if({{ part.name(local_id) }}$CHG) {
         {%- for blk_id in part.act_map(local_id) %}
@@ -37,26 +49,32 @@
 {%- endfor %}
 }
 
-{{ cls }}::push() {
+void {{ cls }}::push() {
 {%- for (local_id, mirror) in ctx.iter_mirrors(part_id) %}
+{%- if !part.is_array(local_id) %}
     shared->{{ mirror.name }} = this->{{ part.name(local_id) }};
+{%- else %}
+    memcpy(shared->{{ mirror.name }}, this->{{ part.name(local_id) }}, sizeof({{ part.name(local_id) }}));
+{%- endif %}
 {%- endfor %}
 }
 
-{{ cls }}::init() {
-    memset(this, 0, sizeof({{ cls }}));
+void {{ cls }}::init() {
+    memset(__state_start, 0, sizeof(__state_end) - sizeof(__state_start));
+    memset(__act_mask, 0xff, sizeof(__act_mask));
 }
 
 {%- endfor %}
 
-{{ ctx.name }}::init() {
-    memset(shared, 0, sizeof({{ ctx.name }}_shared));
+void {{ ctx.name }}::init() {
+    memset(&shared, 0, sizeof({{ ctx.name }}_shared));
     {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
+    part_{{ part_id.0 }}.shared = &shared;
     part_{{ part_id.0 }}.init();
     {%- endfor %}
 }
 
-{{ ctx.name }}::step() {
+void {{ ctx.name }}::step() {
 {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
     part_{{ part_id.0 }}.pull();
     part_{{ part_id.0 }}.step();
@@ -65,3 +83,14 @@
     part_{{ part_id.0 }}.push();
 {%- endfor %}
 }
+
+{%- for (sid, s) in ctx.shared.enumerate_ids() %}
+{%- if s.is_ext %}
+{{ s.width | int_ty }} {{ ctx.name }}::get_{{ s.name }}() {
+    return shared.{{ s.name }};
+}
+void {{ ctx.name }}::set_{{ s.name }}({{ s.width | int_ty }} value) {
+    shared.{{ s.name }} = value;
+}
+{%- endif %}
+{%- endfor %}

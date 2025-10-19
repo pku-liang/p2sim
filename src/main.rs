@@ -5,7 +5,6 @@ use std::borrow::Cow;
 use clap::{Args, Parser, ValueEnum};
 use ggsim::{
     act::ActInfo,
-    cgen::{self, CCArgs, CGenCfg},
     comp::parse_file,
     pass,
 };
@@ -19,6 +18,8 @@ enum CompileProfile {
     EventDriven,
     #[clap(alias = "fc")]
     FullCycle,
+    #[clap(alias = "mt")]
+    MultiThreaded,
 }
 
 #[derive(Args)]
@@ -52,6 +53,8 @@ struct Cli {
     prof: bool,
     #[arg(long)]
     act: Option<String>,
+    #[arg(short)]
+    k: Option<usize>,
 }
 
 struct InputFiles {
@@ -94,8 +97,9 @@ fn main() {
     );
 
     pass::verify_act_map(&design);
-    let pd = pass::partition(&design);
+    let pd = pass::partition(&design, args.k.unwrap_or(2));
     pass::print_part_stats(&pd);
+    let td = pass::build_tdesign(&pd);
     // pass::verify_never_act(&design);
     // pass::verify_dep_info(&design);
     // if let Some(act_file) = args.act {
@@ -122,24 +126,42 @@ fn main() {
             std::fs::create_dir_all(&output_dir_abs).unwrap();
         }
 
-        let cfg = CGenCfg {
-            output_dir: output_dir_abs.clone(),
-            ccargs: CCArgs {
-                extra_cpp: to_abs_path_vec(&inputs.cpp),
-                inc_dirs: to_abs_path_vec(&args.repr_cc.inc_dirs),
-                link_dirs: to_abs_path_vec(&args.repr_cc.link_dirs),
-                link_libs: args.repr_cc.link_libs,
-                debug: args.repr_cc.debug,
-            },
-            prof: args.prof,
-            diff_test: args.diff_test,
-            ..Default::default()
-        };
+        if args.profile == CompileProfile::MultiThreaded {
+            use ggsim::{mt::{mt_gen, CGenCfg}, cgen::CCArgs};
+            let cfg = CGenCfg {
+                output_dir: output_dir_abs.clone(),
+                ccargs: CCArgs {
+                    extra_cpp: to_abs_path_vec(&inputs.cpp),
+                    inc_dirs: to_abs_path_vec(&args.repr_cc.inc_dirs),
+                    link_dirs: to_abs_path_vec(&args.repr_cc.link_dirs),
+                    link_libs: args.repr_cc.link_libs,
+                    debug: args.repr_cc.debug,
+                },
+                ..Default::default()
+            };
+            mt_gen(&td, &cfg).unwrap();
+        } else {
+            use ggsim::cgen::{self, CCArgs, CGenCfg};
+            let cfg = CGenCfg {
+                output_dir: output_dir_abs.clone(),
+                ccargs: CCArgs {
+                    extra_cpp: to_abs_path_vec(&inputs.cpp),
+                    inc_dirs: to_abs_path_vec(&args.repr_cc.inc_dirs),
+                    link_dirs: to_abs_path_vec(&args.repr_cc.link_dirs),
+                    link_libs: args.repr_cc.link_libs,
+                    debug: args.repr_cc.debug,
+                },
+                prof: args.prof,
+                diff_test: args.diff_test,
+                ..Default::default()
+            };
 
-        info!("Generating code for {}", design.name);
-        match args.profile {
-            CompileProfile::EventDriven => cgen::event_driven_gen(&design, &cfg).unwrap(),
-            CompileProfile::FullCycle => cgen::full_cycle_gen(&design, &cfg).unwrap(),
+            info!("Generating code for {}", design.name);
+            match args.profile {
+                CompileProfile::EventDriven => cgen::event_driven_gen(&design, &cfg).unwrap(),
+                CompileProfile::FullCycle => cgen::full_cycle_gen(&design, &cfg).unwrap(),
+                _ => unreachable!(),
+            }
         }
 
         if args.build {

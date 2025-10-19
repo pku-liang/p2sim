@@ -241,7 +241,7 @@ pub struct PartDesign<'d> {
 
 index_ext! {pub struct PartId(pub u32) for Part}
 
-pub fn partition<'d>(design: &'d Design) -> PartDesign<'d> {
+pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
     info!("Start repcut partition");
     info!("1. Build transitive closure");
     let dep = get_dep_info(design);
@@ -292,8 +292,9 @@ pub fn partition<'d>(design: &'d Design) -> PartDesign<'d> {
     }
 
     info!("4. Partition");
-    let k: usize = 4;
-    let ctx = Context::builder()
+    let mut part_id = vec![0; sinks.len()];
+    if k != 1 {
+        let ctx = Context::builder()
         .preset(Preset::Deterministic)
         .k(k as i32)
         .epsilon(0.03)
@@ -302,10 +303,11 @@ pub fn partition<'d>(design: &'d Design) -> PartDesign<'d> {
         .verbose(false)
         .build()
         .unwrap();
-    let hpg = builder.build(&ctx).unwrap();
-    let part = hpg.partition().unwrap();
-    let part_id = part.extract_partition();
-    assert!(part_id.len() == sinks.len());
+        let hpg = builder.build(&ctx).unwrap();
+        let part = hpg.partition().unwrap();
+        part_id = part.extract_partition();
+        assert!(part_id.len() == sinks.len());
+    }
 
     info!("5. Extract partition");
     let mut parts = vec![Part::default(); k];
@@ -389,22 +391,25 @@ pub fn partition<'d>(design: &'d Design) -> PartDesign<'d> {
     }
 
     let mut num_reads = FxHashMap::<StateId, usize>::default();
+    let mut all_reads = BTreeSet::<StateId>::default();
     for part in parts.iter() {
         for read in part.seq_reads.iter() {
             *num_reads.entry(*read).or_insert(0) += 1;
+            all_reads.insert(*read);
         }
     }
-    let shared: BTreeSet<StateId> = num_reads
+    let mut shared: BTreeSet<StateId> = num_reads
         .iter()
         .filter(|(_, cnt)| **cnt > 1)
         .map(|(sid, _)| sid)
         .cloned()
         .collect();
-    let local_states: BTreeSet<StateId> = num_reads
-        .into_iter()
-        .filter(|(_, cnt)| *cnt == 1)
-        .map(|(sid, _)| sid)
-        .collect();
+    for (sid, s) in design.states.enumerate_ids() {
+        if s.is_ext {
+            shared.insert(sid);
+        }
+    }
+    let local_states: BTreeSet<StateId> = all_reads.difference(&shared).cloned().collect();
     for part in parts.iter_mut() {
         part.seq_writes_local = part
             .seq_writes
@@ -569,11 +574,9 @@ pub fn build_tdesign(pd: &PartDesign) -> TDesign {
         }
         for &sid in all_states.iter() {
             let mut state = pd.design.states[sid].clone();
-            if part.seq_writes.contains(&sid) || part.seq_reads.contains(&sid) {
-                if let Some(mirror) = shared_map.get(&sid) {
-                    state.mirror = Some(*mirror);
-                }
-            } else if part.comb_states.contains(&sid) {
+            if let Some(mirror) = shared_map.get(&sid) {
+                state.mirror = Some(*mirror);
+            } else if part.seq_writes.contains(&sid) || part.seq_reads.contains(&sid) || part.comb_states.contains(&sid) {
                 // do nothing
             } else {
                 // no need to be written or read

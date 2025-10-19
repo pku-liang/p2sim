@@ -17,7 +17,7 @@ compile profile target:
         -lfesvr \
         -o build/{{ profile }}/{{ target }} \
         --profile {{ profile }} \
-        --prof
+        -k 2
     pixi run make -C build/{{ profile }}/{{ target }}
 
 [parallel]

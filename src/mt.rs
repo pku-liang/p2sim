@@ -27,6 +27,18 @@ pub struct CGenCfg {
     pub prof: bool,
 }
 
+impl Default for CGenCfg {
+    fn default() -> Self {
+        Self {
+            file_inst_size: 8192,
+            act_mask_width: 32,
+            output_dir: "".to_string(),
+            ccargs: CCArgs::default(),
+            prof: false,
+        }
+    }
+}
+
 pub fn partition_by_size<T>(
     data: &[T],
     size_fn: impl Fn(&T) -> usize,

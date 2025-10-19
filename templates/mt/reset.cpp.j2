@@ -12,6 +12,9 @@ void {{ ctx.name }}_{{ part_id.0 }}::reset_{{ group_id }}() {
         {%- when _ %}
         {%- endmatch %}
         {%- endfor %}
+        {%- for act in reset.acts %}
+        __act_mask[{{ act.0 / ctx.cfg.act_mask_width }}] |= 1 << {{ act.0 % ctx.cfg.act_mask_width }};
+        {%- endfor %}
     }
 {%- endfor %}
 }

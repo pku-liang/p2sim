@@ -1,3 +1,11 @@
+#pragma once
+
+{% include "common/decl.h.j2" %}
+#include <immintrin.h>
+
+{%- for ext in ctx.ext_fns %}
+{{ ext }}
+{%- endfor %}
 
 struct {{ ctx.name }}_shared {
 {%- for state in ctx.shared %}
@@ -11,6 +19,7 @@ struct {{ ctx.name }}_{{ part_id.0 }} {
     {{ ctx.name }}_shared * shared;
     using act_t = uint{{ ctx.cfg.act_mask_width }}_t;
 
+    static void gprintf(const char *fmt, ...);
     void step();
     void init();
     void pull();
@@ -40,10 +49,16 @@ struct {{ ctx.name }}_{{ part_id.0 }} {
 {%- endfor %}
 
 struct {{ ctx.name }} {
-    {{ ctx.name }}_shared * shared;
+    {{ ctx.name }}_shared shared;
     {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
     {{ ctx.name }}_{{ part_id.0 }} part_{{ part_id.0 }};
     {%- endfor %}
     void step();
     void init();
+    {%- for (sid, s) in ctx.shared.enumerate_ids() %}
+    {%- if s.is_ext %}
+    {{ s.width | int_ty }} get_{{ s.name }}();
+    void set_{{ s.name }}({{ s.width | int_ty }} value);
+    {%- endif %}
+    {%- endfor %}
 };
