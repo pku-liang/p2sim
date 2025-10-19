@@ -1,0 +1,42 @@
+#include "{{ ctx.smap.decl_h }}"
+
+{%- let part = ctx.parts[part_id] %}
+void {{ ctx.name }}_{{ part_id.0 }}::step_{{ group_id }}() {
+    {%- for (grp, iter) in part.iter_block_act_group(*group_id) %}
+    if(__act_mask[{{ grp }}])
+    {
+        {%- for (id, block) in iter %}
+        if(__act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] & ((act_t)1 << {{ id.0 % ctx.cfg.act_mask_width }}))
+        { // block {{ id.0 }}
+            __act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] &= ~((act_t)1 << {{ id.0 % ctx.cfg.act_mask_width }});
+            {%- for inst in block.insts %}
+            {%- match inst %}
+            {%- when Inst::CppCode {inst: code, ..} %}
+            {{ code }}
+            {%- when Inst::WritePre { name, sid }%}
+            {%- if !part.is_array(sid) %}
+            {{ part.int_ty(sid) }} {{ name }}$OLD${{ sid.0 }} = {{ part.name(sid) }};
+            {%- endif %}
+            {%- when Inst::WritePost { name, sid, ..} %}
+            {%- if !part.is_array(sid) %}
+            bool {{ name }}$CHG = {{ name }}$OLD${{ sid.0 }} != {{ part.name(sid) }};
+            {%- else %}
+            bool {{ name }}$CHG = true;
+            {%- endif %}
+            {%- if part.act_map(sid).len() < 5 %}
+            __act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] |= (act_t){{ name }}$CHG << {{ id.0 % ctx.cfg.act_mask_width }}; // activate {{ id.0 }}
+            {%- else %}
+            if({{ name }}$CHG) {
+                {%- for blk_id in part.act_map(sid) %}
+                __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= (act_t)1 << {{ blk_id.0 % ctx.cfg.act_mask_width }}; // activate {{ blk_id.0 }}
+                {%- endfor %}
+            }
+            {%- endif %}
+            {%- when _ %}
+            {%- endmatch %}
+            {%- endfor %}
+        }
+        {%- endfor %}
+    }
+    {%- endfor %}
+}

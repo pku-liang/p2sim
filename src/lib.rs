@@ -4,6 +4,7 @@ pub mod act;
 pub mod cgen;
 pub mod comp;
 pub mod ir;
+pub mod mt;
 pub mod pass;
 
 use std::{

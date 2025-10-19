@@ -23,6 +23,10 @@ pub struct State {
     pub is_ext: bool,
     #[serde(default)]
     pub is_local: bool,
+    #[serde(default)]
+    pub mirror: Option<StateId>,
+    #[serde(default)]
+    pub is_disabled: bool,
 }
 
 impl State {
@@ -34,6 +38,15 @@ impl State {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum AccessType {
+    ReadOnly,
+    ReadWrite,
+    WriteOnly,
+    BlackHole,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Inst {
@@ -41,7 +54,11 @@ pub enum Inst {
     /// ```cpp
     /// ty name = state[sid]
     /// ```
-    Read { name: String, sid: StateId },
+    Access {
+        name: String,
+        sid: StateId,
+        ty: AccessType,
+    },
 
     /// Prepare for copy on write on state[sid]
     /// ```cpp
@@ -58,7 +75,11 @@ pub enum Inst {
     /// ```cpp
     /// { code }
     /// ```
-    CppCode(String),
+    CppCode {
+        inst: String,
+        #[serde(default)]
+        upd: Option<StateId>,
+    },
 
     /// Post write operation
     /// ```cpp

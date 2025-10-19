@@ -6,7 +6,7 @@ void {{ ctx.name }}::reset_{{ group_id }}() {
         {{ ctx.name(reset.reset) }}$LAST = {{ ctx.name(reset.reset) }};
     {%- for inst in reset.insts %}
         {%- match inst %}
-        {%- when Inst::CppCode(code) %}
+        {%- when Inst::CppCode{inst: code, ..} %}
         {{ code }}
         {%- when _ %}
         {%- endmatch%}
@@ -26,7 +26,7 @@ void {{ ctx.name }}::reset_{{ group_id }}() {
 void {{ ctx.name }}Diff::minireset_{{ id.0 }}() {
     {%- for inst in reset.insts %}
     {%- match inst %}
-    {%- when Inst::CppCode(code) %}
+    {%- when Inst::CppCode{inst: code, ..} %}
     {{ code }}
     {%- when _ %}
     {%- endmatch %}

@@ -1,0 +1,49 @@
+
+struct {{ ctx.name }}_shared {
+{%- for state in ctx.shared %}
+    {{ state.width | int_ty }} {{ state.name }}
+    {%- for dim in state.dims -%} [{{ dim }}] {%- endfor -%};
+{%- endfor %}
+};
+
+{%- for (part_id, part) in ctx.parts.enumerate_ids() %}
+struct {{ ctx.name }}_{{ part_id.0 }} {
+    {{ ctx.name }}_shared * shared;
+    using act_t = uint{{ ctx.cfg.act_mask_width }}_t;
+
+    void step();
+    void init();
+    void pull();
+    void push();
+
+    act_t __act_mask[{{ part.blocks.len() as u32 / ctx.cfg.act_mask_width + 1 }}];
+
+    {%- for grp_id in 0..part.block_groups.len() %}
+    void step_{{ grp_id }}();
+    {%- endfor %}
+
+    {%- for grp_id in 0..part.reset_groups.len() %}
+    void reset_{{ grp_id }}();
+    {%- endfor %}
+
+    char __state_start[0];
+    {%- for state in part.states %}
+    {{ state.width | int_ty }} {{ state.name }}
+    {%- for dim in state.dims -%} [{{ dim }}] {%- endfor -%};
+    {%- endfor %}
+    {%- for reset in part.reset_states %}
+    {{ part.int_ty(reset) }} {{ part.name(reset) }}$LAST;
+    {%- endfor %}
+
+    char __state_end[0];
+};
+{%- endfor %}
+
+struct {{ ctx.name }} {
+    {{ ctx.name }}_shared * shared;
+    {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
+    {{ ctx.name }}_{{ part_id.0 }} part_{{ part_id.0 }};
+    {%- endfor %}
+    void step();
+    void init();
+};

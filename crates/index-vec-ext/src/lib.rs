@@ -14,7 +14,7 @@ pub trait IndexVecExt<Id> {
 
 #[macro_export]
 macro_rules! index_ext {
-    ($(#[$meta:meta])* $vis:vis struct $name:ident($vis_idx:vis $idx:ty) $(for $($item:ty),*$(,)?)?) => {
+    ($(#[$meta:meta])* $vis:vis struct $name:ident($vis_idx:vis $idx:ty) $(for $($item:ident),*$(,)?)?) => {
         $(#[$meta])*
         #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
         $vis struct $name($vis_idx $idx);
@@ -53,17 +53,17 @@ macro_rules! index_ext {
         $crate::index_ext!(containers $name, bool, i8, i16, i32, i64, u8, u16, u32, u64, isize, usize);
         $($crate::index_ext!(containers $name, $($item),*);)?
     };
-    (containers $idx:ty $(, $item:ty)*$(,)?) => {
+    (containers $idx:ident $(, $item:ident $(<$($lt:lifetime),*$(,)?>)? )*$(,)?) => {
         $(
-            $crate::index_ext!(slice $idx, Vec<$item>, [$item]);
-            impl $crate::IndexVecExt<$idx> for Vec<$item> {
-                type Item = $item;
+            $crate::index_ext!(slice $idx, $item $(<$($lt),*>)?);
+            impl$(<$($lt),*>)? $crate::IndexVecExt<$idx> for Vec<$item$(<$($lt),*>)?> {
+                type Item = $item$(<$($lt),*>)?;
                 fn retain_ids(&mut self, mut f: impl FnMut($idx) -> bool) {
                     let repl = self
                         .drain(..)
                         .enumerate()
                         .filter_map(|(i, item)| f(<$idx>::from(i)).then_some(item))
-                        .collect::<Vec<$item>>();
+                        .collect::<Vec<$item$(<$($lt),*>)?>>();
                     *self = repl;
                 }
                 fn add(&mut self, item: Self::Item) -> $idx {
@@ -74,22 +74,22 @@ macro_rules! index_ext {
             }
         )*
     };
-    (slice $idx:ty $(, $ty:ty)+) => {
-        $(impl std::ops::Index<$idx> for $ty {
-            type Output = <$ty as std::ops::Index<usize>>::Output;
+    (slice $idx:ident, $item:ident $(<$($lt:lifetime),*$(,)?>)?) => {
+        impl$(<$($lt),*>)? std::ops::Index<$idx> for Vec<$item$(<$($lt),*>)?> {
+            type Output = <Vec<$item$(<$($lt),*>)?> as std::ops::Index<usize>>::Output;
             #[inline]
             fn index(&self, index: $idx) -> &Self::Output {
-                <$ty as std::ops::Index<usize>>::index(self, index.0 as usize)
+                <Vec<$item> as std::ops::Index<usize>>::index(self, index.0 as usize)
             }
         }
-        impl std::ops::IndexMut<$idx> for $ty {
+        impl$(<$($lt),*>)? std::ops::IndexMut<$idx> for Vec<$item$(<$($lt),*>)?> {
             #[inline]
             fn index_mut(&mut self, index: $idx) -> &mut Self::Output {
-                <$ty as std::ops::IndexMut<usize>>::index_mut(self, index.0 as usize)
+                <Vec<$item$(<$($lt),*>)?> as std::ops::IndexMut<usize>>::index_mut(self, index.0 as usize)
             }
         }
-        impl<'a> $crate::IndexExt<'a, $idx> for $ty {
-            type Item = <$ty as std::ops::Index<usize>>::Output;
+        impl<'a, $($($lt: 'a),*)?> $crate::IndexExt<'a, $idx> for Vec<$item$(<$($lt),*>)?> {
+            type Item = <Vec<$item$(<$($lt),*>)?> as std::ops::Index<usize>>::Output;
             fn enumerate_ids(&'a self) -> impl Iterator<Item = ($idx, &'a Self::Item)> {
                 self.iter().enumerate().map(|(i, item)| (<$idx>::from(i), item))
             }
@@ -100,6 +100,32 @@ macro_rules! index_ext {
             fn ids(&self) -> std::ops::Range<$idx> {
                 <$idx>::from(0)..<$idx>::from(self.len())
             }
-        })+
+        }
+        impl$(<$($lt),*>)? std::ops::Index<$idx> for [$item$(<$($lt),*>)?] {
+            type Output = <[$item$(<$($lt),*>)?] as std::ops::Index<usize>>::Output;
+            #[inline]
+            fn index(&self, index: $idx) -> &Self::Output {
+                <[$item$(<$($lt),*>)?] as std::ops::Index<usize>>::index(self, index.0 as usize)
+            }
+        }
+        impl$(<$($lt),*>)? std::ops::IndexMut<$idx> for [$item$(<$($lt),*>)?] {
+            #[inline]
+            fn index_mut(&mut self, index: $idx) -> &mut Self::Output {
+                <[$item$(<$($lt),*>)?] as std::ops::IndexMut<usize>>::index_mut(self, index.0 as usize)
+            }
+        }
+        impl<'a$(,$($lt: 'a),*)?> $crate::IndexExt<'a, $idx> for [$item$(<$($lt),*>)?] {
+            type Item = <[$item$(<$($lt),*>)?] as std::ops::Index<usize>>::Output;
+            fn enumerate_ids(&'a self) -> impl Iterator<Item = ($idx, &'a Self::Item)> {
+                self.iter().enumerate().map(|(i, item)| (<$idx>::from(i), item))
+            }
+            fn enumerate_ids_mut(&'a mut self) -> impl Iterator<Item = ($idx, &'a mut Self::Item)> {
+                self.iter_mut().enumerate().map(|(i, item)| (<$idx>::from(i), item))
+            }
+            #[inline]
+            fn ids(&self) -> std::ops::Range<$idx> {
+                <$idx>::from(0)..<$idx>::from(self.len())
+            }
+        }
     };
 }

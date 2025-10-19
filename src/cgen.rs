@@ -254,6 +254,10 @@ impl<'ir> CGenCtx<'ir> {
             Some((last_pos_group, iter))
         })
     }
+    fn iter_all_group_files(&'ir self) -> impl 'ir +  Iterator<Item = String> {
+        self.block_groups.iter().map(move |group| self.smap.block_group(group.start))
+            .chain(self.reset_groups.iter().map(move |group| self.smap.reset_group(group.start)))
+    }
 }
 
 #[derive(Template)]
@@ -288,7 +292,7 @@ struct MakefileGen<'ir> {
     ctx: &'ir CGenCtx<'ir>,
 }
 
-trait WriteToFileStr {
+pub(crate) trait WriteToFileStr {
     fn write_into_file_str(&self, path: &str) -> std::io::Result<()>;
 }
 impl<T: TemplateExt> WriteToFileStr for T {
@@ -297,12 +301,12 @@ impl<T: TemplateExt> WriteToFileStr for T {
     }
 }
 
-struct CGenTask<'ir> {
-    task: Box<dyn WriteToFileStr + Send + 'ir>,
-    file: String,
+pub(crate) struct CGenTask<'ir> {
+    pub(crate) task: Box<dyn WriteToFileStr + Send + 'ir>,
+    pub(crate) file: String,
 }
 
-fn run_cgen_tasks(tasks: Vec<CGenTask>) -> std::io::Result<()> {
+pub(crate) fn run_cgen_tasks(tasks: Vec<CGenTask>) -> std::io::Result<()> {
     tasks
         .into_par_iter()
         .map(|task| task.task.write_into_file_str(&task.file))

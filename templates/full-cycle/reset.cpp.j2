@@ -5,7 +5,7 @@ void {{ ctx.name }}::reset_{{ group_id }}() {
     { // reset {{ id.0 }}
     {%- for inst in reset.insts %}
     {%- match inst %}
-        {%- when Inst::CppCode(code) %}
+        {%- when Inst::CppCode{inst: code, ..} %}
         {{ code }}
         {%- when _ %}
     {%- endmatch %}

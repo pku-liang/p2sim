@@ -4,7 +4,10 @@ use std::borrow::Cow;
 
 use clap::{Args, Parser, ValueEnum};
 use ggsim::{
-    act::ActInfo, cgen::{self, CCArgs, CGenCfg}, comp::parse_file, pass
+    act::ActInfo,
+    cgen::{self, CCArgs, CGenCfg},
+    comp::parse_file,
+    pass,
 };
 use itertools::Itertools;
 use log::info;
@@ -91,6 +94,8 @@ fn main() {
     );
 
     pass::verify_act_map(&design);
+    let pd = pass::partition(&design);
+    pass::print_part_stats(&pd);
     // pass::verify_never_act(&design);
     // pass::verify_dep_info(&design);
     // if let Some(act_file) = args.act {

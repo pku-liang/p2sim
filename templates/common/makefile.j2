@@ -10,11 +10,8 @@ CXXFLAGS += -O2
 
 objs = \
 	{{ ctx.smap.impl_cc }}.o
-{%- for grp_id in 0..ctx.block_groups.len() %} \
-	{{ ctx.smap.block_group(*grp_id) }}.o
-{%- endfor %}
-{%- for grp_id in 0..ctx.reset_groups.len() %} \
-	{{ ctx.smap.reset_group(*grp_id) }}.o
+{%- for file in ctx.iter_all_group_files() %} \
+	{{ file }}.o
 {%- endfor %}
 {%- for extra in ctx.smap.extra_cpp %} \
 	{{ ctx.smap.extra_obj(extra) }}.o

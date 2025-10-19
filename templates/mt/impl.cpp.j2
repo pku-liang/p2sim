@@ -1,0 +1,67 @@
+{%- for (part_id, part) in ctx.parts.enumerate_ids() %}
+{%- set cls = ctx.name ~ "_" ~ part_id.0 %}
+
+{{ cls }}::step() {
+{%- for grp_id in 0..part.reset_groups.len() %}
+    reset_{{ grp_id }}();
+{%- endfor %}
+{%- for grp_id in 0..part.block_groups.len() %}
+    step_{{ grp_id }}();
+{%- endfor %}
+}
+
+{{ cls }}::pull() {
+{%- for (local_id, mirror) in ctx.iter_mirrors(part_id) %}
+    {%- if part.is_array(local_id) %}
+    {{ part.int_ty(local_id) }} {{ part.name(local_id) }}$OLD${{ local_id.0 }} = {{ part.name(local_id) }};
+    {%- endif %}
+{%- endfor %}
+{%- for (local_id, mirror) in ctx.iter_mirrors(part_id) %}
+    this->{{ part.name(local_id) }} = shared->{{ mirror.name }};
+{%- endfor %}
+{%- for (local_id, mirror) in ctx.iter_mirrors(part_id) %}
+    {%- if part.is_array(local_id) %}
+    bool {{ part.name(local_id) }}$CHG = {{ part.name(local_id) }}$OLD${{ local_id.0 }} != {{ part.name(local_id) }};
+    {%- else %}
+    bool {{ part.name(local_id) }}$CHG = true;
+    {%- endif %}
+    {%- if part.act_map(local_id).len() < 5 %}
+    __act_mask[{{ local_id.0 / ctx.cfg.act_mask_width }}] |= (act_t){{ part.name(local_id) }}$CHG << {{ local_id.0 % ctx.cfg.act_mask_width }}; // activate {{ local_id.0 }}
+    {%- else %}
+    if({{ part.name(local_id) }}$CHG) {
+        {%- for blk_id in part.act_map(local_id) %}
+        __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= (act_t)1 << {{ blk_id.0 % ctx.cfg.act_mask_width }}; // activate {{ blk_id.0 }}
+        {%- endfor %}
+    }
+    {%- endif %}
+{%- endfor %}
+}
+
+{{ cls }}::push() {
+{%- for (local_id, mirror) in ctx.iter_mirrors(part_id) %}
+    shared->{{ mirror.name }} = this->{{ part.name(local_id) }};
+{%- endfor %}
+}
+
+{{ cls }}::init() {
+    memset(this, 0, sizeof({{ cls }}));
+}
+
+{%- endfor %}
+
+{{ ctx.name }}::init() {
+    memset(shared, 0, sizeof({{ ctx.name }}_shared));
+    {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
+    part_{{ part_id.0 }}.init();
+    {%- endfor %}
+}
+
+{{ ctx.name }}::step() {
+{%- for (part_id, part) in ctx.parts.enumerate_ids() %}
+    part_{{ part_id.0 }}.pull();
+    part_{{ part_id.0 }}.step();
+{%- endfor %}
+{%- for (part_id, part) in ctx.parts.enumerate_ids() %}
+    part_{{ part_id.0 }}.push();
+{%- endfor %}
+}

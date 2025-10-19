@@ -12,7 +12,7 @@ void {{ ctx.name }}::step_{{ group_id }}() {
             bool cur_act_bit = (__act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] & ((act_t)1 << {{ id.0 % ctx.cfg.act_mask_width }})) != 0;
             {%- for inst in block.insts %}
             {%- match inst %}
-            {%- when Inst::Read{name, sid} %}
+            {%- when Inst::Access{name, sid, ..} %}
             {%- if ctx.is_array(sid) %}
             {%- if ctx.is_small_array(sid) %}
             gAssert(memcmp(&{{ ctx.name(sid) }}, &diff->{{ ctx.name(sid) }}, sizeof({{ ctx.name(sid) }})) == 0, "{{ ctx.name(sid) }} input mismatch act=%d cycles=%d", (int)cur_act_bit, __cycles);
@@ -37,15 +37,12 @@ void {{ ctx.name }}::step_{{ group_id }}() {
             __act_count[{{ id.0 }}]++;
             __act_hash[{{ id.0 }}][0] = _mm256_min_epu16(__act_hash[{{ id.0 }}][0], __act_hash_cur_cycle[0]);
             __act_hash[{{ id.0 }}][1] = _mm256_min_epu16(__act_hash[{{ id.0 }}][1], __act_hash_cur_cycle[1]);
-            {# for(int i = 0; i < 32; i++) {
-                __act_hash[{{ id.0 }}][i] = std::min(__act_hash[{{ id.0 }}][i], __act_hash_cur_cycle[i]);
-            } #}
             {%- endif %}
             {%- for inst in block.insts %}
             {%- match inst %}
-            {%- when Inst::CppCode(code) %}
+            {%- when Inst::CppCode{inst: code, ..} %}
             {{ code }}
-            {%- when Inst::Read{ name, sid } %}
+            {%- when Inst::Access{ .. } %}
             {%- when Inst::WritePre{ name, sid } %}
             {%- if !ctx.is_array(sid) %}
             {{ ctx.int_ty(sid) }} {{ name }}$OLD${{ sid.0 }} = {{ ctx.name(sid) }};
@@ -103,7 +100,7 @@ void {{ ctx.name }}::step_{{ group_id }}() {
 void {{ ctx.name }}Diff::ministep_{{ id.0 }}() {
     {%- for inst in block.insts %}
     {%- match inst %}
-    {%- when Inst::CppCode(code) %}
+    {%- when Inst::CppCode{inst: code, ..} %}
     {{ code }}
     {%- when _ %}
     {%- endmatch %}

@@ -1,0 +1,17 @@
+#include "{{ ctx.smap.decl_h }}"
+
+{%- let part = &ctx.parts[part_id] %}
+void {{ ctx.name }}_{{ part_id.0 }}::reset_{{ group_id }}() {
+{%- for (id, reset) in part.iter_reset_group(*group_id) %}
+    if({{ part.name(reset.reset) }} || {{ part.name(reset.reset) }}$LAST) [[unlikely]] {
+        {{ part.name(reset.reset) }}$LAST = {{ part.name(reset.reset) }};
+        {%- for inst in reset.insts %}
+        {%- match inst %}
+        {%- when Inst::CppCode{inst: code, ..} %}
+        {{ code }}
+        {%- when _ %}
+        {%- endmatch %}
+        {%- endfor %}
+    }
+{%- endfor %}
+}

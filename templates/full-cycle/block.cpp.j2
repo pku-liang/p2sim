@@ -6,7 +6,7 @@ void {{ ctx.name }}::step_{{ group_id }}() {
     { // block {{ id.0 }}
     {%- for inst in block.insts %}
     {%- match inst %}
-        {%- when Inst::CppCode(code) %}
+        {%- when Inst::CppCode{ inst: code, ..} %}
         {{ code }}
         {%- when _ %}
     {%- endmatch %}
