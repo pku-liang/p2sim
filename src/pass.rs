@@ -105,33 +105,31 @@ impl StateDep {
     }
 }
 
-pub struct DepInfo {
+pub struct DepInfo<'d> {
+    pub design: &'d Design,
     pub states: Vec<StateDep>,
     pub cdep: DiGraph<(), ()>,
     pub sdep: DiGraph<(), StateId>,
 }
 
-impl DepInfo {
+impl<'d> DepInfo<'d> {
     pub fn is_sink(&self, blk_id: BlockId) -> bool {
-        let has_seq_succ = self
-            .sdep
-            .neighbors_directed(blk_id.node_index(), Direction::Outgoing)
-            .count()
-            > 0;
+        let has_seq_write= self.design.blocks[blk_id].writes.iter().any(|write| self.states[*write].is_seq());
         let has_no_comb_succ = self
             .cdep
             .neighbors_directed(blk_id.node_index(), Direction::Outgoing)
             .count()
             == 0;
-        has_seq_succ || has_no_comb_succ
+        has_seq_write || has_no_comb_succ
     }
     pub fn get_sink_states(&self, blk_id: BlockId) -> Vec<StateId> {
-        self.sdep
-            .edges_directed(blk_id.node_index(), Direction::Outgoing)
-            .map(|x| *x.weight())
-            .sorted()
-            .unique()
-            .collect_vec()
+        self.design.blocks[blk_id].writes.iter().filter_map(|write| {
+            if self.states[*write].is_seq() {
+                Some(*write)
+            } else {
+                None
+            }
+        }).collect_vec()
     }
 }
 
@@ -144,7 +142,7 @@ impl NodeIdxExt for BlockId {
     }
 }
 
-pub fn get_dep_info(design: &Design) -> DepInfo {
+pub fn get_dep_info<'d>(design: &'d Design) -> DepInfo<'d> {
     let mut states = vec![StateDep::default(); design.states.len()];
     for (blk_id, block) in design.blocks.enumerate_ids() {
         for read in &block.reads {
@@ -190,7 +188,7 @@ pub fn get_dep_info(design: &Design) -> DepInfo {
             panic!("state {:?} is not comb or seq", design.states[sid].name);
         }
     }
-    DepInfo { states, cdep, sdep }
+    DepInfo { design, states, cdep, sdep }
 }
 
 pub fn leaglize_empty_block(design: &mut Design) {
@@ -260,7 +258,7 @@ pub struct PartDesign<'d> {
     pub dep: PartDep,
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct StateInfo {
     pub is_shared: bool,
     pub shared_id: Option<StateId>,
@@ -331,7 +329,7 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
             .filter_map(|x| sink_map[x as usize])
     };
     for (blk_id, block) in design.blocks.enumerate_ids() {
-        let weight = block.insts.len() as i32 / 32 + 1;
+        let weight = block.insts.len() as i32 / 4 + 1;
         builder.add_edge(weight, get_edges(blk_id));
         if block.always {
             builder.add_edge(10000, get_edges(blk_id));
@@ -339,7 +337,7 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
     }
     for (sid, s) in dep.states.enumerate_ids() {
         if design.states[sid].element_count() > 32 {
-            let weight = s.writes.len() as i32 / 32 + 1;
+            let weight = s.writes.len() as i32 + 1;
             let mut edges = vec![];
             for r in &s.reads {
                 edges.extend(get_edges(*r));
@@ -347,6 +345,8 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
             for w in &s.writes {
                 edges.extend(get_edges(*w));
             }
+            edges.sort();
+            edges.dedup();
             builder.add_edge(weight, edges);
         }
     }
@@ -373,8 +373,12 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
     let mut parts = vec![Part::new(design); k];
     let mut blk_in_parts = vec![BTreeSet::default(); design.blocks.len()];
 
+    eprintln!("dep.states[9645] = {:?}", dep.states[9645]);
     for (i, sink) in sinks.iter().enumerate() {
         blk_in_parts[sink.0 as usize].insert(part_id[i] as usize);
+        if sink.0 == 6789 {
+            eprintln!("sink = {:?} part_id = {:?}", sink, part_id[i]);
+        }
         parts[part_id[i] as usize].sinks.push(*sink);
     }
     for blk_id in design.blocks.ids().rev() {
@@ -429,7 +433,9 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
     for (sid, s) in states.enumerate_ids_mut() {
         if design.states[sid].is_ext {
             s.is_shared = true;
-        } else if s.read == s.write && s.read.len() == 1 {
+        } else if s.read.is_empty() || s.write.is_empty() {
+            s.is_shared = false;
+        } else if s.read.len() == 1 && s.read == s.write {
             s.is_shared = false;
         }
     }

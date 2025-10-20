@@ -11,6 +11,7 @@ run profile target: (compile profile target)
 compile-all profile: (compile profile "rocket-m") (compile profile "rocket-x") (compile profile "boom-m") (compile profile "boom-l")
 
 compile profile target:
+    rm -rf build/{{ profile }}/{{ target }}
     cargo run --release -- \
         designs/{{ target }}.ggsim.sexp \
         emu/emu.cc \

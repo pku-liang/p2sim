@@ -4,16 +4,16 @@ void {{ ctx.name }}::reset_{{ group_id }}() {
 {%- for (id, reset) in ctx.iter_reset_group(*group_id) %}
     if({{ ctx.name(reset.reset) }} || {{ ctx.name(reset.reset) }}$LAST) [[unlikely]] {
         {{ ctx.name(reset.reset) }}$LAST = {{ ctx.name(reset.reset) }};
-    {%- for inst in reset.insts %}
+        {%- for inst in reset.insts %}
         {%- match inst %}
         {%- when Inst::CppCode{inst: code, ..} %}
         {{ code }}
         {%- when _ %}
         {%- endmatch%}
-    {%- endfor %}
-    {%- for act in reset.acts %}
-    __act_mask[{{ act.0 / ctx.cfg.act_mask_width }}] |= 1 << {{ act.0 % ctx.cfg.act_mask_width }};
-    {%- endfor %}
+        {%- endfor %}
+        {%- for act in reset.acts %}
+        __act_mask[{{ act.0 / ctx.cfg.act_mask_width }}] |= 1 << {{ act.0 % ctx.cfg.act_mask_width }};
+        {%- endfor %}
     }
     {%- if ctx.cfg.diff_test %}
     diff->minireset_{{ id.0 }}();

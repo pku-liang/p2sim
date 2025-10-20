@@ -17,21 +17,26 @@ void {{ cls }}::step() {
 }
 
 void {{ cls }}::pull() {
-{%- for (local_id, mirror) in ctx.iter_mirrors(part_id) %}
+{%- for (local_id, ty, mirror) in ctx.iter_mirrors(part_id) %}
+    {%- if ty.has_read() %}
     {%- if !part.is_array(local_id) %}
-    {{ part.int_ty(local_id) }} {{ part.name(local_id) }}$OLD${{ local_id.0 }} = {{ part.name(local_id) }};
+    {{ part.int_ty(local_id) }} {{ part.name(local_id) }}$OLD = {{ part.name(local_id) }};
+    {%- endif %}
     {%- endif %}
 {%- endfor %}
-{%- for (local_id, mirror) in ctx.iter_mirrors(part_id) %}
+{%- for (local_id, ty, mirror) in ctx.iter_mirrors(part_id) %}
+    {%- if ty.has_read() %}
     {%- if !part.is_array(local_id) %}
     this->{{ part.name(local_id) }} = shared->{{ mirror.name }};
     {%- else %}
     memcpy(this->{{ part.name(local_id) }}, shared->{{ mirror.name }}, sizeof({{ part.name(local_id) }}));
     {%- endif %}
+    {%- endif %}
 {%- endfor %}
-{%- for (local_id, mirror) in ctx.iter_mirrors(part_id) %}
+{%- for (local_id, ty, mirror) in ctx.iter_mirrors(part_id) %}
+    {%- if ty.has_read() %}
     {%- if !part.is_array(local_id) %}
-    bool {{ part.name(local_id) }}$CHG = {{ part.name(local_id) }}$OLD${{ local_id.0 }} != {{ part.name(local_id) }};
+    bool {{ part.name(local_id) }}$CHG = {{ part.name(local_id) }}$OLD != {{ part.name(local_id) }};
     {%- else %}
     bool {{ part.name(local_id) }}$CHG = true;
     {%- endif %}
@@ -46,16 +51,19 @@ void {{ cls }}::pull() {
         {%- endfor %}
     }
     {%- endif %}
+    {%- endif %}
 {%- endfor %}
 }
 
 void {{ cls }}::push() {
-{%- for (local_id, mirror) in ctx.iter_mirrors(part_id) %}
-{%- if !part.is_array(local_id) %}
+{%- for (local_id, ty, mirror) in ctx.iter_mirrors(part_id) %}
+    {%- if ty.has_write() %}
+    {%- if !part.is_array(local_id) %}
     shared->{{ mirror.name }} = this->{{ part.name(local_id) }};
-{%- else %}
+    {%- else %}
     memcpy(shared->{{ mirror.name }}, this->{{ part.name(local_id) }}, sizeof({{ part.name(local_id) }}));
-{%- endif %}
+    {%- endif %}
+    {%- endif %}
 {%- endfor %}
 }
 

@@ -6,8 +6,11 @@ void {{ ctx.name }}_{{ part_id.0 }}::step_{{ group_id }}() {
     if(__act_mask[{{ grp }}])
     {
         {%- for (id, block) in iter %}
+        {%- if !block.always %}
         if(__act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] & ((act_t)1 << {{ id.0 % ctx.cfg.act_mask_width }}))
-        { // block {{ id.0 }}
+        {%- endif %}
+        {
+            // block {{ id.0 }}
             __act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] &= ~((act_t)1 << {{ id.0 % ctx.cfg.act_mask_width }});
             {%- for inst in block.insts %}
             {%- match inst %}
@@ -15,16 +18,18 @@ void {{ ctx.name }}_{{ part_id.0 }}::step_{{ group_id }}() {
             {{ code }}
             {%- when Inst::WritePre { name, sid }%}
             {%- if !part.is_array(sid) %}
-            {{ part.int_ty(sid) }} {{ name }}$OLD${{ sid.0 }} = {{ part.name(sid) }};
+            {{ part.int_ty(sid) }} {{ name }}$OLD = {{ part.name(sid) }};
             {%- endif %}
             {%- when Inst::WritePost { name, sid, ..} %}
             {%- if !part.is_array(sid) %}
-            bool {{ name }}$CHG = {{ name }}$OLD${{ sid.0 }} != {{ part.name(sid) }};
+            bool {{ name }}$CHG = {{ name }}$OLD != {{ part.name(sid) }};
             {%- else %}
             bool {{ name }}$CHG = true;
             {%- endif %}
             {%- if part.act_map(sid).len() < 5 %}
-            __act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] |= (act_t){{ name }}$CHG << {{ id.0 % ctx.cfg.act_mask_width }}; // activate {{ id.0 }}
+            {%- for blk_id in part.act_map(sid) %}
+            __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= (act_t){{ name }}$CHG << {{ blk_id.0 % ctx.cfg.act_mask_width }}; // activate {{ blk_id.0 }}
+            {%- endfor %}
             {%- else %}
             if({{ name }}$CHG) {
                 {%- for blk_id in part.act_map(sid) %}

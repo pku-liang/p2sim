@@ -80,7 +80,11 @@ struct PartCGenCtx<'ir> {
 
 mod filters {
     use super::*;
-    use std::borrow::Cow;
+    use std::{borrow::Cow, fmt::Debug};
+
+    pub fn debug(item: &dyn Debug, _: &dyn askama::Values) -> askama::Result<String> {
+        Ok(format!("{:?}", item))
+    }
 
     pub fn int_ty(width: &usize, _: &dyn askama::Values) -> askama::Result<Cow<'static, str>> {
         Ok(int_ty_impl(*width))

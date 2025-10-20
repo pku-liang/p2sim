@@ -255,9 +255,11 @@ impl<'ir> CGenCtx<'ir> {
         })
     }
     fn iter_all_group_files(&'ir self) -> impl 'ir + Iterator<Item = String> {
-        (0..self.block_groups.len()).map(move |group_id| self.smap.block_group(group_id)).chain(
-            (0..self.reset_groups.len()).map(move |group_id| self.smap.reset_group(group_id)),
-        )
+        (0..self.block_groups.len())
+            .map(move |group_id| self.smap.block_group(group_id))
+            .chain(
+                (0..self.reset_groups.len()).map(move |group_id| self.smap.reset_group(group_id)),
+            )
         // self.block_groups
         //     .iter()
         //     .map(move |group| self.smap.block_group(group.start))

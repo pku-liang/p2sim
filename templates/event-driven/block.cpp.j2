@@ -45,11 +45,11 @@ void {{ ctx.name }}::step_{{ group_id }}() {
             {%- when Inst::Access{ .. } %}
             {%- when Inst::WritePre{ name, sid } %}
             {%- if !ctx.is_array(sid) %}
-            {{ ctx.int_ty(sid) }} {{ name }}$OLD${{ sid.0 }} = {{ ctx.name(sid) }};
+            {{ ctx.int_ty(sid) }} {{ name }}$OLD = {{ ctx.name(sid) }};
             {%- endif %}
             {%- when Inst::WritePost{ name, sid, .. } %}
             {%- if !ctx.is_array(sid) %}
-            bool {{ name }}$CHG = {{ name }}$OLD${{ sid.0 }} != {{ ctx.name(sid) }};
+            bool {{ name }}$CHG = {{ name }}$OLD != {{ ctx.name(sid) }};
             {%- else %}
             bool {{ name }}$CHG = true;
             {%- endif %}
