@@ -14,7 +14,7 @@ pub trait IndexVecExt<Id> {
 
 #[macro_export]
 macro_rules! index_ext {
-    ($(#[$meta:meta])* $vis:vis struct $name:ident($vis_idx:vis $idx:ty) $(for $($item:ident),*$(,)?)?) => {
+    ($(#[$meta:meta])* $vis:vis struct $name:ident($vis_idx:vis $idx:ty) $(for $($item:ident$(<$($lt:lifetime),*$(,)?>)?),*$(,)?)?) => {
         $(#[$meta])*
         #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
         $vis struct $name($vis_idx $idx);
@@ -51,7 +51,7 @@ macro_rules! index_ext {
             }
         }
         $crate::index_ext!(containers $name, bool, i8, i16, i32, i64, u8, u16, u32, u64, isize, usize);
-        $($crate::index_ext!(containers $name, $($item),*);)?
+        $($crate::index_ext!(containers $name, $($item$(<$($lt),*>)?),*);)?
     };
     (containers $idx:ident $(, $item:ident $(<$($lt:lifetime),*$(,)?>)? )*$(,)?) => {
         $(

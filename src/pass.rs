@@ -1,4 +1,4 @@
-use std::{collections::BTreeSet, ops::Range};
+use std::collections::BTreeSet;
 
 use index_vec_ext::{IndexExt, IndexVecExt, index_ext};
 use itertools::Itertools;
@@ -80,7 +80,7 @@ pub fn verify_never_act(design: &Design) {
     warn!("Never act blocks: {:?}", never_act);
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct StateDep {
     pub reads: Vec<BlockId>,
     pub writes: Vec<BlockId>,
@@ -161,6 +161,16 @@ pub fn get_dep_info(design: &Design) -> DepInfo {
         sdep.add_node(());
     }
     for (sid, s) in states.enumerate_ids() {
+        if design.states[sid].is_ext {
+            if !s.is_seq() {
+                eprintln!("ext state {:?} is not seq {:?}", design.states[sid], s);
+            }
+            assert!(
+                s.is_seq(),
+                "ext state {:?} is not seq",
+                design.states[sid].name
+            );
+        }
         if s.is_comb() {
             for w in &s.writes {
                 for r in &s.reads {
@@ -181,6 +191,21 @@ pub fn get_dep_info(design: &Design) -> DepInfo {
         }
     }
     DepInfo { states, cdep, sdep }
+}
+
+pub fn leaglize_empty_block(design: &mut Design) {
+    for (blk_id, block) in design.blocks.enumerate_ids_mut() {
+        if block
+            .insts
+            .iter()
+            .all(|inst| matches!(inst, Inst::Access { .. }))
+        {
+            block.insts.clear();
+            block.reads.clear();
+            block.writes.clear();
+            warn!("Clear empty block: {:?}", blk_id);
+        }
+    }
 }
 
 struct HPG {
@@ -221,25 +246,60 @@ impl HPG {
     }
 }
 
-#[derive(Default, Clone)]
-pub struct Part {
-    pub seq_reads: BTreeSet<StateId>,
-    pub seq_writes: BTreeSet<StateId>,
-    pub seq_writes_local: BTreeSet<StateId>,
-    pub seq_writes_shared: BTreeSet<StateId>,
-    pub comb_states: BTreeSet<StateId>,
+#[derive(Clone)]
+pub struct Part<'d> {
+    pub design: &'d Design,
     pub blocks: Vec<BlockId>,
     pub sinks: Vec<BlockId>,
-    pub resets: Vec<usize>,
+    pub resets: Vec<BlockId>,
 }
 
 pub struct PartDesign<'d> {
     pub design: &'d Design,
-    pub parts: Vec<Part>,
-    pub shared: BTreeSet<StateId>,
+    pub parts: Vec<Part<'d>>,
+    pub dep: PartDep,
 }
 
-index_ext! {pub struct PartId(pub u32) for Part}
+#[derive(Default, Clone)]
+pub struct StateInfo {
+    pub is_shared: bool,
+    pub shared_id: Option<StateId>,
+    pub read: BTreeSet<PartId>,
+    pub write: BTreeSet<PartId>,
+}
+
+impl StateInfo {
+    pub fn get_access_type(&self, part_id: PartId) -> AccessType {
+        if self.read.contains(&part_id) && self.write.contains(&part_id) {
+            AccessType::ReadWrite
+        } else if self.read.contains(&part_id) {
+            AccessType::ReadOnly
+        } else if self.write.contains(&part_id) {
+            AccessType::WriteOnly
+        } else {
+            AccessType::BlackHole
+        }
+    }
+}
+
+index_ext! { containers StateId, StateInfo }
+index_ext! {pub struct PartId(pub u32) for Part<'d>}
+
+pub struct PartDep {
+    pub shared: Vec<StateId>,
+    pub states: Vec<StateInfo>,
+}
+
+impl<'d> Part<'d> {
+    pub fn new(design: &'d Design) -> Self {
+        Self {
+            design: design,
+            blocks: vec![],
+            sinks: vec![],
+            resets: vec![],
+        }
+    }
+}
 
 pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
     info!("Start repcut partition");
@@ -295,14 +355,14 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
     let mut part_id = vec![0; sinks.len()];
     if k != 1 {
         let ctx = Context::builder()
-        .preset(Preset::Deterministic)
-        .k(k as i32)
-        .epsilon(0.03)
-        .objective(Objective::Km1)
-        .seed(42)
-        .verbose(false)
-        .build()
-        .unwrap();
+            .preset(Preset::Deterministic)
+            .k(k as i32)
+            .epsilon(0.03)
+            .objective(Objective::Km1)
+            .seed(42)
+            .verbose(false)
+            .build()
+            .unwrap();
         let hpg = builder.build(&ctx).unwrap();
         let part = hpg.partition().unwrap();
         part_id = part.extract_partition();
@@ -310,189 +370,102 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
     }
 
     info!("5. Extract partition");
-    let mut parts = vec![Part::default(); k];
-    let mut inside_map = vec![BTreeSet::default(); design.blocks.len()];
+    let mut parts = vec![Part::new(design); k];
+    let mut blk_in_parts = vec![BTreeSet::default(); design.blocks.len()];
+
     for (i, sink) in sinks.iter().enumerate() {
+        blk_in_parts[sink.0 as usize].insert(part_id[i] as usize);
         parts[part_id[i] as usize].sinks.push(*sink);
-        inside_map[sink.0 as usize].insert(part_id[i] as usize);
     }
-    for i in design.blocks.ids().rev() {
+    for blk_id in design.blocks.ids().rev() {
         let mut insides = BTreeSet::default();
-        for succ in dep
+        let succ_iter = dep
             .cdep
-            .neighbors_directed(i.node_index(), Direction::Outgoing)
-        {
-            insides.extend(inside_map[succ.index()].iter().cloned());
+            .neighbors_directed(blk_id.node_index(), Direction::Outgoing);
+        for succ in succ_iter {
+            insides.extend(blk_in_parts[succ.index()].iter().cloned());
         }
-        inside_map[i.0 as usize].extend(insides);
+        blk_in_parts[blk_id.0 as usize].extend(insides);
     }
-    for i in design.blocks.ids() {
-        for part_id in inside_map[i.0 as usize].iter() {
-            parts[*part_id].blocks.push(i);
+    for blk_id in design.blocks.ids() {
+        for part_id in blk_in_parts[blk_id.0 as usize].iter() {
+            parts[*part_id].blocks.push(blk_id);
         }
     }
-    for (reset_id, reset) in design.resets.iter().enumerate() {
-        let mut need_add_reset = BTreeSet::default();
+    for (rst_id, reset) in design.resets.enumerate_ids() {
+        let mut need_add_reset = FxHashSet::default();
         for act in reset.acts.iter() {
-            need_add_reset.extend(inside_map[act.0 as usize].iter().cloned());
+            for part_id in blk_in_parts[act.0 as usize].iter() {
+                need_add_reset.insert(*part_id);
+            }
         }
         for part_id in need_add_reset {
-            parts[part_id].resets.push(reset_id);
-        }
-    }
-    for part in parts.iter_mut() {
-        let mut comb_writes = BTreeSet::default();
-        for rst_id in &part.resets {
-            let orig_reset = &design.resets[*rst_id];
-            let reset = orig_reset.reset;
-            if dep.states[reset].is_comb() {
-                part.comb_states.insert(reset);
-            } else if dep.states[reset].is_seq() {
-                part.seq_reads.insert(reset);
-            } else {
-                panic!("reset {:?} is not comb or seq", reset);
-            }
-        }
-        for blk_id in &part.blocks {
-            for read in &design.blocks[*blk_id].reads {
-                if dep.states[*read].is_comb() {
-                    part.comb_states.insert(*read);
-                } else if dep.states[*read].is_seq() {
-                    part.seq_reads.insert(*read);
-                } else {
-                    panic!("read {:?} is not comb or seq", read);
-                }
-            }
-            for write in &design.blocks[*blk_id].writes {
-                if dep.states[*write].is_comb() {
-                    comb_writes.insert(*write);
-                }
-            }
-        }
-        for sink in &part.sinks {
-            for write in &design.blocks[*sink].writes {
-                if dep.states[*write].is_seq() {
-                    part.seq_writes.insert(*write);
-                }
-            }
-        }
-        let diff = part
-            .comb_states
-            .difference(&comb_writes)
-            .cloned()
-            .collect_vec();
-        if !diff.is_empty() {
-            let first = diff.first().unwrap();
-            panic!(
-                "comb state {:?} is not written by this thread",
-                design.states[*first].name
-            );
+            parts[part_id].resets.push(rst_id);
         }
     }
 
-    let mut num_reads = FxHashMap::<StateId, usize>::default();
-    let mut all_reads = BTreeSet::<StateId>::default();
-    for part in parts.iter() {
-        for read in part.seq_reads.iter() {
-            *num_reads.entry(*read).or_insert(0) += 1;
-            all_reads.insert(*read);
+    let mut states = vec![StateInfo::default(); design.states.len()];
+    for (part_id, part) in parts.enumerate_ids() {
+        for sink in part.sinks.iter() {
+            for write in &design.blocks[*sink].writes {
+                states[*write].write.insert(part_id);
+                states[*write].is_shared = true;
+            }
+        }
+        for rst_id in part.resets.iter() {
+            let reset = design.resets[*rst_id].reset;
+            if dep.states[reset].is_seq() {
+                states[reset].read.insert(part_id);
+            }
+        }
+        for blk_id in part.blocks.iter() {
+            for read in &design.blocks[*blk_id].reads {
+                if dep.states[*read].is_seq() {
+                    states[*read].read.insert(part_id);
+                }
+            }
         }
     }
-    let mut shared: BTreeSet<StateId> = num_reads
-        .iter()
-        .filter(|(_, cnt)| **cnt > 1)
-        .map(|(sid, _)| sid)
-        .cloned()
-        .collect();
-    for (sid, s) in design.states.enumerate_ids() {
-        if s.is_ext {
-            shared.insert(sid);
+    for (sid, s) in states.enumerate_ids_mut() {
+        if design.states[sid].is_ext {
+            s.is_shared = true;
+        } else if s.read == s.write && s.read.len() == 1 {
+            s.is_shared = false;
         }
     }
-    let local_states: BTreeSet<StateId> = all_reads.difference(&shared).cloned().collect();
-    for part in parts.iter_mut() {
-        part.seq_writes_local = part
-            .seq_writes
-            .intersection(&local_states)
-            .cloned()
-            .collect();
-        part.seq_writes_shared = part.seq_writes.difference(&local_states).cloned().collect();
+    let mut shared = vec![];
+    for (sid, s) in states.enumerate_ids_mut() {
+        if s.is_shared {
+            let new_id = shared.len();
+            shared.push(sid);
+            s.shared_id = Some(StateId(new_id as u32))
+        }
     }
+
     PartDesign {
         design,
         parts,
-        shared,
+        dep: PartDep { shared, states },
     }
 }
 
 pub fn print_part_stats(pd: &PartDesign) {
-    let dep = get_dep_info(pd.design);
-    let mut table =
-        Table::new("{:>}  {:>} {:>} {:>} {:>}  {:>} {:>} {:>} {:>} {:>} {:>} {:>} {:>}");
-    table.add_row(Row::from_cells([
-        "Id",
-        "Blks",
-        "Sinks",
-        "Rsts",
-        "Insts",
-        "SReads",
-        "Local",
-        "%",
-        "SWrites",
-        "Local",
-        "%",
-        "CStates",
-        "Total Seq",
-    ]));
+    let mut table = Table::new("{:>}  {:>} {:>} {:>} {:>}");
+    table.add_row(Row::from_cells(["Id", "Blks", "Sinks", "Rsts", "Insts"]));
     let mut total_blocks = 0;
-    let mut read_cnt = FxHashMap::<StateId, usize>::default();
-    for (_, part) in pd.parts.iter().enumerate() {
-        for sr in part.seq_reads.iter() {
-            *read_cnt.entry(*sr).or_insert(0) += 1;
-        }
-    }
-    let local_states: BTreeSet<StateId> = read_cnt
-        .into_iter()
-        .filter(|(_, cnt)| *cnt == 1)
-        .map(|(sid, _)| sid)
-        .collect();
     for (part_id, part) in pd.parts.iter().enumerate() {
         let total_insts = part
             .blocks
             .iter()
             .map(|block| pd.design.blocks[*block].insts.len())
             .sum::<usize>();
-        let mut total_seq = 0;
-        for blk_id in part.blocks.iter() {
-            for write in &pd.design.blocks[*blk_id].writes {
-                if dep.states[*write].is_seq() {
-                    total_seq += 1;
-                }
-            }
-        }
         total_blocks += part.blocks.len();
-        let local_reads = part.seq_reads.intersection(&local_states).count();
-        let local_writes = part.seq_writes.intersection(&local_states).count();
         table.add_row(Row::from_cells([
             part_id.to_string(),
             part.blocks.len().to_string(),
             part.sinks.len().to_string(),
             part.resets.len().to_string(),
             total_insts.to_string(),
-            part.seq_reads.len().to_string(),
-            local_reads.to_string(),
-            format!(
-                "{:.2}%",
-                local_reads as f64 / part.seq_reads.len() as f64 * 100.0
-            ),
-            part.seq_writes.len().to_string(),
-            local_writes.to_string(),
-            format!(
-                "{:.2}%",
-                local_writes as f64 / part.seq_writes.len() as f64 * 100.0
-            ),
-            part.comb_states.len().to_string(),
-            total_seq.to_string(),
         ]));
     }
     info!("Block Partition Stats:\n{}", table);
@@ -532,112 +505,120 @@ pub struct TDesign {
     pub parts: Vec<TPart>,
 }
 
-fn update_block(block: &mut Block, state_map: &FxHashMap<StateId, StateId>) {
-    for read in block.reads.iter_mut() {
-        *read = state_map.get(read).cloned().unwrap();
-    }
-    for write in block.writes.iter_mut() {
-        *write = state_map.get(write).cloned().unwrap();
-    }
-    for inst in block.insts.iter_mut() {
-        match inst {
-            Inst::Access { sid, .. } | Inst::WritePre { sid, .. } | Inst::WritePost { sid, .. } => {
-                *sid = state_map.get(sid).cloned().unwrap();
-            }
-            Inst::CppCode { upd: Some(sid), .. } => {
-                *sid = state_map.get(sid).cloned().unwrap();
-            }
-            Inst::CppCode { upd: None, .. } => {}
+struct PartRewrite {
+    pub id_map: FxHashMap<StateId, StateId>,
+    pub blk_map: FxHashMap<BlockId, BlockId>,
+}
+
+impl PartRewrite {
+    pub fn update_block(&self, block: &mut Block) {
+        for read in block.reads.iter_mut() {
+            *read = *self.id_map.get(read).unwrap();
         }
+        for write in block.writes.iter_mut() {
+            *write = *self.id_map.get(write).unwrap();
+        }
+        for inst in block.insts.iter_mut() {
+            match inst {
+                Inst::Access { sid, .. }
+                | Inst::WritePre { sid, .. }
+                | Inst::WritePost { sid, .. }
+                | Inst::CppCode { upd: Some(sid), .. } => {
+                    *sid = *self.id_map.get(sid).unwrap();
+                }
+                Inst::CppCode { upd: None, .. } => {}
+            }
+        }
+    }
+    pub fn update_reset(&self, reset: &mut Reset) {
+        let mut new_acts = vec![];
+        for act in &reset.acts {
+            if let Some(new_act) = self.blk_map.get(act) {
+                new_acts.push(*new_act);
+            }
+        }
+        reset.acts = new_acts;
+        reset.reset = *self.id_map.get(&reset.reset).unwrap();
+        let mut new_insts = vec![];
+        for inst in reset.insts.drain(..) {
+            match inst {
+                Inst::CppCode {
+                    upd: Some(sid),
+                    inst,
+                } => {
+                    if let Some(new_sid) = self.id_map.get(&sid) {
+                        new_insts.push(Inst::CppCode {
+                            upd: Some(*new_sid),
+                            inst: inst.clone(),
+                        });
+                    }
+                }
+                inst @ Inst::CppCode { upd: None, .. } => {
+                    new_insts.push(inst);
+                }
+                _ => {}
+            }
+        }
+        reset.insts = new_insts;
     }
 }
 
 pub fn build_tdesign(pd: &PartDesign) -> TDesign {
-    let mut shared: Vec<State> = vec![];
-    let mut shared_map = FxHashMap::<StateId, StateId>::default();
     let mut parts = vec![];
-    for sid in pd.shared.iter() {
-        let new_sid = shared.add(pd.design.states[*sid].clone());
-        shared_map.insert(*sid, new_sid);
-    }
-    for (_, part) in pd.parts.enumerate_ids() {
-        let mut states: Vec<State> = vec![];
-        let mut state_map = FxHashMap::<StateId, StateId>::default();
+    for (part_id, part) in pd.parts.enumerate_ids() {
         let mut all_states = BTreeSet::<StateId>::default();
-        let mut blocks: Vec<Block> = vec![];
+        for rst_id in part.resets.iter() {
+            all_states.insert(pd.design.resets[*rst_id].reset);
+        }
         for blk_id in part.blocks.iter() {
             all_states.extend(pd.design.blocks[*blk_id].reads.iter().cloned());
             all_states.extend(pd.design.blocks[*blk_id].writes.iter().cloned());
         }
-        for rst_id in part.resets.iter() {
-            all_states.insert(pd.design.resets[*rst_id].reset);
-        }
-        for &sid in all_states.iter() {
-            let mut state = pd.design.states[sid].clone();
-            if let Some(mirror) = shared_map.get(&sid) {
-                state.mirror = Some(*mirror);
-            } else if part.seq_writes.contains(&sid) || part.seq_reads.contains(&sid) || part.comb_states.contains(&sid) {
-                // do nothing
-            } else {
-                // no need to be written or read
-                state.is_disabled = true;
+        let mut states: Vec<State> = vec![];
+        let mut id_map = FxHashMap::<StateId, StateId>::default();
+        for sid in all_states.iter() {
+            let mut state = part.design.states[*sid].clone();
+            let info = &pd.dep.states[*sid];
+            if info.is_shared {
+                let access_ty = info.get_access_type(part_id);
+                if access_ty != AccessType::BlackHole {
+                    state.mirror = Some(Mirror {
+                        shared_id: info.shared_id.unwrap(),
+                        ty: access_ty,
+                    })
+                }
             }
-            state_map.insert(sid, states.add(state));
+            id_map.insert(*sid, states.add(state));
         }
+        let mut blk_map = FxHashMap::<BlockId, BlockId>::default();
+        for (i, blk_id) in part.blocks.iter().enumerate() {
+            blk_map.insert(*blk_id, BlockId(i as u32));
+        }
+        let rewrite = PartRewrite { id_map, blk_map };
+        let mut blocks = vec![];
+        let mut resets = vec![];
         for blk_id in part.blocks.iter() {
-            let orig_block = &pd.design.blocks[*blk_id];
-            let mut new_block = orig_block.clone();
-            update_block(&mut new_block, &state_map);
+            let mut new_block = pd.design.blocks[*blk_id].clone();
+            rewrite.update_block(&mut new_block);
             blocks.push(new_block);
         }
-        let mut block_id_map = FxHashMap::<BlockId, BlockId>::default();
-        for (i, blk_id) in part.blocks.iter().enumerate() {
-            block_id_map.insert(*blk_id, BlockId(i as u32));
-        }
-        let mut resets = vec![];
         for rst_id in part.resets.iter() {
-            let orig_reset = &pd.design.resets[*rst_id];
-            let mut new_insts = vec![];
-            for inst in orig_reset.insts.iter() {
-                match inst {
-                    Inst::CppCode {
-                        inst,
-                        upd: Some(sid),
-                    } => {
-                        if let Some(new_sid) = state_map.get(sid) {
-                            new_insts.push(Inst::CppCode {
-                                inst: inst.clone(),
-                                upd: Some(*new_sid),
-                            })
-                        }
-                    }
-                    Inst::CppCode { inst, upd: None } => new_insts.push(Inst::CppCode {
-                        inst: inst.clone(),
-                        upd: None,
-                    }),
-                    _ => {}
-                }
-            }
-            let mut new_acts = vec![];
-            for act in orig_reset.acts.iter() {
-                if let Some(new_act) = block_id_map.get(act) {
-                    new_acts.push(*new_act);
-                }
-            }
-            let new_reset = Reset {
-                reset: *state_map.get(&orig_reset.reset).unwrap(),
-                insts: new_insts,
-                acts: new_acts,
-            };
+            let mut new_reset = pd.design.resets[*rst_id].clone();
+            rewrite.update_reset(&mut new_reset);
             resets.push(new_reset);
         }
-        let new_part = TPart {
+        parts.push(TPart {
             states,
             blocks,
             resets,
-        };
-        parts.push(new_part);
+        });
     }
+    let shared = pd
+        .dep
+        .shared
+        .iter()
+        .map(|sid| pd.design.states[*sid].clone())
+        .collect_vec();
     TDesign {
         name: pd.design.name.clone(),
         max_concat: pd.design.max_concat,

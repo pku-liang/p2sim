@@ -3,11 +3,7 @@
 use std::borrow::Cow;
 
 use clap::{Args, Parser, ValueEnum};
-use ggsim::{
-    act::ActInfo,
-    comp::parse_file,
-    pass,
-};
+use ggsim::{act::ActInfo, comp::parse_file, pass};
 use itertools::Itertools;
 use log::info;
 use serde::{Deserialize, Serialize};
@@ -95,7 +91,7 @@ fn main() {
         design.states.len(),
         design.resets.len()
     );
-
+    pass::leaglize_empty_block(&mut design);
     pass::verify_act_map(&design);
     let pd = pass::partition(&design, args.k.unwrap_or(2));
     pass::print_part_stats(&pd);
@@ -127,7 +123,10 @@ fn main() {
         }
 
         if args.profile == CompileProfile::MultiThreaded {
-            use ggsim::{mt::{mt_gen, CGenCfg}, cgen::CCArgs};
+            use ggsim::{
+                cgen::CCArgs,
+                mt::{CGenCfg, mt_gen},
+            };
             let cfg = CGenCfg {
                 output_dir: output_dir_abs.clone(),
                 ccargs: CCArgs {

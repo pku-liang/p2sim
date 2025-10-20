@@ -231,7 +231,7 @@ impl<'ir> CGenCtx<'ir> {
             .map(move |(i, block)| (BlockId((i + start) as u32), block))
     }
     fn iter_reset_group(&self, group_id: usize) -> impl Iterator<Item = (BlockId, &Reset)> {
-        let start = self.block_groups[group_id].start;
+        let start = self.reset_groups[group_id].start;
         self.resets[self.reset_groups[group_id].clone()]
             .iter()
             .enumerate()
@@ -254,9 +254,18 @@ impl<'ir> CGenCtx<'ir> {
             Some((last_pos_group, iter))
         })
     }
-    fn iter_all_group_files(&'ir self) -> impl 'ir +  Iterator<Item = String> {
-        self.block_groups.iter().map(move |group| self.smap.block_group(group.start))
-            .chain(self.reset_groups.iter().map(move |group| self.smap.reset_group(group.start)))
+    fn iter_all_group_files(&'ir self) -> impl 'ir + Iterator<Item = String> {
+        (0..self.block_groups.len()).map(move |group_id| self.smap.block_group(group_id)).chain(
+            (0..self.reset_groups.len()).map(move |group_id| self.smap.reset_group(group_id)),
+        )
+        // self.block_groups
+        //     .iter()
+        //     .map(move |group| self.smap.block_group(group.start))
+        //     .chain(
+        //         self.reset_groups
+        //             .iter()
+        //             .map(move |group| self.smap.reset_group(group.start)),
+        //     )
     }
 }
 
@@ -307,10 +316,15 @@ pub(crate) struct CGenTask<'ir> {
 }
 
 pub(crate) fn run_cgen_tasks(tasks: Vec<CGenTask>) -> std::io::Result<()> {
-    tasks
-        .into_par_iter()
-        .map(|task| task.task.write_into_file_str(&task.file))
-        .collect()
+    for task in tasks.iter() {
+        info!("Generating {}", task.file);
+        task.task.write_into_file_str(&task.file)?;
+    }
+    Ok(())
+    // tasks
+    //     .into_par_iter()
+    //     .map(|task| task.task.write_into_file_str(&task.file))
+    //     .collect()
 }
 
 pub fn full_cycle_gen(d: &Design, cfg: &CGenCfg) -> std::io::Result<()> {

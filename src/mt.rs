@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use std::{borrow::Cow, ops::Range, path::Path};
 
 use askama::Template;
@@ -5,7 +7,9 @@ use index_vec_ext::{IndexExt, index_ext};
 use itertools::Itertools;
 
 use crate::{
-    cgen::{run_cgen_tasks, CCArgs, CGenTask}, ir::*, pass::{ActMap, PartId, TDesign, TPart}
+    cgen::{CCArgs, CGenTask, run_cgen_tasks},
+    ir::*,
+    pass::{ActMap, PartId, TDesign, TPart},
 };
 
 fn int_ty_impl(width: usize) -> Cow<'static, str> {
@@ -140,7 +144,7 @@ impl<'ir> PartCGenCtx<'ir> {
             .map(move |(i, block)| (BlockId((i + start) as u32), block))
     }
     fn iter_reset_group(&self, group_id: usize) -> impl Iterator<Item = (BlockId, &Reset)> {
-        let start = self.block_groups[group_id].start;
+        let start = self.reset_groups[group_id].start;
         self.resets[self.reset_groups[group_id].clone()]
             .iter()
             .enumerate()
@@ -267,23 +271,24 @@ impl<'ir> MTCGenCtx<'ir> {
             smap: SourceMap::new(&cfg.output_dir, &td.name, &cfg.ccargs.extra_cpp),
         }
     }
-    fn iter_mirrors(&self, part_id: &PartId) -> impl Iterator<Item = (StateId, &State)> {
+    fn iter_mirrors(
+        &self,
+        part_id: &PartId,
+    ) -> impl Iterator<Item = (StateId, AccessType, &State)> {
         self.parts[*part_id]
             .states
             .enumerate_ids()
-            .filter_map(|(id, state)| match state.mirror {
-                Some(mirror) => Some((id, &self.shared[mirror])),
+            .filter_map(|(id, state)| match &state.mirror {
+                Some(mirror) => Some((id, mirror.ty, &self.shared[mirror.shared_id])),
                 None => None,
             })
     }
-    fn iter_all_group_files(&'ir self) -> impl 'ir +  Iterator<Item = String> {
+    fn iter_all_group_files(&'ir self) -> impl 'ir + Iterator<Item = String> {
         self.parts.enumerate_ids().flat_map(move |(part_id, part)| {
-            let blks = (0..part.block_groups.len()).map(move |group_id|
-                self.smap.block_group(part_id, group_id)
-            );
-            let rsts = (0..part.reset_groups.len()).map(move |group_id|
-                self.smap.reset_group(part_id, group_id)
-            );
+            let blks = (0..part.block_groups.len())
+                .map(move |group_id| self.smap.block_group(part_id, group_id));
+            let rsts = (0..part.reset_groups.len())
+                .map(move |group_id| self.smap.reset_group(part_id, group_id));
             blks.chain(rsts)
         })
     }
@@ -330,13 +335,21 @@ pub fn mt_gen(d: &TDesign, cfg: &CGenCfg) -> std::io::Result<()> {
     for (part_id, part) in ctx.parts.enumerate_ids() {
         for group in 0..part.block_groups.len() {
             tasks.push(CGenTask {
-                task: Box::new(MTBlockGen { ctx: &ctx, part_id, group_id: group }),
+                task: Box::new(MTBlockGen {
+                    ctx: &ctx,
+                    part_id,
+                    group_id: group,
+                }),
                 file: map.block_group_abs(part_id, group),
             });
         }
         for group in 0..part.reset_groups.len() {
             tasks.push(CGenTask {
-                task: Box::new(MTResetGen { ctx: &ctx, part_id, group_id: group }),
+                task: Box::new(MTResetGen {
+                    ctx: &ctx,
+                    part_id,
+                    group_id: group,
+                }),
                 file: map.reset_group_abs(part_id, group),
             });
         }

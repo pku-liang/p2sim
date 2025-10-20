@@ -14,6 +14,13 @@ index_ext! {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+pub struct Mirror {
+    pub shared_id: StateId,
+    pub ty: AccessType,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct State {
     pub name: String,
     pub width: usize,
@@ -24,7 +31,7 @@ pub struct State {
     #[serde(default)]
     pub is_local: bool,
     #[serde(default)]
-    pub mirror: Option<StateId>,
+    pub mirror: Option<Mirror>,
     #[serde(default)]
     pub is_disabled: bool,
 }
@@ -45,6 +52,23 @@ pub enum AccessType {
     ReadWrite,
     WriteOnly,
     BlackHole,
+}
+
+impl AccessType {
+    pub fn from_rw(read: bool, write: bool) -> Self {
+        match (read, write) {
+            (true, true) => Self::ReadWrite,
+            (true, false) => Self::ReadOnly,
+            (false, true) => Self::WriteOnly,
+            (false, false) => Self::BlackHole,
+        }
+    }
+    pub fn has_read(self) -> bool {
+        matches!(self, Self::ReadOnly | Self::ReadWrite)
+    }
+    pub fn has_write(self) -> bool {
+        matches!(self, Self::WriteOnly | Self::ReadWrite)
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
