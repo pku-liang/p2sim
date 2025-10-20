@@ -55,6 +55,8 @@ struct {{ ctx.name }} {
     {%- endfor %}
     void step();
     void init();
+    void step_mt(int cycles);
+
     {%- for (sid, s) in ctx.shared.enumerate_ids() %}
     {%- if s.is_ext %}
     {{ s.width | int_ty }} get_{{ s.name }}();

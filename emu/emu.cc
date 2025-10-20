@@ -108,22 +108,24 @@ int main(int argc, char** argv) {
   }
   #endif
   clock_t prev = clock();
-  while (true) {
-    cycle++;
-    dut_cycle(1);
-    if(cycle % 100000 == 0) {
-      clock_t time = clock();
-      printf("cycle=%d, freq=%lf kHz\n", cycle, cycle * 1.0 / (time - prev) * CLOCKS_PER_SEC / 1000);
-    }
-    if(cycle >= 10 && dut->get_io$$success()) {
-      break;
-    }
-    if(cycle >= max_cycles) {
-      printf("cycle=%d, freq=%lf kHz\n", cycle, cycle * 1.0 / (clock() - prev) * CLOCKS_PER_SEC / 1000);
-      printf("cycle reached max cycles, this may be a bug\n");
-      exit(1);
-    }
-  }
+  cycle = 1000000;
+  dut->step_mt(1000000);
+  // while (true) {
+  //   cycle++;
+  //   dut_cycle(1);
+  //   if(cycle % 100000 == 0) {
+  //     clock_t time = clock();
+  //     printf("cycle=%d, freq=%lf kHz\n", cycle, cycle * 1.0 / (time - prev) * CLOCKS_PER_SEC / 1000);
+  //   }
+  //   if(cycle >= 10 && dut->get_io$$success()) {
+  //     break;
+  //   }
+  //   if(cycle >= max_cycles) {
+  //     printf("cycle=%d, freq=%lf kHz\n", cycle, cycle * 1.0 / (clock() - prev) * CLOCKS_PER_SEC / 1000);
+  //     printf("cycle reached max cycles, this may be a bug\n");
+  //     exit(1);
+  //   }
+  // }
 #ifdef PROFILE
   if(getenv("ACT_INFO_FILE")) {
     dut->dump_act_info(getenv("ACT_INFO_FILE"));

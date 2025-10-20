@@ -25,6 +25,7 @@ struct {{ ctx.name }}: public {{ ctx.name }}Syms {
     using act_t = uint{{ ctx.cfg.act_mask_width }}_t;
 
     void step();
+    void step_mt(int cycles);
     void init();
 
     act_t __act_mask[{{ ctx.blocks.len() as u32 / ctx.cfg.act_mask_width + 1 }}];
