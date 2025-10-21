@@ -6,9 +6,7 @@ use log::{info, warn};
 use mt_kahypar::{Context, Hypergraph, Objective, Preset};
 use petgraph::{
     Direction,
-    algo::tred,
     graph::{DiGraph, NodeIndex, node_index},
-    visit::IntoNeighbors,
 };
 use rustc_hash::{FxHashMap, FxHashSet};
 use tabular::{Row, Table};
@@ -261,7 +259,6 @@ pub struct PartDesign<'d> {
 #[derive(Default, Clone, Debug)]
 pub struct StateInfo {
     pub is_shared: bool,
-    pub shared_id: Option<StateId>,
     pub read: BTreeSet<PartId>,
     pub write: BTreeSet<PartId>,
 }
@@ -284,7 +281,6 @@ index_ext! { containers StateId, StateInfo }
 index_ext! {pub struct PartId(pub u32) for Part<'d>}
 
 pub struct PartDep {
-    pub shared: Vec<StateId>,
     pub states: Vec<StateInfo>,
 }
 
@@ -303,14 +299,15 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
     info!("Start repcut partition");
     info!("1. Build transitive closure");
     let dep = get_dep_info(design);
-    let toposort = (0..design.blocks.len()).map(node_index).collect_vec();
-    let (succs, _) = tred::dag_to_toposorted_adjacency_list::<_, u32>(&dep.cdep, &toposort);
-    let (_, tclos) = tred::dag_transitive_reduction_closure::<_, u32>(&succs);
+    // let toposort = (0..design.blocks.len()).map(node_index).collect_vec();
+    // let (succs, _) = tred::dag_to_toposorted_adjacency_list::<_, u32>(&dep.cdep, &toposort);
+    // let (_, tclos) = tred::dag_transitive_reduction_closure::<_, u32>(&succs);
 
     info!("2. Find sink nodes");
     let mut sinks = vec![];
     let mut sink_size = vec![];
     let mut sink_map = vec![None; design.blocks.len()];
+    let mut blk_in_sinks = vec![BTreeSet::default(); design.blocks.len()];
     for (blk_id, _) in design.blocks.enumerate_ids() {
         if dep.is_sink(blk_id) {
             let sink_id = sinks.len();
@@ -318,18 +315,26 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
             sinks.push(blk_id);
             sink_size.push(size);
             sink_map[blk_id.0 as usize] = Some(sink_id);
+            blk_in_sinks[blk_id.0 as usize].insert(sink_id);
         }
+    }
+
+    for blk_id in design.blocks.ids().rev() {
+        let succ_iter = dep.cdep.neighbors_directed(blk_id.node_index(), Direction::Outgoing);
+        let mut succs = BTreeSet::default();
+        for succ in succ_iter {
+            succs.extend(blk_in_sinks[succ.index()].iter().cloned());
+        }
+        blk_in_sinks[blk_id.0 as usize].extend(succs);
     }
 
     info!("3. Build Hypergraph");
     let mut builder = HPG::new(sink_size);
     let get_edges = |blk_id: BlockId| {
-        tclos
-            .neighbors(blk_id.0)
-            .filter_map(|x| sink_map[x as usize])
+        blk_in_sinks[blk_id.0 as usize].iter().cloned()
     };
     for (blk_id, block) in design.blocks.enumerate_ids() {
-        let weight = block.insts.len() as i32 / 4 + 1;
+        let weight = block.insts.len() as i32 / 2 + 1;
         builder.add_edge(weight, get_edges(blk_id));
         if block.always {
             builder.add_edge(10000, get_edges(blk_id));
@@ -337,7 +342,7 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
     }
     for (sid, s) in dep.states.enumerate_ids() {
         if design.states[sid].element_count() > 32 {
-            let weight = s.writes.len() as i32 + 1;
+            let weight = design.states[sid].element_count() as i32;
             let mut edges = vec![];
             for r in &s.reads {
                 edges.extend(get_edges(*r));
@@ -357,8 +362,8 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
         let ctx = Context::builder()
             .preset(Preset::Deterministic)
             .k(k as i32)
-            .epsilon(0.03)
-            .objective(Objective::Km1)
+            .epsilon(0.1)
+            .objective(Objective::Cut)
             .seed(42)
             .verbose(false)
             .build()
@@ -373,7 +378,6 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
     let mut parts = vec![Part::new(design); k];
     let mut blk_in_parts = vec![BTreeSet::default(); design.blocks.len()];
 
-    eprintln!("dep.states[9645] = {:?}", dep.states[9645]);
     for (i, sink) in sinks.iter().enumerate() {
         blk_in_parts[sink.0 as usize].insert(part_id[i] as usize);
         if sink.0 == 6789 {
@@ -439,19 +443,11 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
             s.is_shared = false;
         }
     }
-    let mut shared = vec![];
-    for (sid, s) in states.enumerate_ids_mut() {
-        if s.is_shared {
-            let new_id = shared.len();
-            shared.push(sid);
-            s.shared_id = Some(StateId(new_id as u32))
-        }
-    }
 
     PartDesign {
         design,
         parts,
-        dep: PartDep { shared, states },
+        dep: PartDep { states },
     }
 }
 
@@ -570,6 +566,24 @@ impl PartRewrite {
 }
 
 pub fn build_tdesign(pd: &PartDesign) -> TDesign {
+    let mut shared_ids = vec![];
+    for (sid, s) in pd.dep.states.enumerate_ids() {
+        if s.is_shared {
+            shared_ids.push(sid);
+        }
+    }
+    shared_ids.sort_by_cached_key(|id| {
+        let first_write = pd.dep.states[*id].write.first().cloned().unwrap_or(PartId(0));
+        // let first_read = pd.dep.states[*id].read.first().cloned().unwrap_or(PartId(0));
+        // (first_write, first_read)
+        first_write
+    });
+    let mut shared: Vec<State> = vec![];
+    let mut shared_id_map = FxHashMap::default();
+    for id in shared_ids.iter() {
+        let new_id = shared.add(pd.design.states[*id].clone());
+        shared_id_map.insert(*id, new_id);
+    }
     let mut parts = vec![];
     for (part_id, part) in pd.parts.enumerate_ids() {
         let mut all_states = BTreeSet::<StateId>::default();
@@ -580,6 +594,15 @@ pub fn build_tdesign(pd: &PartDesign) -> TDesign {
             all_states.extend(pd.design.blocks[*blk_id].reads.iter().cloned());
             all_states.extend(pd.design.blocks[*blk_id].writes.iter().cloned());
         }
+        let mut all_states = all_states.into_iter().collect_vec();
+        all_states.sort_by_cached_key(|id| {
+            let access_ty = pd.dep.states[*id].get_access_type(part_id);
+            if access_ty.has_write() {
+                (false, shared_id_map.get(id).cloned().unwrap_or(StateId(0)))
+            } else {
+                (true, shared_id_map.get(id).cloned().unwrap_or(StateId(0)))
+            }
+        });
         let mut states: Vec<State> = vec![];
         let mut id_map = FxHashMap::<StateId, StateId>::default();
         for sid in all_states.iter() {
@@ -589,7 +612,7 @@ pub fn build_tdesign(pd: &PartDesign) -> TDesign {
                 let access_ty = info.get_access_type(part_id);
                 if access_ty != AccessType::BlackHole {
                     state.mirror = Some(Mirror {
-                        shared_id: info.shared_id.unwrap(),
+                        shared_id: shared_id_map.get(sid).cloned().unwrap(),
                         ty: access_ty,
                     })
                 }
@@ -619,12 +642,12 @@ pub fn build_tdesign(pd: &PartDesign) -> TDesign {
             resets,
         });
     }
-    let shared = pd
-        .dep
-        .shared
-        .iter()
-        .map(|sid| pd.design.states[*sid].clone())
-        .collect_vec();
+    // let shared = pd
+    //     .dep
+    //     .shared
+    //     .iter()
+    //     .map(|sid| pd.design.states[*sid].clone())
+    //     .collect_vec();
     TDesign {
         name: pd.design.name.clone(),
         max_concat: pd.design.max_concat,

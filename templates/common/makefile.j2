@@ -1,10 +1,8 @@
 CXX = clang++
 CXXFLAGS += -pthread -march=native -std=c++20
-LDFLAGS += -fuse-ld=lld -pthread
+LDFLAGS += -fuse-ld=lld -pthread -g
 
-{%- if ctx.cfg.ccargs.debug %}
-CXXFLAGS += -g
-{%- else %}
+{%- if !ctx.cfg.ccargs.debug %}
 CXXFLAGS += -O2
 {%- endif %}
 

@@ -20,7 +20,7 @@ struct {{ ctx.name }}_{{ part_id.0 }} {
     using act_t = uint{{ ctx.cfg.act_mask_width }}_t;
 
     static void gprintf(const char *fmt, ...);
-    void step();
+    void step(bool eval_reset=true);
     void init();
     void pull();
     void push();
@@ -45,6 +45,7 @@ struct {{ ctx.name }}_{{ part_id.0 }} {
     {%- endfor %}
 
     char __state_end[0];
+    std::vector<unsigned long long> __prof_counter;
 };
 {%- endfor %}
 
@@ -55,7 +56,9 @@ struct {{ ctx.name }} {
     {%- endfor %}
     void step();
     void init();
-    void step_mt(int cycles);
+    void print_stats();
+    void step_mt(int cycles, int start_core=0);
+    bool dump_prof_counter(const char * filename);
 
     {%- for (sid, s) in ctx.shared.enumerate_ids() %}
     {%- if s.is_ext %}

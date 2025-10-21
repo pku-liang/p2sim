@@ -93,10 +93,12 @@ int main(int argc, char** argv) {
   dtm = new dtm_t(argc, argv);
   dut = new TestHarness();
   dut->init();
+  dut->print_stats();
   dut->set_reset(1);
   dut_cycle(10);
   dut->set_reset(0);
   dut_cycle(1);
+  dut_cycle(100);
   int cycle = 0;
   int max_cycles = std::numeric_limits<int>::max();
   if(getenv("MAX_CYCLES")) {
@@ -109,7 +111,7 @@ int main(int argc, char** argv) {
   #endif
   clock_t prev = clock();
   cycle = 1000000;
-  dut->step_mt(1000000);
+  dut->step_mt(1000000, 48);
   // while (true) {
   //   cycle++;
   //   dut_cycle(1);
@@ -131,6 +133,7 @@ int main(int argc, char** argv) {
     dut->dump_act_info(getenv("ACT_INFO_FILE"));
   }
 #endif
+  dut->dump_prof_counter("prof.bin");
   printf("cycle=%d, freq=%lf kHz\n", cycle, cycle * 1.0 / (clock() - prev) * CLOCKS_PER_SEC / 1000);
   exit(0);
 }
