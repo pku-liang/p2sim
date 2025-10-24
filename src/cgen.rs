@@ -177,24 +177,24 @@ impl<'ir> CGenCtx<'ir> {
             cfg: cfg,
             name: &design.name,
             max_concat: design.max_concat,
-            states: &design.states,
-            blocks: &design.blocks,
-            resets: &design.resets,
+            states: &design.part.states,
+            blocks: &design.part.blocks,
+            resets: &design.part.resets,
             ext_fns: &design.ext_fns,
             reset_states: design
-                .resets
+                .part.resets
                 .iter()
                 .map(|reset| reset.reset)
                 .sorted()
                 .dedup()
                 .collect(),
             block_groups: partition_by_size(
-                &design.blocks,
+                &design.part.blocks,
                 |block| block.insts.len(),
                 cfg.file_inst_size,
             ),
             reset_groups: partition_by_size(
-                &design.resets,
+                &design.part.resets,
                 |reset| reset.insts.len(),
                 cfg.file_inst_size,
             ),
@@ -382,7 +382,7 @@ impl<'ir> Deref for EDCGenCtx<'ir> {
 
 impl<'ir> EDCGenCtx<'ir> {
     fn new(cfg: &'ir CGenCfg, design: &'ir Design) -> Self {
-        let act_map = get_act_map(design);
+        let act_map = get_act_map(&design.part);
         Self {
             ctx: CGenCtx::new(cfg, design),
             act_map,

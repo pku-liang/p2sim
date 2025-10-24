@@ -87,12 +87,12 @@ fn main() {
     let mut design = parse_file(input_sexpr).unwrap();
     info!(
         "Design stats: blocks={}, states={}, resets={}",
-        design.blocks.len(),
-        design.states.len(),
-        design.resets.len()
+        design.part.blocks.len(),
+        design.part.states.len(),
+        design.part.resets.len()
     );
-    pass::leaglize_empty_block(&mut design);
-    pass::verify_act_map(&design);
+    pass::leaglize_empty_block(&mut design.part);
+    pass::verify_act_map(&design.part);
     let pd = pass::partition(&design, args.k.unwrap_or(2));
     pass::print_part_stats(&pd);
     let td = pass::build_tdesign(&pd);

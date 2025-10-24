@@ -6,7 +6,6 @@ pub mod comp;
 pub mod ir;
 pub mod mt;
 pub mod pass;
-pub mod cpart;
 
 use std::{
     fs::File,

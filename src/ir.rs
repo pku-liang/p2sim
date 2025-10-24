@@ -34,8 +34,6 @@ pub struct State {
     pub mirror: Option<Mirror>,
     #[serde(default)]
     pub is_disabled: bool,
-    #[serde(default)]
-    pub is_large_mem: bool,
 }
 
 impl State {
@@ -142,13 +140,20 @@ pub struct Reset {
     pub acts: Vec<BlockId>,
 }
 
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct TPart {
+    pub states: Vec<State>,
+    pub blocks: Vec<Block>,
+    pub resets: Vec<Reset>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Design {
     pub name: String,
     pub max_concat: u32,
     pub ext_fns: Vec<String>,
-    pub states: Vec<State>,
-    pub blocks: Vec<Block>,
-    pub resets: Vec<Reset>,
+    pub part: TPart,
 }

@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::{collections::BTreeSet, ops::Range};
 
 use index_vec_ext::{IndexExt, IndexVecExt, index_ext};
 use itertools::Itertools;
@@ -15,9 +15,9 @@ use crate::ir::*;
 
 pub type ActMap = FxHashMap<StateId, Vec<BlockId>>;
 
-pub fn get_act_map(design: &Design) -> ActMap {
+pub fn get_act_map(part: &TPart) -> ActMap {
     let mut act_map: ActMap = FxHashMap::default();
-    for (blk_id, block) in design.blocks.enumerate_ids() {
+    for (blk_id, block) in part.blocks.enumerate_ids() {
         for read in &block.reads {
             act_map.entry(*read).or_default().push(blk_id);
         }
@@ -25,9 +25,9 @@ pub fn get_act_map(design: &Design) -> ActMap {
     act_map
 }
 
-pub fn verify_act_map(design: &Design) {
-    let act_map = get_act_map(design);
-    for block in &design.blocks {
+pub fn verify_act_map(part: &TPart) {
+    let act_map = get_act_map(part);
+    for block in &part.blocks {
         for inst in &block.insts {
             if let Inst::WritePost { sid, acts, .. } = inst {
                 let act_map_acts = act_map.get(sid).map(|x| &x[..]).unwrap_or(&[]);
@@ -35,7 +35,7 @@ pub fn verify_act_map(design: &Design) {
                     assert!(
                         act_map_acts.contains(a),
                         "Act {} doesn't include {:?}, ({:?})",
-                        design.states[*sid].name,
+                        part.states[*sid].name,
                         a,
                         act_map_acts
                     );
@@ -43,7 +43,7 @@ pub fn verify_act_map(design: &Design) {
                 if acts.len() < act_map_acts.len() {
                     warn!(
                         "Activates more blocks than gsim: {} {} => {}",
-                        design.states[*sid].name,
+                        part.states[*sid].name,
                         acts.len(),
                         act_map_acts.len()
                     );
@@ -53,9 +53,9 @@ pub fn verify_act_map(design: &Design) {
     }
 }
 
-pub fn verify_never_act(design: &Design) {
+pub fn verify_never_act(part: &TPart) {
     let mut all_acts = FxHashSet::default();
-    for block in &design.blocks {
+    for block in &part.blocks {
         for inst in &block.insts {
             if let Inst::WritePost { acts, .. } = inst {
                 for a in acts {
@@ -64,13 +64,13 @@ pub fn verify_never_act(design: &Design) {
             }
         }
     }
-    for reset in &design.resets {
+    for reset in &part.resets {
         for act in &reset.acts {
             all_acts.insert(*act);
         }
     }
     let mut never_act = vec![];
-    for (blk_id, block) in design.blocks.enumerate_ids() {
+    for (blk_id, block) in part.blocks.enumerate_ids() {
         if !block.always && !all_acts.contains(&blk_id) {
             never_act.push(blk_id.0);
         }
@@ -104,7 +104,7 @@ impl StateDep {
 }
 
 pub struct DepInfo<'d> {
-    pub design: &'d Design,
+    pub part: &'d TPart,
     pub states: Vec<StateDep>,
     pub cdep: DiGraph<(), ()>,
     pub sdep: DiGraph<(), StateId>,
@@ -112,7 +112,7 @@ pub struct DepInfo<'d> {
 
 impl<'d> DepInfo<'d> {
     pub fn is_sink(&self, blk_id: BlockId) -> bool {
-        let has_seq_write= self.design.blocks[blk_id].writes.iter().any(|write| self.states[*write].is_seq());
+        let has_seq_write= self.part.blocks[blk_id].writes.iter().any(|write| self.states[*write].is_seq());
         let has_no_comb_succ = self
             .cdep
             .neighbors_directed(blk_id.node_index(), Direction::Outgoing)
@@ -121,7 +121,7 @@ impl<'d> DepInfo<'d> {
         has_seq_write || has_no_comb_succ
     }
     pub fn get_sink_states(&self, blk_id: BlockId) -> Vec<StateId> {
-        self.design.blocks[blk_id].writes.iter().filter_map(|write| {
+        self.part.blocks[blk_id].writes.iter().filter_map(|write| {
             if self.states[*write].is_seq() {
                 Some(*write)
             } else {
@@ -140,9 +140,9 @@ impl NodeIdxExt for BlockId {
     }
 }
 
-pub fn get_dep_info<'d>(design: &'d Design) -> DepInfo<'d> {
-    let mut states = vec![StateDep::default(); design.states.len()];
-    for (blk_id, block) in design.blocks.enumerate_ids() {
+pub fn get_dep_info<'d>(part: &'d TPart) -> DepInfo<'d> {
+    let mut states = vec![StateDep::default(); part.states.len()];
+    for (blk_id, block) in part.blocks.enumerate_ids() {
         for read in &block.reads {
             states[*read].reads.push(blk_id);
         }
@@ -152,19 +152,19 @@ pub fn get_dep_info<'d>(design: &'d Design) -> DepInfo<'d> {
     }
     let mut cdep = DiGraph::new();
     let mut sdep = DiGraph::new();
-    for _ in &design.blocks {
+    for _ in &part.blocks {
         cdep.add_node(());
         sdep.add_node(());
     }
     for (sid, s) in states.enumerate_ids() {
-        if design.states[sid].is_ext {
+        if part.states[sid].is_ext {
             if !s.is_seq() {
-                eprintln!("ext state {:?} is not seq {:?}", design.states[sid], s);
+                eprintln!("ext state {:?} is not seq {:?}", part.states[sid], s);
             }
             assert!(
                 s.is_seq(),
                 "ext state {:?} is not seq",
-                design.states[sid].name
+                part.states[sid].name
             );
         }
         if s.is_comb() {
@@ -183,14 +183,14 @@ pub fn get_dep_info<'d>(design: &'d Design) -> DepInfo<'d> {
                 }
             }
         } else {
-            panic!("state {:?} is not comb or seq", design.states[sid].name);
+            panic!("state {:?} is not comb or seq", part.states[sid].name);
         }
     }
-    DepInfo { design, states, cdep, sdep }
+    DepInfo { part, states, cdep, sdep }
 }
 
-pub fn leaglize_empty_block(design: &mut Design) {
-    for (blk_id, block) in design.blocks.enumerate_ids_mut() {
+pub fn leaglize_empty_block(part: &mut TPart) {
+    for (blk_id, block) in part.blocks.enumerate_ids_mut() {
         if block
             .insts
             .iter()
@@ -244,7 +244,7 @@ impl HPG {
 
 #[derive(Clone)]
 pub struct Part<'d> {
-    pub design: &'d Design,
+    pub orig: &'d TPart,
     pub blocks: Vec<BlockId>,
     pub sinks: Vec<BlockId>,
     pub resets: Vec<BlockId>,
@@ -285,9 +285,9 @@ pub struct PartDep {
 }
 
 impl<'d> Part<'d> {
-    pub fn new(design: &'d Design) -> Self {
+    pub fn new(design: &'d TPart) -> Self {
         Self {
-            design: design,
+            orig: design,
             blocks: vec![],
             sinks: vec![],
             resets: vec![],
@@ -296,9 +296,10 @@ impl<'d> Part<'d> {
 }
 
 pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
+    let part = &design.part;
     info!("Start repcut partition");
     info!("1. Build transitive closure");
-    let dep = get_dep_info(design);
+    let dep = get_dep_info(part);
     // let toposort = (0..design.blocks.len()).map(node_index).collect_vec();
     // let (succs, _) = tred::dag_to_toposorted_adjacency_list::<_, u32>(&dep.cdep, &toposort);
     // let (_, tclos) = tred::dag_transitive_reduction_closure::<_, u32>(&succs);
@@ -306,9 +307,9 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
     info!("2. Find sink nodes");
     let mut sinks = vec![];
     let mut sink_size = vec![];
-    let mut sink_map = vec![None; design.blocks.len()];
-    let mut blk_in_sinks = vec![BTreeSet::default(); design.blocks.len()];
-    for (blk_id, _) in design.blocks.enumerate_ids() {
+    let mut sink_map = vec![None; part.blocks.len()];
+    let mut blk_in_sinks = vec![BTreeSet::default(); part.blocks.len()];
+    for (blk_id, _) in part.blocks.enumerate_ids() {
         if dep.is_sink(blk_id) {
             let sink_id = sinks.len();
             let size = dep.get_sink_states(blk_id).len() as i32 + 1;
@@ -319,7 +320,7 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
         }
     }
 
-    for blk_id in design.blocks.ids().rev() {
+    for blk_id in part.blocks.ids().rev() {
         let succ_iter = dep.cdep.neighbors_directed(blk_id.node_index(), Direction::Outgoing);
         let mut succs = BTreeSet::default();
         for succ in succ_iter {
@@ -333,7 +334,7 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
     let get_edges = |blk_id: BlockId| {
         blk_in_sinks[blk_id.0 as usize].iter().cloned()
     };
-    for (blk_id, block) in design.blocks.enumerate_ids() {
+    for (blk_id, block) in part.blocks.enumerate_ids() {
         let weight = block.insts.len() as i32 / 2 + 1;
         builder.add_edge(weight, get_edges(blk_id));
         if block.always {
@@ -341,8 +342,8 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
         }
     }
     for (sid, s) in dep.states.enumerate_ids() {
-        if design.states[sid].element_count() > 32 {
-            let weight = design.states[sid].element_count() as i32;
+        if part.states[sid].element_count() > 32 {
+            let weight = part.states[sid].element_count() as i32;
             let mut edges = vec![];
             for r in &s.reads {
                 edges.extend(get_edges(*r));
@@ -375,8 +376,8 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
     }
 
     info!("5. Extract partition");
-    let mut parts = vec![Part::new(design); k];
-    let mut blk_in_parts = vec![BTreeSet::default(); design.blocks.len()];
+    let mut parts = vec![Part::new(part); k];
+    let mut blk_in_parts = vec![BTreeSet::default(); part.blocks.len()];
 
     for (i, sink) in sinks.iter().enumerate() {
         blk_in_parts[sink.0 as usize].insert(part_id[i] as usize);
@@ -385,7 +386,7 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
         }
         parts[part_id[i] as usize].sinks.push(*sink);
     }
-    for blk_id in design.blocks.ids().rev() {
+    for blk_id in part.blocks.ids().rev() {
         let mut insides = BTreeSet::default();
         let succ_iter = dep
             .cdep
@@ -395,12 +396,12 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
         }
         blk_in_parts[blk_id.0 as usize].extend(insides);
     }
-    for blk_id in design.blocks.ids() {
+    for blk_id in part.blocks.ids() {
         for part_id in blk_in_parts[blk_id.0 as usize].iter() {
             parts[*part_id].blocks.push(blk_id);
         }
     }
-    for (rst_id, reset) in design.resets.enumerate_ids() {
+    for (rst_id, reset) in part.resets.enumerate_ids() {
         let mut need_add_reset = FxHashSet::default();
         for act in reset.acts.iter() {
             for part_id in blk_in_parts[act.0 as usize].iter() {
@@ -412,22 +413,22 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
         }
     }
 
-    let mut states = vec![StateInfo::default(); design.states.len()];
-    for (part_id, part) in parts.enumerate_ids() {
-        for sink in part.sinks.iter() {
-            for write in &design.blocks[*sink].writes {
+    let mut states = vec![StateInfo::default(); part.states.len()];
+    for (part_id, new_part) in parts.enumerate_ids() {
+        for sink in new_part.sinks.iter() {
+            for write in &part.blocks[*sink].writes {
                 states[*write].write.insert(part_id);
                 states[*write].is_shared = true;
             }
         }
-        for rst_id in part.resets.iter() {
-            let reset = design.resets[*rst_id].reset;
+        for rst_id in new_part.resets.iter() {
+            let reset = part.resets[*rst_id].reset;
             if dep.states[reset].is_seq() {
                 states[reset].read.insert(part_id);
             }
         }
-        for blk_id in part.blocks.iter() {
-            for read in &design.blocks[*blk_id].reads {
+        for blk_id in new_part.blocks.iter() {
+            for read in &part.blocks[*blk_id].reads {
                 if dep.states[*read].is_seq() {
                     states[*read].read.insert(part_id);
                 }
@@ -435,7 +436,7 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
         }
     }
     for (sid, s) in states.enumerate_ids_mut() {
-        if design.states[sid].is_ext {
+        if part.states[sid].is_ext {
             s.is_shared = true;
         } else if s.read.is_empty() || s.write.is_empty() {
             s.is_shared = false;
@@ -459,7 +460,7 @@ pub fn print_part_stats(pd: &PartDesign) {
         let total_insts = part
             .blocks
             .iter()
-            .map(|block| pd.design.blocks[*block].insts.len())
+            .map(|block| pd.design.part.blocks[*block].insts.len())
             .sum::<usize>();
         total_blocks += part.blocks.len();
         table.add_row(Row::from_cells([
@@ -471,7 +472,7 @@ pub fn print_part_stats(pd: &PartDesign) {
         ]));
     }
     info!("Block Partition Stats:\n{}", table.to_string().strip_suffix("\n").unwrap());
-    let orig_blocks = pd.design.blocks.len();
+    let orig_blocks = pd.design.part.blocks.len();
     let duplication = total_blocks as f64 / orig_blocks as f64 - 1.0;
     info!(
         "Blocks: {} => {} (Dup {:.2}%)",
@@ -481,11 +482,11 @@ pub fn print_part_stats(pd: &PartDesign) {
     );
 }
 
-pub struct TPart {
-    pub states: Vec<State>,
-    pub blocks: Vec<Block>,
-    pub resets: Vec<Reset>,
-}
+// pub struct TPart {
+//     pub states: Vec<State>,
+//     pub blocks: Vec<Block>,
+//     pub resets: Vec<Reset>,
+// }
 
 impl TPart {
     pub fn get_act_map(&self) -> ActMap {
@@ -583,18 +584,18 @@ pub fn build_tdesign(pd: &PartDesign) -> TDesign {
     let mut shared: Vec<State> = vec![];
     let mut shared_id_map = FxHashMap::default();
     for id in shared_ids.iter() {
-        let new_id = shared.add(pd.design.states[*id].clone());
+        let new_id = shared.add(pd.design.part.states[*id].clone());
         shared_id_map.insert(*id, new_id);
     }
     let mut parts = vec![];
     for (part_id, part) in pd.parts.enumerate_ids() {
         let mut all_states = BTreeSet::<StateId>::default();
         for rst_id in part.resets.iter() {
-            all_states.insert(pd.design.resets[*rst_id].reset);
+            all_states.insert(pd.design.part.resets[*rst_id].reset);
         }
         for blk_id in part.blocks.iter() {
-            all_states.extend(pd.design.blocks[*blk_id].reads.iter().cloned());
-            all_states.extend(pd.design.blocks[*blk_id].writes.iter().cloned());
+            all_states.extend(pd.design.part.blocks[*blk_id].reads.iter().cloned());
+            all_states.extend(pd.design.part.blocks[*blk_id].writes.iter().cloned());
         }
         let mut all_states = all_states.into_iter().collect_vec();
         all_states.sort_by_cached_key(|id| {
@@ -608,7 +609,7 @@ pub fn build_tdesign(pd: &PartDesign) -> TDesign {
         let mut states: Vec<State> = vec![];
         let mut id_map = FxHashMap::<StateId, StateId>::default();
         for sid in all_states.iter() {
-            let mut state = part.design.states[*sid].clone();
+            let mut state = part.orig.states[*sid].clone();
             let info = &pd.dep.states[*sid];
             if info.is_shared {
                 let access_ty = info.get_access_type(part_id);
@@ -629,12 +630,12 @@ pub fn build_tdesign(pd: &PartDesign) -> TDesign {
         let mut blocks = vec![];
         let mut resets = vec![];
         for blk_id in part.blocks.iter() {
-            let mut new_block = pd.design.blocks[*blk_id].clone();
+            let mut new_block = pd.design.part.blocks[*blk_id].clone();
             rewrite.update_block(&mut new_block);
             blocks.push(new_block);
         }
         for rst_id in part.resets.iter() {
-            let mut new_reset = pd.design.resets[*rst_id].clone();
+            let mut new_reset = pd.design.part.resets[*rst_id].clone();
             rewrite.update_reset(&mut new_reset);
             resets.push(new_reset);
         }
@@ -658,3 +659,48 @@ pub fn build_tdesign(pd: &PartDesign) -> TDesign {
         parts,
     }
 }
+
+
+pub fn solve_linear_part(dfg: &DiGraph<usize, ()>, bound: usize) -> Vec<Range<usize>> {
+    let mut cost = vec![(usize::MAX, 0); dfg.node_count() + 1];
+    for i in 0..dfg.node_count() {
+        let mut accu_size = 0;
+        let mut cur_cost = cost[i].0;
+        for j in i..dfg.node_count() {
+            let node = node_index(j);
+            accu_size += dfg[node];
+            if j > i && accu_size > bound {
+                break
+            }
+            let succ_edges = dfg.neighbors_directed(node, Direction::Outgoing);
+            let prev_edges = dfg.neighbors_directed(node, Direction::Incoming).filter(|prev| prev.index() >= i);
+            cur_cost += succ_edges.count() - prev_edges.count();
+            let new_cost = (cur_cost, i);
+            if new_cost < cost[j + 1] {
+                cost[j + 1] = new_cost;
+            }
+        }
+    }
+    let mut res = vec![];
+    let mut cur = dfg.node_count();
+    while cur > 0 {
+        res.push(cost[cur].1..cur);
+        cur = cost[cur].1;
+    }
+    res.reverse();
+    res
+}
+
+// pub fn linear_coarsen_part(part: &TPart) -> Vec<Block> {
+//     let mut graph = DiGraph::new();
+//     for i in 0..part.blocks.len() {
+//         graph.add_node(part.blocks[i].insts.len());
+//     }
+//     let act_map = part.get_act_map();
+//     for (blk_id, block) in part.blocks.enumerate_ids() {
+//         for write in block.writes.iter() {
+
+//         }
+//     }
+//     todo!()
+// }

@@ -9,7 +9,7 @@ use itertools::Itertools;
 use crate::{
     cgen::{CCArgs, CGenTask, run_cgen_tasks},
     ir::*,
-    pass::{ActMap, PartId, TDesign, TPart},
+    pass::{ActMap, PartId, TDesign},
 };
 
 fn int_ty_impl(width: usize) -> Cow<'static, str> {

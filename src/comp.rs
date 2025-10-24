@@ -2,7 +2,7 @@ use std::{fs::File, io::BufReader, path::Path};
 
 use crate::ir::*;
 
-pub fn parse(s: &str) -> serde_lexpr::Result<Design> {
+pub fn parse(s: &str) -> serde_lexpr::Result<TPart> {
     serde_lexpr::from_str(s)
 }
 
