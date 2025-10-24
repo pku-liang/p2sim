@@ -30,14 +30,16 @@ void {{ cls }}::step(bool eval_reset) {
 
 void {{ cls }}::pull() {
 {%- for (local_id, ty, mirror) in ctx.iter_mirrors(part_id) %}
-    {%- if ty.has_read() %}
+    {%- if ty == AccessType::ReadOnly %}
     {%- if !part.is_array(local_id) %}
     bool {{ part.name(local_id) }}$CHG = this->{{ part.name(local_id) }} != shared->{{ mirror.name }};
-    this->{{ part.name(local_id) }} = shared->{{ mirror.name }};
     {%- else %}
     bool {{ part.name(local_id) }}$CHG = memcmp(this->{{ part.name(local_id) }}, shared->{{ mirror.name }}, sizeof({{ part.name(local_id) }})) != 0;
-    memcpy(this->{{ part.name(local_id) }}, shared->{{ mirror.name }}, sizeof({{ part.name(local_id) }}));
     {%- endif %}
+    {%- endif %}
+{%- endfor %}
+{%- for (local_id, ty, mirror) in ctx.iter_mirrors(part_id) %}
+    {%- if ty == AccessType::ReadOnly %}
     {%- if part.act_map(local_id).len() < 5 %}
     {%- for act in part.act_map(local_id) %}
     __act_mask[{{ act.0 / ctx.cfg.act_mask_width }}] |= (act_t){{ part.name(local_id) }}$CHG << {{ act.0 % ctx.cfg.act_mask_width }}; // activate {{ act.0 }}
@@ -48,6 +50,15 @@ void {{ cls }}::pull() {
       __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= (act_t)1 << {{ blk_id.0 % ctx.cfg.act_mask_width }}; // activate {{ blk_id.0 }}
       {%- endfor %}
     }
+    {%- endif %}
+    {%- endif %}
+{%- endfor %}
+{%- for (local_id, ty, mirror) in ctx.iter_mirrors(part_id) %}
+    {%- if ty == AccessType::ReadOnly %}
+    {%- if !part.is_array(local_id) %}
+    this->{{ part.name(local_id) }} = shared->{{ mirror.name }};
+    {%- else %}
+    memcpy(this->{{ part.name(local_id) }}, shared->{{ mirror.name }}, sizeof({{ part.name(local_id) }}));
     {%- endif %}
     {%- endif %}
 {%- endfor %}
@@ -77,6 +88,9 @@ void {{ ctx.name }}::init() {
     {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
     part_{{ part_id.0 }}.shared = &shared;
     part_{{ part_id.0 }}.init();
+    {%- endfor %}
+    {%- for lm in ctx.large_mem %}
+    {{ lm.state.name }} = (void*)&part_{{ lm.part_id.0 }}.{{ lm.state.name }};
     {%- endfor %}
 }
 

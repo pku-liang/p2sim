@@ -66,4 +66,7 @@ struct {{ ctx.name }} {
     void set_{{ s.name }}({{ s.width | int_ty }} value);
     {%- endif %}
     {%- endfor %}
+    {%- for lm in ctx.large_mem %}
+    void * {{ lm.state.name }};
+    {%- endfor %}
 };

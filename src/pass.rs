@@ -470,7 +470,7 @@ pub fn print_part_stats(pd: &PartDesign) {
             total_insts.to_string(),
         ]));
     }
-    info!("Block Partition Stats:\n{}", table);
+    info!("Block Partition Stats:\n{}", table.to_string().strip_suffix("\n").unwrap());
     let orig_blocks = pd.design.blocks.len();
     let duplication = total_blocks as f64 / orig_blocks as f64 - 1.0;
     info!(
@@ -506,6 +506,8 @@ pub struct TDesign {
     pub shared: Vec<State>,
     pub parts: Vec<TPart>,
 }
+
+index_ext! { containers PartId, TPart }
 
 struct PartRewrite {
     pub id_map: FxHashMap<StateId, StateId>,

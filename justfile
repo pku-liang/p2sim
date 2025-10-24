@@ -10,20 +10,21 @@ run profile target: (compile profile target)
 [parallel]
 compile-all profile: (compile profile "rocket-m") (compile profile "rocket-x") (compile profile "boom-m") (compile profile "boom-l")
 
-compile profile target:
-    rm -rf build/{{ profile }}/{{ target }}
+compile profile target threads="1":
+    rm -rf build/{{ profile }}/{{ target }}.T{{ threads }}
+    mkdir -p build/{{ profile }}/{{ target }}.T{{ threads }}
+    echo "Logfile: build/{{ profile }}/{{ target }}.T{{ threads }}/build.log"
     cargo run --release -- \
         designs/{{ target }}.ggsim.sexp \
         emu/emu.cc \
         -lfesvr \
-        -o build/{{ profile }}/{{ target }} \
+        -o build/{{ profile }}/{{ target }}.T{{ threads }} \
         --profile {{ profile }} \
-        -k 2
-    pixi run make -C build/{{ profile }}/{{ target }}
+        -k {{ threads }} 2>&1 | tee build/{{ profile }}/{{ target }}.T{{ threads }}/build.log
+    pixi run make -C build/{{ profile }}/{{ target }}.T{{ threads }}
+    echo "Logfile: build/{{ profile }}/{{ target }}.T{{ threads }}/build.log"
 
 [parallel]
-gen-all: (gen "rocket-m") (gen "rocket-x") (gen "boom-m") (gen "boom-l")
-
 gen target: (build-gsim)
     gsim/build/gsim/gsim --supernode-max-size=1 --output designs/{{ target }}.ggsim.sexp emu/rsrc/{{ target }}.gsim.fir
 

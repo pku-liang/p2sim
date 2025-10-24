@@ -34,6 +34,8 @@ pub struct State {
     pub mirror: Option<Mirror>,
     #[serde(default)]
     pub is_disabled: bool,
+    #[serde(default)]
+    pub is_large_mem: bool,
 }
 
 impl State {

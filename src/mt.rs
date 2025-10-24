@@ -245,6 +245,12 @@ impl<'ir> SourceMap<'ir> {
     }
 }
 
+struct LargeMem<'ir> {
+    pub part_id: PartId,
+    pub state_id: StateId,
+    pub state: &'ir State,
+}
+
 struct MTCGenCtx<'ir> {
     design: &'ir TDesign,
     cfg: &'ir CGenCfg,
@@ -252,6 +258,7 @@ struct MTCGenCtx<'ir> {
     max_concat: u32,
     ext_fns: &'ir [String],
     shared: &'ir [State],
+    large_mem: Vec<LargeMem<'ir>>,
     parts: Vec<PartCGenCtx<'ir>>,
     smap: SourceMap<'ir>,
 }
@@ -264,6 +271,18 @@ impl<'ir> MTCGenCtx<'ir> {
         for part in td.parts.iter() {
             parts.push(PartCGenCtx::new(cfg, part));
         }
+        let mut large_mem = vec![];
+        for (part_id, part) in td.parts.enumerate_ids() {
+            for (state_id, state) in part.states.enumerate_ids() {
+                if state.element_count() > 1048576 {
+                    large_mem.push(LargeMem {
+                        part_id,
+                        state_id,
+                        state
+                    });
+                }
+            }
+        }
         Self {
             design: td,
             cfg,
@@ -272,6 +291,7 @@ impl<'ir> MTCGenCtx<'ir> {
             ext_fns: &td.ext_fns,
             shared: &td.shared,
             parts,
+            large_mem,
             smap: SourceMap::new(&cfg.output_dir, &td.name, &cfg.ccargs.extra_cpp),
         }
     }

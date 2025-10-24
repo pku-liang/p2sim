@@ -318,15 +318,16 @@ pub(crate) struct CGenTask<'ir> {
 }
 
 pub(crate) fn run_cgen_tasks(tasks: Vec<CGenTask>) -> std::io::Result<()> {
-    for task in tasks.iter() {
-        info!("Generating {}", task.file);
-        task.task.write_into_file_str(&task.file)?;
-    }
-    Ok(())
-    // tasks
-    //     .into_par_iter()
-    //     .map(|task| task.task.write_into_file_str(&task.file))
-    //     .collect()
+    // for task in tasks.iter() {
+    //     info!("Generating {}", task.file);
+    //     task.task.write_into_file_str(&task.file)?;
+    // }
+    // Ok(())
+    info!("Running {} cgen tasks", tasks.len());
+    tasks
+        .into_par_iter()
+        .map(|task| task.task.write_into_file_str(&task.file))
+        .collect()
 }
 
 pub fn full_cycle_gen(d: &Design, cfg: &CGenCfg) -> std::io::Result<()> {
