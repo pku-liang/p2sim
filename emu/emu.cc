@@ -135,6 +135,9 @@ int main(int argc, char** argv) {
   //   }
   // }
   printf("cycle=%d, freq=%lf kHz\n", cycle, cycle * 1.0 / (clock() - prev) * CLOCKS_PER_SEC / 1000);
-  dut->dump_prof_counter("prof.bin");
+#ifndef CURDIR
+#define CURDIR "."
+#endif
+  dut->dump_prof_counter(CURDIR "/prof.bin");
   return 0;
 }

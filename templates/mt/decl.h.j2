@@ -9,8 +9,10 @@
 
 struct {{ ctx.name }}_shared {
 {%- for state in ctx.shared %}
+    {%- if !state.is_disabled %}
     {{ state.width | int_ty }} {{ state.name }}
     {%- for dim in state.dims -%} [{{ dim }}] {%- endfor -%};
+    {%- endif %}
 {%- endfor %}
 };
 

@@ -140,7 +140,6 @@ pub struct Reset {
     pub acts: Vec<BlockId>,
 }
 
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct TPart {

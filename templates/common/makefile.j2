@@ -24,7 +24,8 @@ LDFLAGS +=
 {%- endfor %}
 
 EXTRA_CXXFLAGS = \
-	-I$(CURDIR)
+	-I$(CURDIR) \
+	-DCURDIR="\"$(CURDIR)\"" \
 {%- for inc_dir in ctx.cfg.ccargs.inc_dirs %} \
 	-I{{ inc_dir }}
 {%- endfor %}

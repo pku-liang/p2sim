@@ -95,7 +95,8 @@ fn main() {
     pass::verify_act_map(&design.part);
     let pd = pass::partition(&design, args.k.unwrap_or(2));
     pass::print_part_stats(&pd);
-    let td = pass::build_tdesign(&pd);
+    let mut td = pass::build_tdesign(&pd);
+    pass::linear_coarsen(&mut td);
     // pass::verify_never_act(&design);
     // pass::verify_dep_info(&design);
     // if let Some(act_file) = args.act {

@@ -172,7 +172,7 @@ void {{ ctx.name }}::step_mt(int cycles, int start_core) {
         [&, cycles, ref_{{ part_id.0 }}](){
             pin_to_core(start_core + {{ part_id.0 }});
             auto old_size = {{ ref_obj }}->__prof_counter.size();
-            {{ ref_obj }}->__prof_counter.reserve(old_size + cycles*6+1);
+            {{ ref_obj }}->__prof_counter.resize(old_size + cycles*6);
             {%- if master %}
             clock_t prev = clock();
             {%- endif %}
@@ -188,12 +188,12 @@ void {{ ctx.name }}::step_mt(int cycles, int start_core) {
                 unsigned long long t5 = __rdtsc();
                 {{ ref_obj }}->push();
                 unsigned long long t6 = __rdtsc();
-                {{ ref_obj }}->__prof_counter.push_back(t1);
-                {{ ref_obj }}->__prof_counter.push_back(t2);
-                {{ ref_obj }}->__prof_counter.push_back(t3);
-                {{ ref_obj }}->__prof_counter.push_back(t4);
-                {{ ref_obj }}->__prof_counter.push_back(t5);
-                {{ ref_obj }}->__prof_counter.push_back(t6);
+                {{ ref_obj }}->__prof_counter[old_size + i*6 + 0] = t1;
+                {{ ref_obj }}->__prof_counter[old_size + i*6 + 1] = t2;
+                {{ ref_obj }}->__prof_counter[old_size + i*6 + 2] = t3;
+                {{ ref_obj }}->__prof_counter[old_size + i*6 + 3] = t4;
+                {{ ref_obj }}->__prof_counter[old_size + i*6 + 4] = t5;
+                {{ ref_obj }}->__prof_counter[old_size + i*6 + 5] = t6;
                 {%- if master %}
                 if(i % 100000 == 0) {
                     clock_t time = clock();

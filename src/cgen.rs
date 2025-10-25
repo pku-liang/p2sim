@@ -15,7 +15,7 @@ use rustc_hash::FxHashMap;
 
 use crate::{TemplateExt, ir::*, pass::get_act_map};
 
-fn int_ty_impl(width: usize) -> Cow<'static, str> {
+pub fn int_ty_impl(width: usize) -> Cow<'static, str> {
     match width {
         0..=8 => Cow::Borrowed("uint8_t"),
         9..=16 => Cow::Borrowed("uint16_t"),
@@ -182,7 +182,8 @@ impl<'ir> CGenCtx<'ir> {
             resets: &design.part.resets,
             ext_fns: &design.ext_fns,
             reset_states: design
-                .part.resets
+                .part
+                .resets
                 .iter()
                 .map(|reset| reset.reset)
                 .sorted()

@@ -278,7 +278,7 @@ impl<'ir> MTCGenCtx<'ir> {
                     large_mem.push(LargeMem {
                         part_id,
                         state_id,
-                        state
+                        state,
                     });
                 }
             }
