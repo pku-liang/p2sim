@@ -47,7 +47,7 @@ struct {{ ctx.name }}_{{ part_id.0 }} {
     {%- endfor %}
 
     char __state_end[0];
-    std::vector<unsigned long long> __prof_counter;
+    std::vector<uint64_t> __prof_counter;
 };
 {%- endfor %}
 

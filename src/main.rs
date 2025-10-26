@@ -137,6 +137,7 @@ fn main() {
                     link_libs: args.repr_cc.link_libs,
                     debug: args.repr_cc.debug,
                 },
+                prof: args.prof,
                 ..Default::default()
             };
             mt_gen(&td, &cfg).unwrap();

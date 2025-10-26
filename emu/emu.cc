@@ -9,6 +9,8 @@
 // #include <fesvr/dtm.h>
 #include <cassert>
 #include <limits>
+#include <chrono>
+#include <iostream>
 #include "TestHarness.h"
 
 struct Program {
@@ -124,8 +126,14 @@ int main(int argc, char** argv) {
     max_cycles = std::atoi(getenv("MAX_CYCLES"));
   }
   printf("start simulation\n");
-  clock_t prev = clock();
+  // clock_t prev = clock();
+  auto start = std::chrono::high_resolution_clock::now();
   dut->step_mt(max_cycles, 48);
+  auto stop = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
+  std::cout << "cycle=" << max_cycles << ", freq=" << max_cycles * 1.0 / duration << " kHz\n";
+  // printf("simulation time: %ld seconds\n", duration.count());
+
   // while (cycle < max_cycles) {
   //   cycle++;
   //   dut_cycle(1);
@@ -134,7 +142,7 @@ int main(int argc, char** argv) {
   //     printf("cycle=%d, freq=%lf kHz\n", cycle, cycle * 1.0 / (time - prev) * CLOCKS_PER_SEC / 1000);
   //   }
   // }
-  printf("cycle=%d, freq=%lf kHz\n", cycle, cycle * 1.0 / (clock() - prev) * CLOCKS_PER_SEC / 1000);
+  // printf("cycle=%d, freq=%lf kHz\n", cycle, cycle * 1.0 / (clock() - prev) * CLOCKS_PER_SEC / 1000);
 #ifndef CURDIR
 #define CURDIR "."
 #endif
