@@ -6,12 +6,15 @@ import sys
 import re
 from pathlib import Path
 
-target_dirs = sorted(list(map(Path, sys.argv[1:-1])))
+target_dirs = sorted(list(map(Path, sys.argv[1:-1])), key=lambda x: int(x.suffix[2:]))
 save_fig = sys.argv[-1]
 print(target_dirs, save_fig)
 
+n_cols = 8
+n_rows = (len(target_dirs) + 1) // 2
 
-fig, axes = plt.subplots(len(target_dirs), 4, figsize=(4 * 5, len(target_dirs) * 5))
+fig, axes = plt.subplots(n_rows, n_cols, figsize=(4 * n_cols, n_rows * 5))
+axes = axes.reshape(n_rows, 2, 4).transpose(1, 0, 2).reshape(-1, 4)
 plt.subplots_adjust(left=0.05, right=0.95, bottom=0.2 / len(target_dirs), top=1 - 0.2 / len(target_dirs))
 
 total_ticks = []
@@ -77,7 +80,6 @@ for col, target_dir in enumerate(target_dirs):
                 pct = avg_cost[j, i] / total_cost[j]
                 plt.text(x[j], bottom[j] + avg_cost[j, i] / 2, f'{pct:.0%}', ha='center', va='center')
             items.append(item)
-        plt.legend(items[::-1], names[::-1])
         plt.xticks(x, x)
     except Exception as e:
         print(e)
