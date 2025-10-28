@@ -264,7 +264,16 @@ bool {{ ctx.name }}::dump_prof_counter(const char * filename) {
     {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
     {%- set ref_obj = "ref_" ~ part_id.0 %}
     auto {{ ref_obj }} = &part_{{ part_id.0 }};
-    fwrite({{ ref_obj }}->__prof_counter.data(), sizeof(unsigned long long), {{ ref_obj }}->__prof_counter.size(), f);
+    uint64_t prof_counter_size_{{ part_id.0 }} = {{ ref_obj }}->__prof_counter.size();
+    fwrite(&prof_counter_size_{{ part_id.0 }}, sizeof(uint64_t), 1, f);
+    fwrite({{ ref_obj }}->__prof_counter.data(), sizeof(uint64_t), {{ ref_obj }}->__prof_counter.size(), f);
+    {%- endfor %}
+    {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
+    {%- set ref_obj = "ref_" ~ part_id.0 %}
+    fwrite(&part_count, sizeof(uint64_t), 1, f);
+    uint64_t act_cnt_size_{{ part_id.0 }} = {{ part.blocks.len() }};
+    fwrite(&act_cnt_size_{{ part_id.0 }}, sizeof(uint64_t), 1, f);
+    fwrite({{ ref_obj }}->__act_cnt, sizeof(uint32_t), {{ part.blocks.len() }}, f);
     {%- endfor %}
     fclose(f);
     return true;

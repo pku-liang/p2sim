@@ -11,7 +11,7 @@ use petgraph::{
 use rustc_hash::{FxHashMap, FxHashSet};
 use tabular::{Row, Table};
 
-use crate::ir::*;
+use crate::{act::BlockIdMap, ir::*};
 
 pub type ActMap = FxHashMap<StateId, Vec<BlockId>>;
 
@@ -307,7 +307,7 @@ impl<'d> Part<'d> {
     }
 }
 
-pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
+pub fn partition<'d>(design: &'d Design, k: usize, cost: impl Fn(BlockId) -> i32) -> PartDesign<'d> {
     let part = &design.part;
     info!("Start repcut partition");
     info!("1. Build transitive closure");
@@ -341,13 +341,18 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
             succs.extend(blk_in_sinks[succ.index()].iter().cloned());
         }
         blk_in_sinks[blk_id.0 as usize].extend(succs);
+        let bis = &blk_in_sinks[blk_id.0 as usize];
+        let cost = (cost(blk_id) + bis.len() as i32) / bis.len() as i32 / 1000;
+        for sink in bis {
+            sink_size[*sink] += cost;
+        }
     }
 
     info!("3. Build Hypergraph");
     let mut builder = HPG::new(sink_size);
     let get_edges = |blk_id: BlockId| blk_in_sinks[blk_id.0 as usize].iter().cloned();
     for (blk_id, block) in part.blocks.enumerate_ids() {
-        let weight = block.insts.len() as i32 / 2 + 1;
+        let weight = block.insts.len() as i32 / 5 + 1;
         builder.add_edge(weight, get_edges(blk_id));
         if block.always {
             builder.add_edge(10000, get_edges(blk_id));
@@ -378,7 +383,7 @@ pub fn partition<'d>(design: &'d Design, k: usize) -> PartDesign<'d> {
             .epsilon(0.1)
             .objective(Objective::Cut)
             .seed(42)
-            .verbose(false)
+            .verbose(true)
             .build()
             .unwrap();
         let hpg = builder.build(&ctx).unwrap();
@@ -650,6 +655,7 @@ pub fn build_tdesign(pd: &PartDesign) -> TDesign {
         let mut resets = vec![];
         for blk_id in part.blocks.iter() {
             let mut new_block = pd.design.part.blocks[*blk_id].clone();
+            new_block.orig_ids = vec![*blk_id];
             rewrite.update_block(&mut new_block);
             blocks.push(new_block);
         }
@@ -729,11 +735,32 @@ pub fn merge_block(blocks: &[Block]) -> Block {
         .flat_map(|b| b.insts.iter().cloned())
         .collect_vec();
     Block {
+        orig_ids: blocks
+            .iter()
+            .flat_map(|b| b.orig_ids.iter().cloned())
+            .collect_vec(),
         always,
         next,
         writes: writes.into_iter().collect_vec(),
         reads: reads.into_iter().collect_vec(),
         insts,
+    }
+}
+
+impl BlockIdMap {
+    pub fn from_pd(d: &TDesign) -> Self {
+        Self {
+            map: d
+                .parts
+                .iter()
+                .map(|p| {
+                    p.blocks
+                        .iter()
+                        .map(|b| b.orig_ids.iter().map(|x| x.0).collect())
+                        .collect()
+                })
+                .collect(),
+        }
     }
 }
 
@@ -790,7 +817,11 @@ pub fn linear_coarsen_part(part: &mut TPart) {
         }
         rst.acts = new_acts.into_iter().sorted().unique().collect_vec();
     }
-    info!("  Linear coarsen: {} => {}", part.blocks.len(), new_blocks.len());
+    info!(
+        "  Linear coarsen: {} => {}",
+        part.blocks.len(),
+        new_blocks.len()
+    );
     part.blocks = new_blocks;
 }
 

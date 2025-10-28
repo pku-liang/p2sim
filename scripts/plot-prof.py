@@ -19,24 +19,26 @@ plt.subplots_adjust(left=0.05, right=0.95, bottom=0.2 / len(target_dirs), top=1 
 
 total_ticks = []
 all_freqs = []
+th_names = []
 
 for col, target_dir in enumerate(target_dirs):
 
-    with open(f'{target_dir}/prof.log', 'r') as f:
-        freqs = re.findall(r'cycle=\d+, freq=([0-9.]+) kHz', f.read())
-        freq = max(map(float, freqs))
-        all_freqs.append(freq)
-
     try:
+        with open(f'{target_dir}/prof.log', 'r') as f:
+            freqs = re.findall(r'cycle=\d+, freq=([0-9.]+) kHz', f.read())
+            freq = max(map(float, freqs))
 
         with open(f'{target_dir}/prof.bin', 'rb') as f:
             data = f.read()
 
-        threads, = struct.unpack('q', data[:8])
-        data = np.frombuffer(data[8:], dtype=np.uint64).reshape(threads, -1, 6)
+        threads, cycle_count= struct.unpack('qq', data[:16])
+        print(threads, cycle_count, 8*threads*(cycle_count+1), len(data))
+        data = np.frombuffer(data[8:8 + 8*threads*(cycle_count+1)], dtype=np.uint64).reshape(threads, -1)
+        data = data[:, 1:].reshape(threads, -1, 6)
         total_ticks.append(data[0].max() - data[0].min())
+        all_freqs.append(freq)
+        th_names.append(target_dir.suffix)
         data = data[:, 150000:, :] - data[:, 150000, None, 0, None]
-        print(target_dir, total_ticks)
         cost = np.diff(data, axis=-1)
         avg_cost = cost.mean(axis=1)
         names = [
@@ -87,10 +89,9 @@ for col, target_dir in enumerate(target_dirs):
 plt.savefig(f'{save_fig}-prof.png', dpi=100)
 
 fig, axes = plt.subplots(1, 2, figsize=(10, 5))
-names = [target_dir.suffix for target_dir in target_dirs]
 plt.sca(axes[0])
 if len(total_ticks):
-    plt.barh(names, total_ticks)
+    plt.barh(th_names, total_ticks)
 plt.sca(axes[1])
-plt.barh(names, all_freqs)
+plt.barh(th_names, all_freqs)
 plt.savefig(f'{save_fig}-ticks.png', dpi=100)

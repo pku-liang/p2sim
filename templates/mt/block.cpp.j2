@@ -10,6 +10,9 @@ void {{ ctx.name }}_{{ part_id.0 }}::step_{{ group_id }}() {
         if(__act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] & ((act_t)1 << {{ id.0 % ctx.cfg.act_mask_width }}))
         {%- endif %}
         {
+            {%- if ctx.cfg.prof %}
+            __act_cnt[{{ id.0 }}]++;
+            {%- endif %}
             // block {{ id.0 }}
             __act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] &= ~((act_t)1 << {{ id.0 % ctx.cfg.act_mask_width }});
             {%- for inst in block.insts %}

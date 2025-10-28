@@ -125,6 +125,8 @@ pub enum Inst {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "kebab-case")]
 pub struct Block {
+    #[serde(default)]
+    pub orig_ids: Vec<BlockId>,
     pub always: bool,
     pub next: Vec<BlockId>,
     pub reads: Vec<StateId>,

@@ -46,6 +46,9 @@ struct {{ ctx.name }}_{{ part_id.0 }} {
     {{ part.int_ty(reset) }} {{ part.name(reset) }}$LAST;
     {%- endfor %}
 
+    {%- if ctx.cfg.prof %}
+    uint32_t __act_cnt[{{ part.blocks.len() }}];
+    {%- endif %}
     char __state_end[0];
     std::vector<uint64_t> __prof_counter;
 };

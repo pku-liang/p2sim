@@ -1,15 +1,13 @@
 #![allow(unused)]
 
-use std::{borrow::Cow, ops::Range, path::Path};
+use std::{borrow::Cow, fs::File, ops::Range, path::Path};
 
 use askama::Template;
 use index_vec_ext::{IndexExt, index_ext};
 use itertools::Itertools;
 
 use crate::{
-    cgen::{CCArgs, CGenTask, run_cgen_tasks},
-    ir::*,
-    pass::{ActMap, PartId, TDesign},
+    act::{BincodeExt, BlockIdMap}, cgen::{CCArgs, CGenTask, run_cgen_tasks}, ir::*, pass::{ActMap, PartId, TDesign}
 };
 
 fn int_ty_impl(width: usize) -> Cow<'static, str> {
@@ -243,6 +241,9 @@ impl<'ir> SourceMap<'ir> {
     fn extra_obj_abs(&self, name: &str) -> String {
         format!("{}/{}", self.output_dir, self.extra_obj(name))
     }
+    fn blk_id_abs(&self) -> String {
+        format!("{}/{}", self.output_dir, "blkid.bin")
+    }
 }
 
 struct LargeMem<'ir> {
@@ -390,5 +391,8 @@ pub fn mt_gen(d: &TDesign, cfg: &CGenCfg) -> std::io::Result<()> {
         task: Box::new(MakefileGen { ctx: &ctx }),
         file: map.makefile_abs(),
     });
-    run_cgen_tasks(tasks)
+    run_cgen_tasks(tasks).unwrap();
+    let bid_map = BlockIdMap::from_pd(d);
+    bid_map.write_file(map.blk_id_abs()).unwrap();
+    Ok(())
 }

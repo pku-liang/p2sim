@@ -6,19 +6,19 @@ prof-1234 target: (prof target "1") (prof target "2") (prof target "3") (prof ta
     python scripts/plot-prof.py build/mt/{{ target }}.* prof/{{ target }}
 
 prof target threads:
-    MAX_CYCLES=100000 taskset -c 48-68 ./build/mt/{{ target }}.T{{ threads }}/sim ./exe/div-3/dhrystone.bin
-    MAX_CYCLES=100000 taskset -c 48-68 ./build/mt/{{ target }}.T{{ threads }}/sim ./exe/div-3/dhrystone.bin
-    MAX_CYCLES=100000 taskset -c 48-68 ./build/mt/{{ target }}.T{{ threads }}/sim ./exe/div-3/dhrystone.bin
-    MAX_CYCLES=400000 taskset -c 48-68 ./build/mt/{{ target }}.T{{ threads }}/sim ./exe/div-3/dhrystone.bin 2>&1 | tee build/mt/{{ target }}.T{{ threads }}/prof.log
+    MAX_CYCLES=100000 taskset -c 48-68 ./build/mt/{{ target }}.T{{ threads }}/sim ./exe/div-3/dhrystone.bin || true
+    MAX_CYCLES=100000 taskset -c 48-68 ./build/mt/{{ target }}.T{{ threads }}/sim ./exe/div-3/dhrystone.bin || true
+    MAX_CYCLES=100000 taskset -c 48-68 ./build/mt/{{ target }}.T{{ threads }}/sim ./exe/div-3/dhrystone.bin || true
+    MAX_CYCLES=400000 taskset -c 48-68 ./build/mt/{{ target }}.T{{ threads }}/sim ./exe/div-3/dhrystone.bin 2>&1 | tee build/mt/{{ target }}.T{{ threads }}/prof.log || true
 
 [parallel]
 compile-1234 target: (compile target "1") (compile target "2") (compile target "3") (compile target "4") (compile target "5") (compile target "6") (compile target "7") (compile target "8") (compile target "9") (compile target "10") (compile target "11") (compile target "12")
 
-compile target threads="1" profile="mt":
+compile target threads="1" profile="mt" pgo="false":
     rm -rf build/{{ profile }}/{{ target }}.T{{ threads }}
     mkdir -p build/{{ profile }}/{{ target }}.T{{ threads }}
     echo "Logfile: build/{{ profile }}/{{ target }}.T{{ threads }}/build.log"
-    cargo run --release -- \
+    cargo run --bin ggsim --release -- \
         designs/{{ target }}.ggsim.sexp \
         emu/emu.cc \
         -lfesvr \
@@ -26,6 +26,9 @@ compile target threads="1" profile="mt":
         --profile {{ profile }} \
         -k {{ threads }} 2>&1 \
         --prof \
+        --pgo \
+        --pgo-id-map prof/data/{{ target }}.T1/blkid.bin \
+        --pgo-prof-data prof/data/{{ target }}.T1/prof.bin \
         | tee build/{{ profile }}/{{ target }}.T{{ threads }}/build.log
     pixi run make -C build/{{ profile }}/{{ target }}.T{{ threads }}
     echo "Logfile: build/{{ profile }}/{{ target }}.T{{ threads }}/build.log"
