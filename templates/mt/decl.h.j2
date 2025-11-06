@@ -21,7 +21,7 @@ struct alignas(64) {{ ctx.name }}_shared {
 };
 
 struct prof_record {
-    static constexpr int AVG_ACT_SIZE = 10000;
+    static constexpr int AVG_ACT_SIZE = 4096;
     uint8_t avg_act[AVG_ACT_SIZE];
     inline static prof_record default_value() {
         prof_record res;
@@ -32,8 +32,8 @@ struct prof_record {
         memset(avg_act, 0, sizeof(avg_act));
     }
     inline void update(int cur_cycle) {
-        if(cur_cycle && cur_cycle < 8 * AVG_ACT_SIZE) {
-            avg_act[cur_cycle / 8] |= 1 << (cur_cycle % 8);
+        if(cur_cycle && cur_cycle < 255 * AVG_ACT_SIZE) {
+            avg_act[cur_cycle / 255]++;
         }
     }
 };
