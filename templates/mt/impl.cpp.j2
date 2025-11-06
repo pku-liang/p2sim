@@ -153,17 +153,14 @@ void {{ ctx.name }}::step_mt(int cycles, int start_core) {
     }
 }
 
-{%- for (part_id, part) in ctx.parts.enumerate_ids() %}
-{%- set cls = ctx.name ~ "_" ~ part_id.0 %}
-void {{ cls }}_prof::dump(FILE * f) {
-    uint64_t act_cnt_size = {{ part.blocks.len() }};
+void prof_obj::dump(FILE * f) {
+    uint64_t act_cnt_size = act_cnt.size();
     fwrite(&act_cnt_size, sizeof(uint64_t), 1, f);
-    fwrite(act_cnt, sizeof(uint32_t), act_cnt_size, f);
+    fwrite(act_cnt.data(), sizeof(uint32_t), act_cnt_size, f);
     uint64_t rdtsc_ticks_size = rdtsc_ticks.size();
     fwrite(&rdtsc_ticks_size, sizeof(uint64_t), 1, f);
     fwrite(rdtsc_ticks.data(), sizeof(uint64_t), rdtsc_ticks_size, f);
 }
-{%- endfor %}
 
 bool {{ ctx.name }}::dump_prof(const char * filename) {
     FILE * f = fopen(filename, "wb");

@@ -26,9 +26,6 @@ compile target threads="1" pgo="false":
         -o build/{{ target }}.T{{ threads }} \
         -k {{ threads }} 2>&1 \
         --prof \
-        --pgo \
-        --pgo-id-map prof/data/{{ target }}.T1/blkid.bin \
-        --pgo-prof-data prof/data/{{ target }}.T1/prof.bin \
         | tee build/{{ target }}.T{{ threads }}/build.log
     pixi run make -C build/{{ target }}.T{{ threads }}
     echo "Logfile: build/{{ target }}.T{{ threads }}/build.log"

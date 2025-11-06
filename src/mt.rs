@@ -211,25 +211,25 @@ impl<'ir> SourceMap<'ir> {
         format!("{}{}.h", self.thread_pfx, part_id.0)
     }
     fn thread_h_abs(&self, part_id: PartId) -> String {
-        format!("{}/{}", self.output_dir, self.thread_h(part_id))
+        format!("{}/src/{}", self.output_dir, self.thread_h(part_id))
     }
     fn thread_cc(&self, part_id: PartId) -> String {
         format!("{}{}.cc", self.thread_pfx, part_id.0)
     }
     fn thread_cc_abs(&self, part_id: PartId) -> String {
-        format!("{}/{}", self.output_dir, self.thread_cc(part_id))
+        format!("{}/src/{}", self.output_dir, self.thread_cc(part_id))
     }
     fn decl_h_abs(&self) -> String {
-        format!("{}/{}", self.output_dir, self.decl_h)
+        format!("{}/src/{}", self.output_dir, self.decl_h)
     }
     fn impl_cc_abs(&self) -> String {
-        format!("{}/{}", self.output_dir, self.impl_cc)
+        format!("{}/src/{}", self.output_dir, self.impl_cc)
     }
     fn block_pfx_abs(&self) -> String {
-        format!("{}/{}", self.output_dir, self.block_pfx)
+        format!("{}/src/{}", self.output_dir, self.block_pfx)
     }
     fn reset_pfx_abs(&self) -> String {
-        format!("{}/{}", self.output_dir, self.reset_pfx)
+        format!("{}/src/{}", self.output_dir, self.reset_pfx)
     }
     fn makefile_abs(&self) -> String {
         format!("{}/{}", self.output_dir, self.makefile)
@@ -238,13 +238,13 @@ impl<'ir> SourceMap<'ir> {
         format!("{}{}_{}.cc", self.block_pfx, part_id.0, id)
     }
     fn block_group_abs(&self, part_id: PartId, id: usize) -> String {
-        format!("{}/{}", self.output_dir, self.block_group(part_id, id))
+        format!("{}/src/{}", self.output_dir, self.block_group(part_id, id))
     }
     fn reset_group(&self, part_id: PartId, id: usize) -> String {
         format!("{}{}_{}.cc", self.reset_pfx, part_id.0, id)
     }
     fn reset_group_abs(&self, part_id: PartId, id: usize) -> String {
-        format!("{}/{}", self.output_dir, self.reset_group(part_id, id))
+        format!("{}/src/{}", self.output_dir, self.reset_group(part_id, id))
     }
     fn extra_obj(&self, name: &str) -> String {
         use sha1::{Digest, Sha1};
@@ -333,7 +333,7 @@ impl<'ir> MTCGenCtx<'ir> {
             })
     }
     fn iter_all_group_files(&'ir self) -> impl 'ir + Iterator<Item = String> {
-        let th_cc = self.parts.ids().map(|part_id| self.smap.thread_cc_abs(part_id));
+        let th_cc = self.parts.ids().map(|part_id| self.smap.thread_cc(part_id));
         let srcs = self.parts.enumerate_ids().flat_map(move |(part_id, part)| {
             let blks = (0..part.block_groups.len())
                 .map(move |group_id| self.smap.block_group(part_id, group_id));
@@ -400,6 +400,7 @@ pub fn mt_gen(d: &TDesign, cfg: &CGenCfg) -> std::io::Result<()> {
     let ctx = MTCGenCtx::new(cfg, d);
     let map = &ctx.smap;
     let mut tasks = vec![];
+    std::fs::create_dir_all(format!("{}/src", cfg.output_dir))?;
     for (part_id, part) in ctx.parts.enumerate_ids() {
         for group in 0..part.block_groups.len() {
             tasks.push(CGenTask {

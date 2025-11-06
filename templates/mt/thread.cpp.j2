@@ -81,7 +81,7 @@ void {{ cls }}::init() {
     memset(__state_start, 0, sizeof(__state_end) - sizeof(__state_start));
     memset(__act_mask, 0xff, sizeof(__act_mask));
     {%- if ctx.cfg.prof %}
-    prof.init();
+    prof.init({{ part.blocks.len() }});
     {%- endif %}
 }
 
@@ -104,6 +104,6 @@ void {{ cls }}_decl::pull() {
 void {{ cls }}_decl::push() {
     impl->push();
 }
-{{ cls }}_prof * {{ cls }}_decl::get_prof() {
+prof_obj * {{ cls }}_decl::get_prof() {
     return &impl->prof;
 }

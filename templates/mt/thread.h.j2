@@ -42,6 +42,6 @@ struct {{ cls }} {
     char __state_end[0];
 
     {%- if ctx.cfg.prof %}
-    {{ cls }}_prof prof;
+    prof_obj prof;
     {%- endif %}
 };
