@@ -14,15 +14,15 @@ use log::info;
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 
-#[derive(ValueEnum, Clone, Copy, PartialEq, Eq)]
-enum CompileProfile {
-    #[clap(alias = "ed")]
-    EventDriven,
-    #[clap(alias = "fc")]
-    FullCycle,
-    #[clap(alias = "mt")]
-    MultiThreaded,
-}
+// #[derive(ValueEnum, Clone, Copy, PartialEq, Eq)]
+// enum CompileProfile {
+//     #[clap(alias = "ed")]
+//     EventDriven,
+//     #[clap(alias = "fc")]
+//     FullCycle,
+//     #[clap(alias = "mt")]
+//     MultiThreaded,
+// }
 
 #[derive(Args)]
 struct ReprCCArgs {
@@ -53,8 +53,8 @@ struct Cli {
     repr_cc: ReprCCArgs,
     #[command(flatten)]
     pgo_args: PGOArgs,
-    #[arg(short, long, default_value = "fc")]
-    profile: CompileProfile,
+    // #[arg(short, long, default_value = "fc")]
+    // profile: CompileProfile,
     #[arg(short, long)]
     output: Option<String>,
     #[arg(long)]
@@ -165,47 +165,47 @@ fn main() {
             std::fs::create_dir_all(&output_dir_abs).unwrap();
         }
 
-        if args.profile == CompileProfile::MultiThreaded {
-            use ggsim::{
-                cgen::CCArgs,
-                mt::{CGenCfg, mt_gen},
-            };
-            let cfg = CGenCfg {
-                output_dir: output_dir_abs.clone(),
-                ccargs: CCArgs {
-                    extra_cpp: to_abs_path_vec(&inputs.cpp),
-                    inc_dirs: to_abs_path_vec(&args.repr_cc.inc_dirs),
-                    link_dirs: to_abs_path_vec(&args.repr_cc.link_dirs),
-                    link_libs: args.repr_cc.link_libs,
-                    debug: args.repr_cc.debug,
-                },
-                prof: args.prof,
-                ..Default::default()
-            };
-            mt_gen(&td, &cfg).unwrap();
-        } else {
-            use ggsim::cgen::{self, CCArgs, CGenCfg};
-            let cfg = CGenCfg {
-                output_dir: output_dir_abs.clone(),
-                ccargs: CCArgs {
-                    extra_cpp: to_abs_path_vec(&inputs.cpp),
-                    inc_dirs: to_abs_path_vec(&args.repr_cc.inc_dirs),
-                    link_dirs: to_abs_path_vec(&args.repr_cc.link_dirs),
-                    link_libs: args.repr_cc.link_libs,
-                    debug: args.repr_cc.debug,
-                },
-                prof: args.prof,
-                diff_test: args.diff_test,
-                ..Default::default()
-            };
+        // if args.profile == CompileProfile::MultiThreaded {
+        use ggsim::{
+            cgen::CCArgs,
+            mt::{CGenCfg, mt_gen},
+        };
+        let cfg = CGenCfg {
+            output_dir: output_dir_abs.clone(),
+            ccargs: CCArgs {
+                extra_cpp: to_abs_path_vec(&inputs.cpp),
+                inc_dirs: to_abs_path_vec(&args.repr_cc.inc_dirs),
+                link_dirs: to_abs_path_vec(&args.repr_cc.link_dirs),
+                link_libs: args.repr_cc.link_libs,
+                debug: args.repr_cc.debug,
+            },
+            prof: args.prof,
+            ..Default::default()
+        };
+        mt_gen(&td, &cfg).unwrap();
+        // } else {
+        //     use ggsim::cgen::{self, CCArgs, CGenCfg};
+        //     let cfg = CGenCfg {
+        //         output_dir: output_dir_abs.clone(),
+        //         ccargs: CCArgs {
+        //             extra_cpp: to_abs_path_vec(&inputs.cpp),
+        //             inc_dirs: to_abs_path_vec(&args.repr_cc.inc_dirs),
+        //             link_dirs: to_abs_path_vec(&args.repr_cc.link_dirs),
+        //             link_libs: args.repr_cc.link_libs,
+        //             debug: args.repr_cc.debug,
+        //         },
+        //         prof: args.prof,
+        //         diff_test: args.diff_test,
+        //         ..Default::default()
+        //     };
 
-            info!("Generating code for {}", design.name);
-            match args.profile {
-                CompileProfile::EventDriven => cgen::event_driven_gen(&design, &cfg).unwrap(),
-                CompileProfile::FullCycle => cgen::full_cycle_gen(&design, &cfg).unwrap(),
-                _ => unreachable!(),
-            }
-        }
+        //     info!("Generating code for {}", design.name);
+        //     match args.profile {
+        //         CompileProfile::EventDriven => cgen::event_driven_gen(&design, &cfg).unwrap(),
+        //         CompileProfile::FullCycle => cgen::full_cycle_gen(&design, &cfg).unwrap(),
+        //         _ => unreachable!(),
+        //     }
+        // }
 
         if args.build {
             let num_threads = rayon::current_num_threads();

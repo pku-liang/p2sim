@@ -28,6 +28,7 @@ bincode = "2.0.1"
 num = "0.4.3"
 keyed_priority_queue = "0.4.2"
 mt-kahypar = "0.2.0"
+indicatif = { version = "0.18.2", features = ["rayon"] }
 
 [profile.dev.package.'*']
 opt-level = 2
