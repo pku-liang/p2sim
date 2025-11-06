@@ -1,4 +1,4 @@
-#include "{{ ctx.smap.decl_h }}"
+#include "{{ ctx.smap.thread_h(*part_id) }}"
 
 {%- let part = ctx.parts[part_id] %}
 void {{ ctx.name }}_{{ part_id.0 }}::step_{{ group_id }}() {
@@ -12,7 +12,7 @@ void {{ ctx.name }}_{{ part_id.0 }}::step_{{ group_id }}() {
         {%- endif %}
         {
             {%- if ctx.cfg.prof %}
-            __act_cnt[{{ id.0 }}]++;
+            prof.act_cnt[{{ id.0 }}]++;
             {%- endif %}
             // block {{ id.0 }}
             __act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] &= ~((act_t)1 << {{ id.0 % ctx.cfg.act_mask_width }});

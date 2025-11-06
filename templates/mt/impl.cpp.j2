@@ -10,97 +10,16 @@
 #include <chrono>
 #include <iostream>
 
-{%- import "common/gprintf.cpp.j2" as gprintf -%}
-
-{%- for (part_id, part) in ctx.parts.enumerate_ids() %}
-{%- set cls = ctx.name ~ "_" ~ part_id.0 %}
-
-{%- call gprintf::emit_gprintf(cls ~ "::gprintf") %}
-
-void {{ cls }}::step(bool eval_reset) {
-    if(eval_reset) {
-{%- for grp_id in 0..part.reset_groups.len() %}
-    reset_{{ grp_id }}();
-{%- endfor %}
-    }
-{%- for grp_id in 0..part.block_groups.len() %}
-    step_{{ grp_id }}();
-{%- endfor %}
-}
-
-void {{ cls }}::pull() {
-{%- for pull in part.pulls %}
-    {%- set grp_id = pull.act_id as u32 / ctx.cfg.act_mask_width %}
-    {%- set grp_item_id = pull.act_id as u32  % ctx.cfg.act_mask_width %}
-    if(shared->__s_act_mask[{{ grp_id }}] & (1 << {{ grp_item_id }}))
-    {
-        shared->__s_act_mask[{{ grp_id }}] &= ~(1 << {{ grp_item_id }});
-        {%- for pull in pull.pulls %}
-            {%- if part.is_array(pull.local_id) %}
-            bool {{ part.name(pull.local_id) }}$CHG = memcmp(&{{ part.name(pull.local_id) }}, &shared->{{ ctx.name(pull.shared_id) }}, sizeof({{ part.name(pull.local_id) }})) != 0;
-            {%- else %}
-            bool {{ part.name(pull.local_id) }}$CHG = {{ part.name(pull.local_id) }} != shared->{{ ctx.name(pull.shared_id) }};
-            {%- endif %}
-        {%- endfor %}
-        {%- for pull in pull.pulls %}
-            {%- if part.is_array(pull.local_id) %}
-            memcpy(&{{ part.name(pull.local_id) }}, &shared->{{ ctx.name(pull.shared_id) }}, sizeof({{ part.name(pull.local_id) }}));
-            {%- else %}
-            {{ part.name(pull.local_id) }} = shared->{{ ctx.name(pull.shared_id) }};
-            {%- endif %}
-        {%- endfor %}
-        {%- for pull in pull.pulls %}
-            {%- if part.act_map(pull.local_id).len() < 5 %}
-            {%- for blk_id in part.act_map(pull.local_id) %}
-            __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= (act_t){{ part.name(pull.local_id) }}$CHG << {{ blk_id.0 % ctx.cfg.act_mask_width }}; // activate {{ blk_id.0 }}
-            {%- endfor %}
-            {%- else %}
-            if({{ part.name(pull.local_id) }}$CHG) {
-                {%- for blk_id in part.act_map(pull.local_id) %}
-                __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= (act_t)1 << {{ blk_id.0 % ctx.cfg.act_mask_width }}; // activate {{ blk_id.0 }}
-                {%- endfor %}
-            }
-            {%- endif %}
-        {%- endfor %}
-    }
-{%- endfor %}
-}
-
-void {{ cls }}::push() {
-{%- for (blk_id, blk) in part.blocks.enumerate_ids() %}
-    {%- if let Some(push) = blk.pushes %}
-    if(__act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] & (1 << {{ blk_id.0 % ctx.cfg.act_mask_width }}))
-    {
-        __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] &= ~(1 << {{ blk_id.0 % ctx.cfg.act_mask_width }});
-        {%- for push in push.pushes %}
-        {%- if part.is_array(push.local_id) %}
-        memcpy(&shared->{{ ctx.name(push.shared_id) }}, &{{ part.name(push.local_id) }}, sizeof({{ part.name(push.local_id) }}));
-        {%- else %}
-        shared->{{ ctx.name(push.shared_id) }} = {{ part.name(push.local_id) }};
-        {%- endif %}
-        {%- endfor %}
-        shared->__s_act_mask[{{ push.act_id as u32 / ctx.cfg.act_mask_width }}] |= (1 << {{ push.act_id as u32 % ctx.cfg.act_mask_width }});
-    }
-    {%- endif %}
-{%- endfor %}
-}
-
-void {{ cls }}::init() {
-    memset(__state_start, 0, sizeof(__state_end) - sizeof(__state_start));
-    memset(__act_mask, 0xff, sizeof(__act_mask));
-}
-
-{%- endfor %}
+{% import "common/gprintf.cpp.j2" as gprintf %}
 
 void {{ ctx.name }}::init() {
     memset(&shared, 0, sizeof({{ ctx.name }}_shared));
     memset(shared.__s_act_mask, 0xff, sizeof(shared.__s_act_mask));
     {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
-    part_{{ part_id.0 }}.shared = &shared;
-    part_{{ part_id.0 }}.init();
+    part_{{ part_id.0 }}.init(&shared);
     {%- endfor %}
     {%- for lm in ctx.large_mem %}
-    {{ lm.state.name }} = (void*)&part_{{ lm.part_id.0 }}.{{ lm.state.name }};
+    {{ lm.state.name }} = part_{{ lm.part_id.0 }}.{{ lm.state.name }};
     {%- endfor %}
 }
 
@@ -113,17 +32,6 @@ void {{ ctx.name }}::step() {
     part_{{ part_id.0 }}.push();
 {%- endfor %}
 }
-
-{# {%- for (sid, s) in ctx.shared.enumerate_ids() %}
-{%- if s.is_ext %}
-{{ s.width | int_ty }} {{ ctx.name }}::get_{{ s.name }}() {
-    return shared.{{ s.name }};
-}
-void {{ ctx.name }}::set_{{ s.name }}({{ s.width | int_ty }} value) {
-    shared.{{ s.name }} = value;
-}
-{%- endif %}
-{%- endfor %} #}
 
 {%- for s in ctx.ext_states %}
 {%- let first_id = s.acts.first().unwrap().0 %}
@@ -149,40 +57,6 @@ static void pin_to_core(int core_id){
     fprintf(stderr, "Warning: expected core %d but on %d\n", core_id, now);
   }
 }
-
-struct alignas(64) SpinBarrierFlag {
-  std::atomic<bool> flag;
-};
-
-template<int N>
-struct SpinBarrier {
-  SpinBarrierFlag __flag_arrive[N] = {};
-  SpinBarrierFlag __flag_wait[N] = {};
-  void arrive(int id) {
-    __flag_arrive[id].flag.store(true);
-  }
-  void wait(int id) {
-    if(id == 0) {
-      for(int i = 0; i < N; i++) {
-        while(!__flag_arrive[i].flag.load()) {
-          _mm_pause();
-        }
-        __flag_arrive[i].flag.store(false);
-      }
-      for(int i = 0; i < N; i++) {
-        __flag_wait[i].flag.store(true);
-      }
-    }
-    while(!__flag_wait[id].flag.load()) {
-      _mm_pause();
-    }
-    __flag_wait[id].flag.store(false);
-  }
-  void arrive_and_wait(int id) {
-    arrive(id);
-    wait(id);
-  }
-};
 
 #define CACHELINE_SIZE 64
 
@@ -213,7 +87,7 @@ struct at_barrier {
   }
 };
 
-uint64_t rdtsc() {
+inline uint64_t rdtsc() {
   unsigned aux;
   return __rdtscp(&aux);
 }
@@ -229,8 +103,9 @@ void {{ ctx.name }}::step_mt(int cycles, int start_core) {
         [&, cycles, ref_{{ part_id.0 }}](){
             pin_to_core(start_core + {{ part_id.0 }});
             {%- if ctx.cfg.prof %}
-            auto old_size = {{ ref_obj }}->__prof_counter.size();
-            {{ ref_obj }}->__prof_counter.resize(old_size + cycles*6);
+            auto prof = {{ ref_obj }}->get_prof();
+            auto old_size = prof->rdtsc_ticks.size();
+            prof->rdtsc_ticks.resize(old_size + cycles*6);
             {%- endif %}
             {%- if master %}
             auto start = std::chrono::high_resolution_clock::now();
@@ -249,12 +124,12 @@ void {{ ctx.name }}::step_mt(int cycles, int start_core) {
                 uint64_t t5 = rdtsc();
                 {{ ref_obj }}->push();
                 uint64_t t6 = rdtsc();
-                {{ ref_obj }}->__prof_counter[old_size + i*6 + 0] = t1;
-                {{ ref_obj }}->__prof_counter[old_size + i*6 + 1] = t2;
-                {{ ref_obj }}->__prof_counter[old_size + i*6 + 2] = t3;
-                {{ ref_obj }}->__prof_counter[old_size + i*6 + 3] = t4;
-                {{ ref_obj }}->__prof_counter[old_size + i*6 + 4] = t5;
-                {{ ref_obj }}->__prof_counter[old_size + i*6 + 5] = t6;
+                prof->rdtsc_ticks[old_size + i*6 + 0] = t1;
+                prof->rdtsc_ticks[old_size + i*6 + 1] = t2;
+                prof->rdtsc_ticks[old_size + i*6 + 2] = t3;
+                prof->rdtsc_ticks[old_size + i*6 + 3] = t4;
+                prof->rdtsc_ticks[old_size + i*6 + 4] = t5;
+                prof->rdtsc_ticks[old_size + i*6 + 5] = t6;
                 {%- else %}
                 barrier.arrive_and_wait({{part_id.0}}, local_epoch);
                 {{ ref_obj }}->pull();
@@ -278,32 +153,27 @@ void {{ ctx.name }}::step_mt(int cycles, int start_core) {
     }
 }
 
-bool {{ ctx.name }}::dump_prof_counter(const char * filename) {
+{%- for (part_id, part) in ctx.parts.enumerate_ids() %}
+{%- set cls = ctx.name ~ "_" ~ part_id.0 %}
+void {{ cls }}_prof::dump(FILE * f) {
+    uint64_t act_cnt_size = {{ part.blocks.len() }};
+    fwrite(&act_cnt_size, sizeof(uint64_t), 1, f);
+    fwrite(act_cnt, sizeof(uint32_t), act_cnt_size, f);
+    uint64_t rdtsc_ticks_size = rdtsc_ticks.size();
+    fwrite(&rdtsc_ticks_size, sizeof(uint64_t), 1, f);
+    fwrite(rdtsc_ticks.data(), sizeof(uint64_t), rdtsc_ticks_size, f);
+}
+{%- endfor %}
+
+bool {{ ctx.name }}::dump_prof(const char * filename) {
     FILE * f = fopen(filename, "wb");
     if(!f) return false;
     uint64_t part_count = {{ ctx.parts.len() }};
     fwrite(&part_count, sizeof(uint64_t), 1, f);
     {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
-    {%- set ref_obj = "ref_" ~ part_id.0 %}
-    auto {{ ref_obj }} = &part_{{ part_id.0 }};
-    uint64_t prof_counter_size_{{ part_id.0 }} = {{ ref_obj }}->__prof_counter.size();
-    fwrite(&prof_counter_size_{{ part_id.0 }}, sizeof(uint64_t), 1, f);
-    fwrite({{ ref_obj }}->__prof_counter.data(), sizeof(uint64_t), {{ ref_obj }}->__prof_counter.size(), f);
-    {%- endfor %}
-    {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
-    {%- set ref_obj = "ref_" ~ part_id.0 %}
-    fwrite(&part_count, sizeof(uint64_t), 1, f);
-    uint64_t act_cnt_size_{{ part_id.0 }} = {{ part.blocks.len() }};
-    fwrite(&act_cnt_size_{{ part_id.0 }}, sizeof(uint64_t), 1, f);
-    fwrite({{ ref_obj }}->__act_cnt, sizeof(uint32_t), {{ part.blocks.len() }}, f);
+    {%- set cls = ctx.name ~ "_" ~ part_id.0 %}
+    part_{{ part_id.0 }}.get_prof()->dump(f);
     {%- endfor %}
     fclose(f);
     return true;
-}
-
-void {{ ctx.name }}::print_stats() {
-    std::cerr << "shared_size=" << sizeof({{ ctx.name }}_shared) << std::endl;
-    {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
-    std::cerr << "part_size[{{ part_id.0 }}]=" << sizeof({{ ctx.name }}_{{ part_id.0 }}) << std::endl;
-    {%- endfor %}
 }

@@ -1,4 +1,4 @@
-#include "{{ ctx.smap.decl_h }}"
+#include "{{ ctx.smap.thread_h(*part_id) }}"
 
 {%- let part = &ctx.parts[part_id] %}
 void {{ ctx.name }}_{{ part_id.0 }}::reset_{{ group_id }}() {

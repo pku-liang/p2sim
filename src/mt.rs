@@ -187,6 +187,7 @@ pub struct SourceMap<'ir> {
     pub output_dir: &'ir str,
     pub decl_h: String,
     pub impl_cc: String,
+    pub thread_pfx: String,
     pub block_pfx: String,
     pub reset_pfx: String,
     pub makefile: String,
@@ -199,11 +200,24 @@ impl<'ir> SourceMap<'ir> {
             output_dir,
             decl_h: format!("{}.h", name),
             impl_cc: format!("{}.cc", name),
+            thread_pfx: format!("{}_thread_", name),
             block_pfx: format!("{}_blk_", name),
             reset_pfx: format!("{}_rst_", name),
             makefile: format!("Makefile"),
             extra_cpp,
         }
+    }
+    fn thread_h(&self, part_id: PartId) -> String {
+        format!("{}{}.h", self.thread_pfx, part_id.0)
+    }
+    fn thread_h_abs(&self, part_id: PartId) -> String {
+        format!("{}/{}", self.output_dir, self.thread_h(part_id))
+    }
+    fn thread_cc(&self, part_id: PartId) -> String {
+        format!("{}{}.cc", self.thread_pfx, part_id.0)
+    }
+    fn thread_cc_abs(&self, part_id: PartId) -> String {
+        format!("{}/{}", self.output_dir, self.thread_cc(part_id))
     }
     fn decl_h_abs(&self) -> String {
         format!("{}/{}", self.output_dir, self.decl_h)
@@ -319,13 +333,15 @@ impl<'ir> MTCGenCtx<'ir> {
             })
     }
     fn iter_all_group_files(&'ir self) -> impl 'ir + Iterator<Item = String> {
-        self.parts.enumerate_ids().flat_map(move |(part_id, part)| {
+        let th_cc = self.parts.ids().map(|part_id| self.smap.thread_cc_abs(part_id));
+        let srcs = self.parts.enumerate_ids().flat_map(move |(part_id, part)| {
             let blks = (0..part.block_groups.len())
                 .map(move |group_id| self.smap.block_group(part_id, group_id));
             let rsts = (0..part.reset_groups.len())
                 .map(move |group_id| self.smap.reset_group(part_id, group_id));
             blks.chain(rsts)
-        })
+        });
+        th_cc.chain(srcs)
     }
     fn name(&self, sid: &StateId) -> &str {
         &self.shared[*sid].name
@@ -361,6 +377,20 @@ struct MTImplCGen<'ir> {
 }
 
 #[derive(Template)]
+#[template(escape = "none", path = "mt/thread.cpp.j2")]
+struct MTThreadCGen<'ir> {
+    ctx: &'ir MTCGenCtx<'ir>,
+    part_id: PartId,
+}
+
+#[derive(Template)]
+#[template(escape = "none", path = "mt/thread.h.j2")]
+struct MTThreadHGen<'ir> {
+    ctx: &'ir MTCGenCtx<'ir>,
+    part_id: PartId,
+}
+
+#[derive(Template)]
 #[template(escape = "none", path = "common/makefile.j2")]
 struct MakefileGen<'ir> {
     ctx: &'ir MTCGenCtx<'ir>,
@@ -391,6 +421,14 @@ pub fn mt_gen(d: &TDesign, cfg: &CGenCfg) -> std::io::Result<()> {
                 file: map.reset_group_abs(part_id, group),
             });
         }
+        tasks.push(CGenTask {
+            task: Box::new(MTThreadCGen { ctx: &ctx, part_id }),
+            file: map.thread_cc_abs(part_id),
+        });
+        tasks.push(CGenTask {
+            task: Box::new(MTThreadHGen { ctx: &ctx, part_id }),
+            file: map.thread_h_abs(part_id),
+        });
     }
     tasks.push(CGenTask {
         task: Box::new(MTDeclHGen { ctx: &ctx }),

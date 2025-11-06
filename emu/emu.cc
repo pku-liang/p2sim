@@ -114,21 +114,25 @@ int main(int argc, char** argv) {
   void * memory = dut->mem$srams$mem;
   memcpy(memory, program.program, program.program_sz);
   printf("load program to memory\n");
-  dut->print_stats();
+  // dut->print_stats();
   // dtm = new dtm_t(argc, argv);
   dut->set_reset(1);
   dut->step_mt(10);
   dut->set_reset(0);
   dut->step_mt(1);
   int cycle = 0;
-  int max_cycles = std::numeric_limits<int>::max();
+  int max_cycles = 1e9;
   if(getenv("MAX_CYCLES")) {
     max_cycles = std::atoi(getenv("MAX_CYCLES"));
   }
   printf("start simulation\n");
   // clock_t prev = clock();
   auto start = std::chrono::high_resolution_clock::now();
-  dut->step_mt(max_cycles, 48);
+  int start_core = 48;
+  if(getenv("START_CORE")) {
+    start_core = std::atoi(getenv("START_CORE"));
+  }
+  dut->step_mt(max_cycles, start_core);
   auto stop = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
   std::cout << "cycle=" << max_cycles << ", freq=" << max_cycles * 1.0 / duration << " kHz\n";
@@ -146,6 +150,6 @@ int main(int argc, char** argv) {
 #ifndef CURDIR
 #define CURDIR "."
 #endif
-  dut->dump_prof_counter(CURDIR "/prof.bin");
+  dut->dump_prof(CURDIR "/prof.bin");
   return 0;
 }

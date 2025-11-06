@@ -1,0 +1,47 @@
+#pragma once
+#include "{{ ctx.smap.decl_h }}"
+#include <immintrin.h>
+
+{%- for ext in ctx.ext_fns %}
+{{ ext }}
+{%- endfor %}
+
+{%- let part = ctx.parts[part_id] %}
+{%- set cls = ctx.name ~ "_" ~ part_id.0 %}
+
+struct {{ ctx.name }}_shared;
+struct {{ cls }} {
+    {{ ctx.name }}_shared * shared;
+
+    using act_t = uint{{ ctx.cfg.act_mask_width }}_t;
+
+    static void gprintf(const char *fmt, ...);
+    void step(bool eval_reset=true);
+    void init();
+    void pull();
+    void push();
+
+    act_t __act_mask[{{ part.blocks.len() as u32 / ctx.cfg.act_mask_width + 1 }}];
+
+    {%- for grp_id in 0..part.block_groups.len() %}
+    void step_{{ grp_id }}();
+    {%- endfor %}
+
+    {%- for grp_id in 0..part.reset_groups.len() %}
+    void reset_{{ grp_id }}();
+    {%- endfor %}
+
+    char __state_start[0];
+    {%- for state in part.states %}
+    {{ state.width | int_ty }} {{ state.name }}
+    {%- for dim in state.dims -%} [{{ dim }}] {%- endfor -%};
+    {%- endfor %}
+    {%- for reset in part.reset_states %}
+    {{ part.int_ty(reset) }} {{ part.name(reset) }}$LAST;
+    {%- endfor %}
+    char __state_end[0];
+
+    {%- if ctx.cfg.prof %}
+    {{ cls }}_prof prof;
+    {%- endif %}
+};

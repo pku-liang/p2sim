@@ -7,7 +7,7 @@
 {{ ext }}
 {%- endfor %}
 
-struct {{ ctx.name }}_shared {
+struct alignas(64) {{ ctx.name }}_shared {
     using act_t = uint{{ ctx.cfg.act_mask_width }}_t;
     act_t __s_act_mask[{{ (ctx.shared_acts as u32 + ctx.cfg.act_mask_width - 1) / ctx.cfg.act_mask_width }}];
 
@@ -20,53 +20,42 @@ struct {{ ctx.name }}_shared {
 };
 
 {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
-struct {{ ctx.name }}_{{ part_id.0 }} {
-    {{ ctx.name }}_shared * shared;
-    using act_t = uint{{ ctx.cfg.act_mask_width }}_t;
-
-    static void gprintf(const char *fmt, ...);
-    void step(bool eval_reset=true);
-    void init();
+{%- set cls = ctx.name ~ "_" ~ part_id.0 %}
+struct {{ cls }};
+struct {{ cls }}_prof {
+    uint32_t act_cnt[{{ part.blocks.len() }}];
+    std::vector<uint64_t> rdtsc_ticks;
+    inline void init() {
+        memset(act_cnt, 0, sizeof(act_cnt));
+        rdtsc_ticks.clear();
+    }
+    void dump(FILE * f);
+};
+struct {{ cls }}_decl {
+    {{ cls }} * impl;
+    void step();
+    void init({{ ctx.name }}_shared *);
     void pull();
     void push();
-
-    act_t __act_mask[{{ part.blocks.len() as u32 / ctx.cfg.act_mask_width + 1 }}];
-
-    {%- for grp_id in 0..part.block_groups.len() %}
-    void step_{{ grp_id }}();
-    {%- endfor %}
-
-    {%- for grp_id in 0..part.reset_groups.len() %}
-    void reset_{{ grp_id }}();
-    {%- endfor %}
-
-    char __state_start[0];
-    {%- for state in part.states %}
-    {{ state.width | int_ty }} {{ state.name }}
-    {%- for dim in state.dims -%} [{{ dim }}] {%- endfor -%};
-    {%- endfor %}
-    {%- for reset in part.reset_states %}
-    {{ part.int_ty(reset) }} {{ part.name(reset) }}$LAST;
-    {%- endfor %}
-
-    {%- if ctx.cfg.prof %}
-    uint32_t __act_cnt[{{ part.blocks.len() }}];
+    {{ cls }}_prof * get_prof();
+    {%- for lm in ctx.large_mem %}
+    {%- if lm.part_id == part_id %}
+    void * {{ lm.state.name }};
     {%- endif %}
-    char __state_end[0];
-    std::vector<uint64_t> __prof_counter;
+    {%- endfor %}
 };
 {%- endfor %}
 
-struct {{ ctx.name }} {
+struct alignas(64) {{ ctx.name }} {
     {{ ctx.name }}_shared shared;
     {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
-    {{ ctx.name }}_{{ part_id.0 }} part_{{ part_id.0 }};
+    {%- set cls = ctx.name ~ "_" ~ part_id.0 %}
+    {{ cls }}_decl part_{{ part_id.0 }};
     {%- endfor %}
     void step();
     void init();
-    void print_stats();
     void step_mt(int cycles, int start_core=0);
-    bool dump_prof_counter(const char * filename);
+    bool dump_prof(const char * filename);
 
     {%- for (sid, s) in ctx.shared.enumerate_ids() %}
     {%- if s.is_ext %}
