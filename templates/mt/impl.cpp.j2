@@ -99,19 +99,28 @@ void {{ ctx.name }}::step_mt(int cycles, int start_core) {
     {%- let master = part_id.0 == 0 %}
     {%- set ref_obj = "ref_" ~ part_id.0 %}
     auto {{ ref_obj }} = &part_{{ part_id.0 }};
+    bool prof_rdtsc_ticks = false;
+    if(getenv("PROF_RDTSC_TICKS")) {
+      prof_rdtsc_ticks = bool(std::atoi(getenv("PROF_RDTSC_TICKS")));
+    }
     threads.push_back(std::thread{
         [&, cycles, ref_{{ part_id.0 }}](){
             pin_to_core(start_core + {{ part_id.0 }});
             {%- if ctx.cfg.prof %}
-            auto prof = {{ ref_obj }}->get_prof();
-            auto old_size = prof->rdtsc_ticks.size();
-            prof->rdtsc_ticks.resize(old_size + cycles*6);
+            prof_obj * prof = {{ ref_obj }}->get_prof();
+            size_t old_size = prof->rdtsc_ticks.size();
+            if(prof_rdtsc_ticks) {
+              prof->rdtsc_ticks.resize(old_size + cycles*6);
+            }
             {%- endif %}
             {%- if master %}
             auto start = std::chrono::high_resolution_clock::now();
             {%- endif %}
             int local_epoch = 0;
+            std::mt19937_64 rng(0);
             for(int i = 0; i < cycles; i++) {
+                MH cur_act_hash = MH::from_gen(rng);
+                *({{ ref_obj }}->cur_act_hash) = cur_act_hash;
                 {%- if ctx.cfg.prof %}
                 uint64_t t1 = rdtsc();
                 barrier.arrive_and_wait({{part_id.0}}, local_epoch);
@@ -124,12 +133,14 @@ void {{ ctx.name }}::step_mt(int cycles, int start_core) {
                 uint64_t t5 = rdtsc();
                 {{ ref_obj }}->push();
                 uint64_t t6 = rdtsc();
-                prof->rdtsc_ticks[old_size + i*6 + 0] = t1;
-                prof->rdtsc_ticks[old_size + i*6 + 1] = t2;
-                prof->rdtsc_ticks[old_size + i*6 + 2] = t3;
-                prof->rdtsc_ticks[old_size + i*6 + 3] = t4;
-                prof->rdtsc_ticks[old_size + i*6 + 4] = t5;
-                prof->rdtsc_ticks[old_size + i*6 + 5] = t6;
+                if(prof_rdtsc_ticks) {
+                  prof->rdtsc_ticks[old_size + i*6 + 0] = t1;
+                  prof->rdtsc_ticks[old_size + i*6 + 1] = t2;
+                  prof->rdtsc_ticks[old_size + i*6 + 2] = t3;
+                  prof->rdtsc_ticks[old_size + i*6 + 3] = t4;
+                  prof->rdtsc_ticks[old_size + i*6 + 4] = t5;
+                  prof->rdtsc_ticks[old_size + i*6 + 5] = t6;
+                }
                 {%- else %}
                 barrier.arrive_and_wait({{part_id.0}}, local_epoch);
                 {{ ref_obj }}->pull();
@@ -153,10 +164,19 @@ void {{ ctx.name }}::step_mt(int cycles, int start_core) {
     }
 }
 
+void prof_obj::init(int num_blocks) {
+    act_cnt.resize(num_blocks);
+    act_hash.resize(num_blocks, MH::from_max_val());
+    rdtsc_ticks.clear();
+}
+
 void prof_obj::dump(FILE * f) {
     uint64_t act_cnt_size = act_cnt.size();
     fwrite(&act_cnt_size, sizeof(uint64_t), 1, f);
     fwrite(act_cnt.data(), sizeof(uint32_t), act_cnt_size, f);
+    uint64_t act_hash_size = act_hash.size();
+    fwrite(&act_hash_size, sizeof(uint64_t), 1, f);
+    fwrite(act_hash.data(), sizeof(MH), act_hash_size, f);
     uint64_t rdtsc_ticks_size = rdtsc_ticks.size();
     fwrite(&rdtsc_ticks_size, sizeof(uint64_t), 1, f);
     fwrite(rdtsc_ticks.data(), sizeof(uint64_t), rdtsc_ticks_size, f);
@@ -165,12 +185,22 @@ void prof_obj::dump(FILE * f) {
 bool {{ ctx.name }}::dump_prof(const char * filename) {
     FILE * f = fopen(filename, "wb");
     if(!f) return false;
+    uint32_t mh_ver_bits = {{ ctx.mh_ver.dtype_bits }};
+    uint32_t mh_ver_width = {{ ctx.mh_ver.width }};
+    fwrite(&mh_ver_bits, sizeof(uint32_t), 1, f);
+    fwrite(&mh_ver_width, sizeof(uint32_t), 1, f);
     uint64_t part_count = {{ ctx.parts.len() }};
     fwrite(&part_count, sizeof(uint64_t), 1, f);
     {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
     {%- set cls = ctx.name ~ "_" ~ part_id.0 %}
     part_{{ part_id.0 }}.get_prof()->dump(f);
     {%- endfor %}
+    {%- set record_name = ctx.name ~ "_blk_record" %}
+    extern const uint32_t {{ record_name }}[];
+    extern const uint64_t {{ record_name }}_length;
+    extern const uint64_t {{ record_name }}_size;
+    fwrite(&{{ record_name }}_length, sizeof(uint64_t), 1, f);
+    fwrite({{ record_name }}, sizeof(uint32_t), {{ record_name }}_size, f);
     fclose(f);
     return true;
 }

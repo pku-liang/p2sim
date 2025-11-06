@@ -1,5 +1,5 @@
 CXX = clang++
-CXXFLAGS += -pthread -march=native -std=c++20
+CXXFLAGS += -pthread -mavx2 -std=c++20
 LDFLAGS += -fuse-ld=lld -pthread -g
 
 {%- if !ctx.cfg.ccargs.debug %}
@@ -28,6 +28,9 @@ EXTRA_CXXFLAGS = \
 	-DCURDIR="\"$(CURDIR)\""
 {%- for inc_dir in ctx.cfg.ccargs.inc_dirs %} \
 	-I{{ inc_dir }}
+{%- endfor %}
+{%- for define in ctx.cfg.ccargs.defines %} \
+	-D{{ define }}
 {%- endfor %}
 
 {%- if ctx.cfg.prof %}

@@ -26,6 +26,7 @@ compile target threads="1" pgo="false":
         -o build/{{ target }}.T{{ threads }} \
         -k {{ threads }} 2>&1 \
         --prof \
+        -DPROF_FILE="\"$PWD/pgo-data/{{ target }}.T{{ threads }}.prof.bin\"" \
         | tee build/{{ target }}.T{{ threads }}/build.log
     pixi run make -C build/{{ target }}.T{{ threads }}
     echo "Logfile: build/{{ target }}.T{{ threads }}/build.log"

@@ -13,6 +13,10 @@ struct {{ ctx.name }}_shared;
 struct {{ cls }} {
     {{ ctx.name }}_shared * shared;
 
+    {%- if ctx.cfg.prof %}
+    MH cur_act_hash;
+    {%- endif %}
+
     using act_t = uint{{ ctx.cfg.act_mask_width }}_t;
 
     static void gprintf(const char *fmt, ...);

@@ -8,10 +8,7 @@ use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use crate::{
-    act::{BincodeExt, BlockIdMap},
-    cgen::{CCArgs, CGenTask, run_cgen_tasks},
-    ir::*,
-    pass::{ActMap, ExternalState, PartId, TDesign, compute_shared_layout},
+    act::{BincodeExt, BlockIdMap}, actv2::{MH_VER, MHVer, OrigBlockRecord}, cgen::{CCArgs, CGenTask, run_cgen_tasks}, ir::*, pass::{ActMap, ExternalState, PartId, TDesign, compute_shared_layout, get_orig_block_record}
 };
 
 fn int_ty_impl(width: usize) -> Cow<'static, str> {
@@ -190,6 +187,8 @@ pub struct SourceMap<'ir> {
     pub thread_pfx: String,
     pub block_pfx: String,
     pub reset_pfx: String,
+    pub orig_blk_record: String,
+    pub minhash_h: String,
     pub makefile: String,
     pub extra_cpp: &'ir [String],
 }
@@ -203,6 +202,8 @@ impl<'ir> SourceMap<'ir> {
             thread_pfx: format!("{}_thread_", name),
             block_pfx: format!("{}_blk_", name),
             reset_pfx: format!("{}_rst_", name),
+            orig_blk_record: format!("{}_obr.cc", name),
+            minhash_h: format!("{}_minhash.h", name),
             makefile: format!("Makefile"),
             extra_cpp,
         }
@@ -261,8 +262,17 @@ impl<'ir> SourceMap<'ir> {
     fn extra_obj_abs(&self, name: &str) -> String {
         format!("{}/{}", self.output_dir, self.extra_obj(name))
     }
-    fn blk_id_abs(&self) -> String {
-        format!("{}/{}", self.output_dir, "blkid.bin")
+    fn orig_blk_record(&self) -> String {
+        format!("{}", self.orig_blk_record)
+    }
+    fn orig_blk_record_abs(&self) -> String {
+        format!("{}/src/{}", self.output_dir, self.orig_blk_record)
+    }
+    fn minhash_h(&self) -> String {
+        format!("{}", self.minhash_h)
+    }
+    fn minhash_h_abs(&self) -> String {
+        format!("{}/src/{}", self.output_dir, self.minhash_h)
     }
 }
 
@@ -284,6 +294,7 @@ struct MTCGenCtx<'ir> {
     large_mem: Vec<LargeMem<'ir>>,
     parts: Vec<PartCGenCtx<'ir>>,
     smap: SourceMap<'ir>,
+    mh_ver: MHVer
 }
 
 index_ext! {containers PartId, PartCGenCtx<'ir>}
@@ -318,6 +329,7 @@ impl<'ir> MTCGenCtx<'ir> {
             parts,
             large_mem,
             smap: SourceMap::new(&cfg.output_dir, &td.name, &cfg.ccargs.extra_cpp),
+            mh_ver: MH_VER,
         }
     }
     fn iter_mirrors(
@@ -333,15 +345,18 @@ impl<'ir> MTCGenCtx<'ir> {
             })
     }
     fn iter_all_group_files(&'ir self) -> impl 'ir + Iterator<Item = String> {
-        let th_cc = self.parts.ids().map(|part_id| self.smap.thread_cc(part_id));
         let srcs = self.parts.enumerate_ids().flat_map(move |(part_id, part)| {
+            let th_cc = std::iter::once(self.smap.thread_cc(part_id));
             let blks = (0..part.block_groups.len())
                 .map(move |group_id| self.smap.block_group(part_id, group_id));
-            let rsts = (0..part.reset_groups.len())
-                .map(move |group_id| self.smap.reset_group(part_id, group_id));
-            blks.chain(rsts)
+            th_cc.chain(blks)
         });
-        th_cc.chain(srcs)
+        let rsts = self.parts.enumerate_ids().flat_map(move |(part_id, part)| {
+            (0..part.reset_groups.len())
+                .map(move |group_id| self.smap.reset_group(part_id, group_id))
+        });
+        let obr = std::iter::once(self.smap.orig_blk_record());
+        srcs.chain(rsts).chain(obr)
     }
     fn name(&self, sid: &StateId) -> &str {
         &self.shared[*sid].name
@@ -396,9 +411,23 @@ struct MakefileGen<'ir> {
     ctx: &'ir MTCGenCtx<'ir>,
 }
 
+#[derive(Template)]
+#[template(escape = "none", path = "mt/origblk.cpp.j2")]
+struct MTOrigBlockRecordGen<'ir> {
+    ctx: &'ir MTCGenCtx<'ir>,
+    records: &'ir [OrigBlockRecord],
+}
+
+#[derive(Template)]
+#[template(escape = "none", path = "mt/minhash.h.j2")]
+struct MTMinHashHGen<'ir> {
+    ctx: &'ir MTCGenCtx<'ir>,
+}
+
 pub fn mt_gen(d: &TDesign, cfg: &CGenCfg) -> std::io::Result<()> {
     let ctx = MTCGenCtx::new(cfg, d);
     let map = &ctx.smap;
+    let records = get_orig_block_record(d);
     let mut tasks = vec![];
     std::fs::create_dir_all(format!("{}/src", cfg.output_dir))?;
     for (part_id, part) in ctx.parts.enumerate_ids() {
@@ -443,8 +472,14 @@ pub fn mt_gen(d: &TDesign, cfg: &CGenCfg) -> std::io::Result<()> {
         task: Box::new(MakefileGen { ctx: &ctx }),
         file: map.makefile_abs(),
     });
+    tasks.push(CGenTask {
+        task: Box::new(MTOrigBlockRecordGen { ctx: &ctx, records: &records }),
+        file: map.orig_blk_record_abs(),
+    });
+    tasks.push(CGenTask {
+        task: Box::new(MTMinHashHGen { ctx: &ctx }),
+        file: map.minhash_h_abs(),
+    });
     run_cgen_tasks(tasks).unwrap();
-    let bid_map = BlockIdMap::from_pd(d);
-    bid_map.write_file(map.blk_id_abs()).unwrap();
     Ok(())
 }

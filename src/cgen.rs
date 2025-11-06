@@ -34,6 +34,7 @@ pub struct CCArgs {
     pub inc_dirs: Vec<String>,
     pub link_dirs: Vec<String>,
     pub link_libs: Vec<String>,
+    pub defines: Vec<String>,
     pub debug: bool,
 }
 

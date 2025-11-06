@@ -13,6 +13,7 @@ void {{ ctx.name }}_{{ part_id.0 }}::step_{{ group_id }}() {
         {
             {%- if ctx.cfg.prof %}
             prof.act_cnt[{{ id.0 }}]++;
+            prof.act_hash[{{ id.0 }}].update(cur_act_hash);
             {%- endif %}
             // block {{ id.0 }}
             __act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] &= ~((act_t)1 << {{ id.0 % ctx.cfg.act_mask_width }});

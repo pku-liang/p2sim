@@ -14,7 +14,7 @@ use petgraph::{
 use rustc_hash::{FxHashMap, FxHashSet};
 use tabular::{Row, Table};
 
-use crate::{act::BlockIdMap, ir::*};
+use crate::{act::BlockIdMap, actv2::OrigBlockRecord, ir::*};
 
 pub type ActMap = FxHashMap<StateId, Vec<BlockId>>;
 
@@ -1148,4 +1148,20 @@ pub fn print_shared_comm(td: &TDesign) {
         "Shared dependency:\n{}",
         table.to_string().strip_suffix("\n").unwrap()
     );
+}
+
+pub fn get_orig_block_record(td: &TDesign) -> Vec<OrigBlockRecord> {
+    let mut records = vec![];
+    for (part_id, part) in td.parts.enumerate_ids() {
+        for (blk_id, blk) in part.blocks.enumerate_ids() {
+            for orig_id in blk.orig_ids.iter() {
+                records.push(OrigBlockRecord {
+                    thread: part_id.index() as u32,
+                    block: blk_id.index() as u32,
+                    orig_block: orig_id.index() as u32,
+                });
+            }
+        }
+    }
+    records
 }

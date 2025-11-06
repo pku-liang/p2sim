@@ -34,6 +34,8 @@ struct ReprCCArgs {
     link_libs: Vec<String>,
     #[arg(short = 'g')]
     debug: bool,
+    #[arg(short = 'D')]
+    defines: Vec<String>,
 }
 
 #[derive(Args)]
@@ -74,6 +76,16 @@ struct Cli {
 struct InputFiles {
     sexpr: Vec<String>,
     cpp: Vec<String>,
+}
+
+fn legalize_define(define: &str) -> String {
+    if define.contains('=') {
+        let split = define.split('=').collect_vec();
+        assert!(split.len() == 2, "Invalid define: {}", define);
+        format!("{}='{}'", split[0], split[1])
+    } else {
+        define.to_string()
+    }
 }
 
 fn parse_input_files(files: &[impl AsRef<str>]) -> InputFiles {
@@ -177,6 +189,7 @@ fn main() {
                 inc_dirs: to_abs_path_vec(&args.repr_cc.inc_dirs),
                 link_dirs: to_abs_path_vec(&args.repr_cc.link_dirs),
                 link_libs: args.repr_cc.link_libs,
+                defines: args.repr_cc.defines.iter().map(|d| legalize_define(d)).collect_vec(),
                 debug: args.repr_cc.debug,
             },
             prof: args.prof,

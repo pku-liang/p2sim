@@ -82,6 +82,7 @@ void {{ cls }}::init() {
     memset(__act_mask, 0xff, sizeof(__act_mask));
     {%- if ctx.cfg.prof %}
     prof.init({{ part.blocks.len() }});
+    cur_act_hash.reset();
     {%- endif %}
 }
 
@@ -97,6 +98,9 @@ void {{ cls }}_decl::init({{ ctx.name }}_shared * shared) {
     {{ lm.state.name }} = &impl->{{ lm.state.name }};
     {%- endif %}
     {%- endfor %}
+    {%- if ctx.cfg.prof %}
+    cur_act_hash = &impl->cur_act_hash;
+    {%- endif %}
 }
 void {{ cls }}_decl::pull() {
     impl->pull();

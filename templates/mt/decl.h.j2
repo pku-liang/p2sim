@@ -1,7 +1,8 @@
 #pragma once
 
 {% include "common/decl.h.j2" %}
-#include <immintrin.h>
+
+#include "{{ ctx.smap.minhash_h() }}"
 
 {%- for ext in ctx.ext_fns %}
 {{ ext }}
@@ -21,11 +22,9 @@ struct alignas(64) {{ ctx.name }}_shared {
 
 struct prof_obj {
     std::vector<uint32_t> act_cnt;
+    std::vector<MH> act_hash;
     std::vector<uint64_t> rdtsc_ticks;
-    inline void init(int blocks) {
-        act_cnt.resize(blocks);
-        rdtsc_ticks.clear();
-    }
+    void init(int num_blocks);
     void dump(FILE * f);
 };
 
@@ -44,6 +43,9 @@ struct {{ cls }}_decl {
     void * {{ lm.state.name }};
     {%- endif %}
     {%- endfor %}
+    {%- if ctx.cfg.prof %}
+    MH * cur_act_hash;
+    {%- endif %}
 };
 {%- endfor %}
 

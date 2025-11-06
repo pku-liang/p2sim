@@ -1,0 +1,37 @@
+#include <immintrin.h>
+#include <random>
+#include <limits>
+
+{%- let dtype_bits = ctx.mh_ver.dtype_bits %}
+{%- let n_avx2_cnt = ctx.mh_ver.width * dtype_bits / 256 %}
+{%- let n_u64_cnt = ctx.mh_ver.width * dtype_bits / 64 %}
+
+struct alignas(32) MH {
+  __m256i val[{{ n_avx2_cnt }}];
+  inline void reset() {
+    uint{{ dtype_bits }}_t max_val = std::numeric_limits<uint{{ dtype_bits }}_t>::max();
+    {%- for i in 0..n_avx2_cnt %}
+    val[{{ i }}] = _mm256_set1_epi{{ dtype_bits }}(max_val);
+    {%- endfor %}
+  }
+  inline void update(const MH & data) {
+    {%- for i in 0..n_avx2_cnt %}
+    val[{{ i }}] = _mm256_min_epu{{ dtype_bits }}(val[{{ i }}], data.val[{{ i }}]);
+    {%- endfor %}
+  }
+  inline static MH from_max_val() {
+    MH res;
+    res.reset();
+    return res;
+  }
+  inline static MH from_gen(std::mt19937_64 & rng) {
+    union {
+      MH res;
+      uint64_t val64[{{ n_u64_cnt }}];
+    } val;
+    {%- for i in 0..n_u64_cnt %}
+    val.val64[{{ i }}] = rng();
+    {%- endfor %}
+    return val.res;
+  }
+};

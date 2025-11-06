@@ -1,0 +1,10 @@
+{%- set record_name = ctx.name ~ "_blk_record" %}
+#include <cstdint>
+
+__attribute__((section(".data.pgodata"))) uint32_t {{ record_name }}[] = {
+    {%- for record in records %}
+    {{ record.thread }}, {{ record.block }}, {{ record.orig_block }},
+    {%- endfor %}
+};
+__attribute__((section(".data.pgodata"))) uint64_t {{ record_name }}_length = {{ records.len() }};
+__attribute__((section(".data.pgodata"))) uint64_t {{ record_name }}_size = sizeof({{ record_name }});
