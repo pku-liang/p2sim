@@ -9,5 +9,5 @@
 /rsrc
 /designs
 
-/prof*
+__pycache__
 /deprecated/prof*
