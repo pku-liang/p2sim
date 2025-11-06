@@ -2,7 +2,7 @@
 
 {% include "common/decl.h.j2" %}
 
-#include "{{ ctx.smap.minhash_h() }}"
+{# #include "{{ ctx.smap.minhash_h() }}" #}
 
 {%- for ext in ctx.ext_fns %}
 {{ ext }}
@@ -20,9 +20,27 @@ struct alignas(64) {{ ctx.name }}_shared {
 {%- endfor %}
 };
 
+struct prof_record {
+    static constexpr int AVG_ACT_SIZE = 10000;
+    uint8_t avg_act[AVG_ACT_SIZE];
+    inline static prof_record default_value() {
+        prof_record res;
+        res.reset();
+        return res;
+    }
+    inline void reset() {
+        memset(avg_act, 0, sizeof(avg_act));
+    }
+    inline void update(int cur_cycle) {
+        if(cur_cycle && cur_cycle < 8 * AVG_ACT_SIZE) {
+            avg_act[cur_cycle / 8] |= 1 << (cur_cycle % 8);
+        }
+    }
+};
+
 struct prof_obj {
     std::vector<uint32_t> act_cnt;
-    std::vector<MH> act_hash;
+    std::vector<prof_record> act_hash;
     std::vector<uint64_t> rdtsc_ticks;
     void init(int num_blocks);
     void dump(FILE * f);
@@ -44,7 +62,7 @@ struct {{ cls }}_decl {
     {%- endif %}
     {%- endfor %}
     {%- if ctx.cfg.prof %}
-    MH * cur_act_hash;
+    int * cur_cycle;
     {%- endif %}
 };
 {%- endfor %}

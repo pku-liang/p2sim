@@ -119,8 +119,7 @@ void {{ ctx.name }}::step_mt(int cycles, int start_core) {
             int local_epoch = 0;
             std::mt19937_64 rng(0);
             for(int i = 0; i < cycles; i++) {
-                MH cur_act_hash = MH::from_gen(rng);
-                *({{ ref_obj }}->cur_act_hash) = cur_act_hash;
+                *({{ ref_obj }}->cur_cycle) = i;
                 {%- if ctx.cfg.prof %}
                 uint64_t t1 = rdtsc();
                 barrier.arrive_and_wait({{part_id.0}}, local_epoch);
@@ -166,7 +165,7 @@ void {{ ctx.name }}::step_mt(int cycles, int start_core) {
 
 void prof_obj::init(int num_blocks) {
     act_cnt.resize(num_blocks);
-    act_hash.resize(num_blocks, MH::from_max_val());
+    act_hash.resize(num_blocks, prof_record::default_value());
     rdtsc_ticks.clear();
 }
 
@@ -176,7 +175,7 @@ void prof_obj::dump(FILE * f) {
     fwrite(act_cnt.data(), sizeof(uint32_t), act_cnt_size, f);
     uint64_t act_hash_size = act_hash.size();
     fwrite(&act_hash_size, sizeof(uint64_t), 1, f);
-    fwrite(act_hash.data(), sizeof(MH), act_hash_size, f);
+    fwrite(act_hash.data(), sizeof(prof_record), act_hash_size, f);
     uint64_t rdtsc_ticks_size = rdtsc_ticks.size();
     fwrite(&rdtsc_ticks_size, sizeof(uint64_t), 1, f);
     fwrite(rdtsc_ticks.data(), sizeof(uint64_t), rdtsc_ticks_size, f);
@@ -185,10 +184,8 @@ void prof_obj::dump(FILE * f) {
 bool {{ ctx.name }}::dump_prof(const char * filename) {
     FILE * f = fopen(filename, "wb");
     if(!f) return false;
-    uint32_t mh_ver_bits = {{ ctx.mh_ver.dtype_bits }};
-    uint32_t mh_ver_width = {{ ctx.mh_ver.width }};
-    fwrite(&mh_ver_bits, sizeof(uint32_t), 1, f);
-    fwrite(&mh_ver_width, sizeof(uint32_t), 1, f);
+    uint32_t act_hash_width = prof_record::AVG_ACT_SIZE;
+    fwrite(&act_hash_width, sizeof(uint32_t), 1, f);
     uint64_t part_count = {{ ctx.parts.len() }};
     fwrite(&part_count, sizeof(uint64_t), 1, f);
     {%- for (part_id, part) in ctx.parts.enumerate_ids() %}

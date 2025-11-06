@@ -14,7 +14,7 @@ struct {{ cls }} {
     {{ ctx.name }}_shared * shared;
 
     {%- if ctx.cfg.prof %}
-    MH cur_act_hash;
+    int cur_cycle;
     {%- endif %}
 
     using act_t = uint{{ ctx.cfg.act_mask_width }}_t;
