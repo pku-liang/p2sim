@@ -10,7 +10,6 @@
 #include <chrono>
 #include <iostream>
 
-
 {%- import "common/gprintf.cpp.j2" as gprintf -%}
 
 {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
@@ -30,49 +29,58 @@ void {{ cls }}::step(bool eval_reset) {
 }
 
 void {{ cls }}::pull() {
-{%- for (local_id, ty, mirror) in ctx.iter_mirrors(part_id) %}
-    {%- if ty == AccessType::ReadOnly %}
-    {%- if !part.is_array(local_id) %}
-    bool {{ part.name(local_id) }}$CHG = this->{{ part.name(local_id) }} != shared->{{ mirror.name }};
-    {%- else %}
-    bool {{ part.name(local_id) }}$CHG = memcmp(this->{{ part.name(local_id) }}, shared->{{ mirror.name }}, sizeof({{ part.name(local_id) }})) != 0;
-    {%- endif %}
-    {%- endif %}
-{%- endfor %}
-{%- for (local_id, ty, mirror) in ctx.iter_mirrors(part_id) %}
-    {%- if ty == AccessType::ReadOnly %}
-    {%- if part.act_map(local_id).len() < 5 %}
-    {%- for act in part.act_map(local_id) %}
-    __act_mask[{{ act.0 / ctx.cfg.act_mask_width }}] |= (act_t){{ part.name(local_id) }}$CHG << {{ act.0 % ctx.cfg.act_mask_width }}; // activate {{ act.0 }}
-    {%- endfor %}
-    {%- else %}
-    if({{ part.name(local_id) }}$CHG) {
-      {%- for blk_id in part.act_map(local_id) %}
-      __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= (act_t)1 << {{ blk_id.0 % ctx.cfg.act_mask_width }}; // activate {{ blk_id.0 }}
-      {%- endfor %}
+{%- for pull in part.pulls %}
+    {%- set grp_id = pull.act_id as u32 / ctx.cfg.act_mask_width %}
+    {%- set grp_item_id = pull.act_id as u32  % ctx.cfg.act_mask_width %}
+    if(shared->__s_act_mask[{{ grp_id }}] & (1 << {{ grp_item_id }}))
+    {
+        shared->__s_act_mask[{{ grp_id }}] &= ~(1 << {{ grp_item_id }});
+        {%- for pull in pull.pulls %}
+            {%- if part.is_array(pull.local_id) %}
+            bool {{ part.name(pull.local_id) }}$CHG = memcmp(&{{ part.name(pull.local_id) }}, &shared->{{ ctx.name(pull.shared_id) }}, sizeof({{ part.name(pull.local_id) }})) != 0;
+            {%- else %}
+            bool {{ part.name(pull.local_id) }}$CHG = {{ part.name(pull.local_id) }} != shared->{{ ctx.name(pull.shared_id) }};
+            {%- endif %}
+        {%- endfor %}
+        {%- for pull in pull.pulls %}
+            {%- if part.is_array(pull.local_id) %}
+            memcpy(&{{ part.name(pull.local_id) }}, &shared->{{ ctx.name(pull.shared_id) }}, sizeof({{ part.name(pull.local_id) }}));
+            {%- else %}
+            {{ part.name(pull.local_id) }} = shared->{{ ctx.name(pull.shared_id) }};
+            {%- endif %}
+        {%- endfor %}
+        {%- for pull in pull.pulls %}
+            {%- if part.act_map(pull.local_id).len() < 5 %}
+            {%- for blk_id in part.act_map(pull.local_id) %}
+            __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= (act_t){{ part.name(pull.local_id) }}$CHG << {{ blk_id.0 % ctx.cfg.act_mask_width }}; // activate {{ blk_id.0 }}
+            {%- endfor %}
+            {%- else %}
+            if({{ part.name(pull.local_id) }}$CHG) {
+                {%- for blk_id in part.act_map(pull.local_id) %}
+                __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= (act_t)1 << {{ blk_id.0 % ctx.cfg.act_mask_width }}; // activate {{ blk_id.0 }}
+                {%- endfor %}
+            }
+            {%- endif %}
+        {%- endfor %}
     }
-    {%- endif %}
-    {%- endif %}
-{%- endfor %}
-{%- for (local_id, ty, mirror) in ctx.iter_mirrors(part_id) %}
-    {%- if ty == AccessType::ReadOnly %}
-    {%- if !part.is_array(local_id) %}
-    this->{{ part.name(local_id) }} = shared->{{ mirror.name }};
-    {%- else %}
-    memcpy(this->{{ part.name(local_id) }}, shared->{{ mirror.name }}, sizeof({{ part.name(local_id) }}));
-    {%- endif %}
-    {%- endif %}
 {%- endfor %}
 }
 
 void {{ cls }}::push() {
-{%- for (local_id, ty, mirror) in ctx.iter_mirrors(part_id) %}
-    {%- if ty.has_write() %}
-    {%- if !part.is_array(local_id) %}
-    shared->{{ mirror.name }} = this->{{ part.name(local_id) }};
-    {%- else %}
-    memcpy(shared->{{ mirror.name }}, this->{{ part.name(local_id) }}, sizeof({{ part.name(local_id) }}));
-    {%- endif %}
+{%- for (blk_id, blk) in part.blocks.enumerate_ids() %}
+    {%- if let Some(push) = blk.pushes %}
+    if(__act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] & (1 << {{ blk_id.0 % ctx.cfg.act_mask_width }}))
+    {
+        __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] &= ~(1 << {{ blk_id.0 % ctx.cfg.act_mask_width }});
+        {%- for push in push.pushes %}
+        {%- if part.is_array(push.local_id) %}
+        memcpy(&shared->{{ ctx.name(push.shared_id) }}, &{{ part.name(push.local_id) }}, sizeof({{ part.name(push.local_id) }}));
+        {%- else %}
+        shared->{{ ctx.name(push.shared_id) }} = {{ part.name(push.local_id) }};
+        {%- endif %}
+        {%- endfor %}
+        shared->__s_act_mask[{{ push.act_id as u32 / ctx.cfg.act_mask_width }}] |= (1 << {{ push.act_id as u32 % ctx.cfg.act_mask_width }});
+    }
     {%- endif %}
 {%- endfor %}
 }
@@ -86,6 +94,7 @@ void {{ cls }}::init() {
 
 void {{ ctx.name }}::init() {
     memset(&shared, 0, sizeof({{ ctx.name }}_shared));
+    memset(shared.__s_act_mask, 0xff, sizeof(shared.__s_act_mask));
     {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
     part_{{ part_id.0 }}.shared = &shared;
     part_{{ part_id.0 }}.init();
@@ -105,7 +114,7 @@ void {{ ctx.name }}::step() {
 {%- endfor %}
 }
 
-{%- for (sid, s) in ctx.shared.enumerate_ids() %}
+{# {%- for (sid, s) in ctx.shared.enumerate_ids() %}
 {%- if s.is_ext %}
 {{ s.width | int_ty }} {{ ctx.name }}::get_{{ s.name }}() {
     return shared.{{ s.name }};
@@ -114,6 +123,19 @@ void {{ ctx.name }}::set_{{ s.name }}({{ s.width | int_ty }} value) {
     shared.{{ s.name }} = value;
 }
 {%- endif %}
+{%- endfor %} #}
+
+{%- for s in ctx.ext_states %}
+{%- let first_id = s.acts.first().unwrap().0 %}
+{{ s.width | int_ty }} {{ ctx.name }}::get_{{ s.name }}() {
+    return shared.{{ ctx.name(first_id) }};
+}
+void {{ ctx.name }}::set_{{ s.name }}({{ s.width | int_ty }} value) {
+    {%- for (sid, act_id) in s.acts %}
+    shared.{{ ctx.name(sid) }} = value;
+    shared.__s_act_mask[{{ act_id as u32 / ctx.cfg.act_mask_width }}] |= (1 << {{ act_id as u32 % ctx.cfg.act_mask_width }});
+    {%- endfor %}
+}
 {%- endfor %}
 
 static void pin_to_core(int core_id){

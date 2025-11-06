@@ -1,6 +1,9 @@
 use std::{fs::File, io::Read, path::Path};
 
-use bincode::{Decode, Encode, config::{Config, Configuration, Fixint, LittleEndian, NoLimit}};
+use bincode::{
+    Decode, Encode,
+    config::{Config, Configuration, Fixint, LittleEndian, NoLimit},
+};
 use log::info;
 use rustc_hash::FxHashMap;
 

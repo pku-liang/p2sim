@@ -6,6 +6,7 @@ void {{ ctx.name }}_{{ part_id.0 }}::step_{{ group_id }}() {
     if(__act_mask[{{ grp }}])
     {
         {%- for (id, block) in iter %}
+        {%- if block.pushes.is_none() %}
         {%- if !block.always %}
         if(__act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] & ((act_t)1 << {{ id.0 % ctx.cfg.act_mask_width }}))
         {%- endif %}
@@ -44,6 +45,7 @@ void {{ ctx.name }}_{{ part_id.0 }}::step_{{ group_id }}() {
             {%- endmatch %}
             {%- endfor %}
         }
+        {%- endif %}
         {%- endfor %}
     }
     {%- endfor %}

@@ -19,7 +19,7 @@ pub struct Mirror {
     pub ty: AccessType,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "kebab-case")]
 pub struct State {
     pub name: String,
@@ -36,12 +36,44 @@ pub struct State {
     pub is_disabled: bool,
 }
 
+pub struct StateLayout {
+    pub align: usize,
+    pub size: usize,
+}
+
 impl State {
     pub fn is_array(&self) -> bool {
         !self.dims.is_empty()
     }
     pub fn element_count(&self) -> usize {
         self.dims.iter().product()
+    }
+    pub fn get_align(&self) -> usize {
+        match self.width {
+            0 => 0,
+            1..=8 => 1,
+            9..=16 => 2,
+            17..=32 => 4,
+            _ => 8,
+        }
+    }
+    pub fn get_element_size(&self) -> usize {
+        match self.width {
+            0 => 0,
+            1..=8 => 1,
+            9..=16 => 2,
+            17..=32 => 4,
+            33..=64 => 8,
+            w => ((w + 7) / 8 + 7) / 8 * 8,
+        }
+    }
+    pub fn get_size(&self) -> usize {
+        self.get_element_size() * self.element_count()
+    }
+    pub fn get_layout(&self) -> StateLayout {
+        let align = self.get_align();
+        let size = self.get_size();
+        StateLayout { align, size }
     }
 }
 
@@ -122,6 +154,18 @@ pub enum Inst {
     },
 }
 
+#[derive(Default, Clone, Serialize, Deserialize, Debug)]
+pub struct StatePush {
+    pub local_id: StateId,
+    pub shared_id: StateId,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct PushTask {
+    pub act_id: usize,
+    pub pushes: Vec<StatePush>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "kebab-case")]
 pub struct Block {
@@ -132,6 +176,8 @@ pub struct Block {
     pub reads: Vec<StateId>,
     pub writes: Vec<StateId>,
     pub insts: Vec<Inst>,
+    #[serde(default)]
+    pub pushes: Option<PushTask>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -142,10 +188,24 @@ pub struct Reset {
     pub acts: Vec<BlockId>,
 }
 
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
+pub struct StatePull {
+    pub shared_id: StateId,
+    pub local_id: StateId,
+}
+
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
+pub struct PullTask {
+    pub act_id: usize,
+    pub pulls: Vec<StatePull>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct TPart {
     pub states: Vec<State>,
+    #[serde(default)]
+    pub pulls: Vec<PullTask>,
     pub blocks: Vec<Block>,
     pub resets: Vec<Reset>,
 }

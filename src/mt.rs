@@ -5,9 +5,13 @@ use std::{borrow::Cow, fs::File, ops::Range, path::Path};
 use askama::Template;
 use index_vec_ext::{IndexExt, index_ext};
 use itertools::Itertools;
+use rustc_hash::FxHashMap;
 
 use crate::{
-    act::{BincodeExt, BlockIdMap}, cgen::{CCArgs, CGenTask, run_cgen_tasks}, ir::*, pass::{ActMap, PartId, TDesign}
+    act::{BincodeExt, BlockIdMap},
+    cgen::{CCArgs, CGenTask, run_cgen_tasks},
+    ir::*,
+    pass::{ActMap, ExternalState, PartId, TDesign, compute_shared_layout},
 };
 
 fn int_ty_impl(width: usize) -> Cow<'static, str> {
@@ -70,6 +74,7 @@ struct PartCGenCtx<'ir> {
     states: &'ir [State],
     blocks: &'ir [Block],
     resets: &'ir [Reset],
+    pulls: &'ir [PullTask],
     block_groups: Vec<Range<usize>>,
     reset_groups: Vec<Range<usize>>,
     reset_states: Vec<StateId>,
@@ -103,6 +108,7 @@ impl<'ir> PartCGenCtx<'ir> {
                 .sorted()
                 .dedup()
                 .collect(),
+            pulls: &part.pulls,
             block_groups: partition_by_size(
                 &part.blocks,
                 |block| block.insts.len(),
@@ -259,6 +265,8 @@ struct MTCGenCtx<'ir> {
     max_concat: u32,
     ext_fns: &'ir [String],
     shared: &'ir [State],
+    shared_acts: u32,
+    ext_states: &'ir [ExternalState],
     large_mem: Vec<LargeMem<'ir>>,
     parts: Vec<PartCGenCtx<'ir>>,
     smap: SourceMap<'ir>,
@@ -291,6 +299,8 @@ impl<'ir> MTCGenCtx<'ir> {
             max_concat: td.max_concat,
             ext_fns: &td.ext_fns,
             shared: &td.shared,
+            shared_acts: td.shared_acts,
+            ext_states: &td.ext_states,
             parts,
             large_mem,
             smap: SourceMap::new(&cfg.output_dir, &td.name, &cfg.ccargs.extra_cpp),
@@ -316,6 +326,9 @@ impl<'ir> MTCGenCtx<'ir> {
                 .map(move |group_id| self.smap.reset_group(part_id, group_id));
             blks.chain(rsts)
         })
+    }
+    fn name(&self, sid: &StateId) -> &str {
+        &self.shared[*sid].name
     }
 }
 

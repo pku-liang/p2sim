@@ -117,9 +117,9 @@ int main(int argc, char** argv) {
   dut->print_stats();
   // dtm = new dtm_t(argc, argv);
   dut->set_reset(1);
-  dut_cycle(10);
+  dut->step_mt(10);
   dut->set_reset(0);
-  dut_cycle(1);
+  dut->step_mt(1);
   int cycle = 0;
   int max_cycles = std::numeric_limits<int>::max();
   if(getenv("MAX_CYCLES")) {

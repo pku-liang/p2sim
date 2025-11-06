@@ -1,4 +1,7 @@
-use std::{collections::BTreeSet, ops::Range};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    ops::Range,
+};
 
 use index_vec_ext::{IndexExt, IndexVecExt, index_ext};
 use itertools::Itertools;
@@ -307,7 +310,11 @@ impl<'d> Part<'d> {
     }
 }
 
-pub fn partition<'d>(design: &'d Design, k: usize, cost: impl Fn(BlockId) -> i32) -> PartDesign<'d> {
+pub fn partition<'d>(
+    design: &'d Design,
+    k: usize,
+    cost: impl Fn(BlockId) -> i32,
+) -> PartDesign<'d> {
     let part = &design.part;
     info!("Start repcut partition");
     info!("1. Build transitive closure");
@@ -342,7 +349,7 @@ pub fn partition<'d>(design: &'d Design, k: usize, cost: impl Fn(BlockId) -> i32
         }
         blk_in_sinks[blk_id.0 as usize].extend(succs);
         let bis = &blk_in_sinks[blk_id.0 as usize];
-        let cost = (cost(blk_id) + bis.len() as i32) / bis.len() as i32 / 1000;
+        let cost = (cost(blk_id) + bis.len() as i32) / bis.len() as i32 / 10000;
         for sink in bis {
             sink_size[*sink] += cost;
         }
@@ -371,6 +378,18 @@ pub fn partition<'d>(design: &'d Design, k: usize, cost: impl Fn(BlockId) -> i32
             edges.sort();
             edges.dedup();
             builder.add_edge(weight, edges);
+        }
+        if s.is_seq() && s.writes.len() > 1 {
+            let mut edges = vec![];
+            for r in &s.reads {
+                edges.extend(get_edges(*r));
+            }
+            for w in &s.writes {
+                edges.extend(get_edges(*w));
+            }
+            edges.sort();
+            edges.dedup();
+            builder.add_edge(10000, edges);
         }
     }
 
@@ -524,6 +543,8 @@ pub struct TDesign {
     pub name: String,
     pub max_concat: u32,
     pub ext_fns: Vec<String>,
+    pub ext_states: Vec<ExternalState>,
+    pub shared_acts: u32,
     pub shared: Vec<State>,
     pub parts: Vec<TPart>,
 }
@@ -668,6 +689,7 @@ pub fn build_tdesign(pd: &PartDesign) -> TDesign {
             states,
             blocks,
             resets,
+            pulls: vec![],
         });
     }
     // let shared = pd
@@ -680,7 +702,9 @@ pub fn build_tdesign(pd: &PartDesign) -> TDesign {
         name: pd.design.name.clone(),
         max_concat: pd.design.max_concat,
         ext_fns: pd.design.ext_fns.clone(),
+        ext_states: vec![],
         shared,
+        shared_acts: 0,
         parts,
     }
 }
@@ -744,6 +768,7 @@ pub fn merge_block(blocks: &[Block]) -> Block {
         writes: writes.into_iter().collect_vec(),
         reads: reads.into_iter().collect_vec(),
         insts,
+        ..Block::default()
     }
 }
 
@@ -830,4 +855,297 @@ pub fn linear_coarsen(design: &mut TDesign) {
     for part in design.parts.iter_mut() {
         linear_coarsen_part(part);
     }
+}
+
+#[derive(Default, Clone, Debug)]
+pub struct SStateDep {
+    pub read: Vec<(PartId, StateId)>,
+    pub write: Vec<(PartId, StateId)>,
+}
+
+#[derive(Default, Clone, Debug, Copy)]
+pub struct ThState {
+    pub shared_id: StateId,
+    pub local_id: StateId,
+}
+
+#[derive(Default, Clone, Debug)]
+pub struct ThreadDep {
+    pub read: Vec<ThState>,
+    pub write: Vec<ThState>,
+}
+
+index_ext! {containers StateId, SStateDep}
+
+pub struct SharedDep {
+    pub states: Vec<SStateDep>,
+    pub threads: Vec<ThreadDep>,
+}
+
+index_ext! {containers PartId, ThreadDep}
+
+pub fn get_shared_dep(td: &TDesign) -> SharedDep {
+    let mut states = vec![SStateDep::default(); td.shared.len()];
+    let mut threads = vec![ThreadDep::default(); td.parts.len()];
+    for (part_id, part) in td.parts.enumerate_ids() {
+        for (sid, s) in part.states.enumerate_ids() {
+            if let Some(mirror) = &s.mirror {
+                if mirror.ty == AccessType::ReadOnly {
+                    states[mirror.shared_id].read.push((part_id, sid));
+                    threads[part_id].read.push(ThState {
+                        shared_id: mirror.shared_id,
+                        local_id: sid,
+                    });
+                }
+                if mirror.ty.has_write() {
+                    states[mirror.shared_id].write.push((part_id, sid));
+                    threads[part_id].write.push(ThState {
+                        shared_id: mirror.shared_id,
+                        local_id: sid,
+                    });
+                }
+            }
+        }
+    }
+    SharedDep { states, threads }
+}
+
+#[derive(Default)]
+pub struct LayoutHelper {
+    pub offset: usize,
+    pub names: FxHashSet<String>,
+    pub states: Vec<State>,
+}
+
+impl LayoutHelper {
+    pub fn next(&self, state: &State) -> Range<usize> {
+        let layout = state.get_layout();
+        let start = self.offset.next_multiple_of(layout.align);
+        let end = start + layout.size;
+        return start..end;
+    }
+    pub fn add_pad(&mut self, size: usize) {
+        self.states.push(State {
+            name: format!("_pad_{}", self.states.len()),
+            width: 8,
+            dims: vec![size],
+            ..State::default()
+        });
+    }
+    pub fn get_name(&mut self, name: &str) -> String {
+        let mut name = name.to_string();
+        if self.names.contains(&name) {
+            let mut idx = 0;
+            while self.names.contains(&format!("{}_{}", name, idx)) {
+                idx += 1;
+            }
+            name = format!("{}_{}", name, idx);
+        }
+        self.names.insert(name.clone());
+        name
+    }
+    pub fn add(&mut self, state: &State) -> StateId {
+        let range = self.next(state);
+        if range.start != self.offset {
+            self.add_pad(range.start - self.offset);
+        }
+        let name = self.get_name(&state.name);
+        let sid = self.states.add(State {
+            name,
+            ..state.clone()
+        });
+        self.offset = range.end;
+        sid
+    }
+    pub fn add_align(&mut self, align: usize) {
+        let pos = self.offset.next_multiple_of(align);
+        if pos != self.offset {
+            self.add_pad(pos - self.offset);
+        }
+    }
+    pub fn add_comment(&mut self, comment: &str) {
+        self.states.push(State {
+            name: format!("_comment_{}", comment),
+            width: 8,
+            dims: vec![0],
+            is_ext: false,
+            is_local: false,
+            mirror: None,
+            is_disabled: false,
+        })
+    }
+}
+
+#[derive(Debug)]
+pub struct ExternalState {
+    pub name: String,
+    pub width: usize,
+    pub acts: Vec<(StateId, usize)>,
+}
+
+pub fn compute_shared_layout(td: &mut TDesign) {
+    let mut helper = LayoutHelper::default();
+    let dep = get_shared_dep(td);
+    let mut act_id = 0;
+    let mut act_map = BTreeMap::<StateId, ExternalState>::default();
+    for (th, th_dep) in dep.threads.enumerate_ids() {
+        let mut wr_rd = BTreeMap::<PartId, Vec<_>>::new();
+        for r in th_dep.read.iter() {
+            let num_writes = dep.states[r.shared_id].write.len();
+            if num_writes > 1 {
+                let s = &td.shared[r.shared_id];
+                println!("{:?} {:?}", s, dep.states[r.shared_id].write);
+            }
+            assert!(num_writes <= 1);
+            let write = dep.states[r.shared_id]
+                .write
+                .first()
+                .unwrap_or(&(PartId(u32::MAX), StateId(0)))
+                .clone();
+            wr_rd.entry(write.0).or_default().push((*r, write.1));
+        }
+        for (wth, rds) in wr_rd.iter_mut() {
+            rds.sort_by_key(|x| x.1);
+            if *wth == th {
+                continue;
+            }
+            let mut comm_blk_id = 0;
+            helper.add_comment(&format!("W{}_R{}_{}", wth.index(), th.index(), comm_blk_id));
+            let mut last_offset = helper.offset;
+            let mut pull_tasks = vec![];
+            let mut push_tasks = vec![];
+            let mut pulls = vec![];
+            let mut pushes = vec![];
+            let mut ext_acts: Vec<(StateId, StateId)> = vec![];
+            for (r, _) in rds.iter() {
+                let s = &td.shared[r.shared_id];
+                let next = helper.next(s);
+                // cross cache line
+                if next.end >= last_offset + 64 {
+                    helper.add_align(64);
+                    comm_blk_id += 1;
+                    helper.add_comment(&format!(
+                        "W{}_R{}_{}",
+                        wth.index(),
+                        th.index(),
+                        comm_blk_id
+                    ));
+                    last_offset = helper.offset;
+                    pull_tasks.push(PullTask {
+                        act_id,
+                        pulls: std::mem::take(&mut pulls),
+                    });
+                    push_tasks.push(PushTask {
+                        act_id,
+                        pushes: std::mem::take(&mut pushes),
+                    });
+                    for (orig_shared_id, new_shared_id) in ext_acts.drain(..) {
+                        act_map
+                            .entry(orig_shared_id)
+                            .or_insert_with(|| ExternalState {
+                                name: td.shared[orig_shared_id].name.clone(),
+                                width: td.shared[orig_shared_id].width,
+                                acts: vec![],
+                            })
+                            .acts
+                            .push((new_shared_id, act_id));
+                    }
+                    act_id += 1;
+                }
+                let shared_id: StateId = helper.add(&td.shared[r.shared_id]);
+                pulls.push(StatePull {
+                    shared_id,
+                    local_id: r.local_id,
+                });
+                if td.shared[r.shared_id].is_ext {
+                    ext_acts.push((r.shared_id, shared_id));
+                }
+                for (target_wth, wlocal) in dep.states[r.shared_id].write.iter() {
+                    if target_wth.index() == wth.index() {
+                        pushes.push(StatePush {
+                            local_id: *wlocal,
+                            shared_id,
+                        });
+                        assert!(
+                            td.parts[target_wth.index()].states[*wlocal]
+                                .mirror
+                                .is_some()
+                        );
+                        assert_eq!(
+                            td.shared[r.shared_id].dims,
+                            td.parts[target_wth.index()].states[*wlocal].dims
+                        );
+                    }
+                }
+            }
+            if pulls.len() > 0 || pushes.len() > 0 {
+                pull_tasks.push(PullTask {
+                    act_id,
+                    pulls: std::mem::take(&mut pulls),
+                });
+                push_tasks.push(PushTask {
+                    act_id,
+                    pushes: std::mem::take(&mut pushes),
+                });
+                for (orig_shared_id, new_shared_id) in ext_acts.drain(..) {
+                    act_map
+                        .entry(orig_shared_id)
+                        .or_insert_with(|| ExternalState {
+                            name: td.shared[orig_shared_id].name.clone(),
+                            width: td.shared[orig_shared_id].width,
+                            acts: vec![],
+                        })
+                        .acts
+                        .push((new_shared_id, act_id));
+                }
+                act_id += 1;
+            }
+            act_id = act_id.next_multiple_of(64 * 8);
+            helper.add_align(64);
+            td.parts[th.index()].pulls.extend(pull_tasks);
+            if wth.index() < u32::MAX as usize {
+                for push in push_tasks {
+                    let reads = push.pushes.iter().map(|p| p.local_id).collect_vec();
+                    let blk = Block {
+                        orig_ids: vec![],
+                        always: false,
+                        next: vec![],
+                        reads,
+                        writes: vec![],
+                        insts: vec![],
+                        pushes: Some(push),
+                    };
+                    td.parts[wth.index()].blocks.push(blk);
+                }
+            }
+        }
+    }
+    td.shared = helper.states;
+    td.shared_acts = act_id as u32;
+    td.ext_states = act_map.into_values().collect_vec();
+}
+
+pub fn print_shared_comm(td: &TDesign) {
+    let shared = get_shared_dep(td).states;
+    let mut comm_mat = vec![vec![0; td.parts.len()]; td.parts.len()];
+    for (sid, s) in shared.enumerate_ids() {
+        for (read, _) in s.read.iter() {
+            for (write, _) in s.write.iter() {
+                comm_mat[read.index()][write.index()] += (td.shared[sid].width + 7) / 8;
+            }
+        }
+    }
+    let mut table = Table::new(&(0..td.parts.len() + 1).map(|_| "{:>}").join(" "));
+    let mut first_row = (0..td.parts.len()).map(|x| format!("W{}", x)).collect_vec();
+    first_row.insert(0, "".to_string());
+    table.add_row(Row::from_cells(first_row));
+    for (row_index, row) in comm_mat.iter().enumerate() {
+        let mut row_cells = row.iter().map(|x| x.to_string()).collect_vec();
+        row_cells.insert(0, format!("R{}", row_index));
+        table.add_row(Row::from_cells(row_cells));
+    }
+    info!(
+        "Shared dependency:\n{}",
+        table.to_string().strip_suffix("\n").unwrap()
+    );
 }

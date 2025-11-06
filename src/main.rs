@@ -3,7 +3,12 @@
 use std::borrow::Cow;
 
 use clap::{Args, Parser, ValueEnum};
-use ggsim::{act::{ActInfo, BincodeExt, BlockIdMap, ProfData, get_block_act}, comp::parse_file, ir::BlockId, pass};
+use ggsim::{
+    act::{ActInfo, BincodeExt, BlockIdMap, ProfData, get_block_act},
+    comp::parse_file,
+    ir::BlockId,
+    pass,
+};
 use itertools::Itertools;
 use log::info;
 use rustc_hash::FxHashMap;
@@ -89,9 +94,15 @@ fn parse_input_files(files: &[impl AsRef<str>]) -> InputFiles {
 }
 
 fn load_prof_data(pdata: &PGOArgs) -> FxHashMap<BlockId, u32> {
-    info!("Loading prof data from {}", pdata.pgo_id_map.as_ref().unwrap());
+    info!(
+        "Loading prof data from {}",
+        pdata.pgo_id_map.as_ref().unwrap()
+    );
     let id_map = BlockIdMap::read_file(pdata.pgo_id_map.as_ref().unwrap()).unwrap();
-    info!("Loading prof data from {}", pdata.pgo_prof_data.as_ref().unwrap());
+    info!(
+        "Loading prof data from {}",
+        pdata.pgo_prof_data.as_ref().unwrap()
+    );
     let prof_data = ProfData::read_file(pdata.pgo_prof_data.as_ref().unwrap()).unwrap();
     get_block_act(&id_map, &prof_data)
 }
@@ -117,13 +128,17 @@ fn main() {
     let pd;
     if args.pgo_args.pgo {
         let act_map = load_prof_data(&args.pgo_args);
-        pd = pass::partition(&design, args.k.unwrap_or(2), |x| *act_map.get(&x).unwrap() as i32);
+        pd = pass::partition(&design, args.k.unwrap_or(2), |x| {
+            *act_map.get(&x).unwrap() as i32
+        });
     } else {
         pd = pass::partition(&design, args.k.unwrap_or(2), |x| 1);
     }
     pass::print_part_stats(&pd);
     let mut td = pass::build_tdesign(&pd);
     pass::linear_coarsen(&mut td);
+    pass::print_shared_comm(&td);
+    pass::compute_shared_layout(&mut td);
     // pass::verify_never_act(&design);
     // pass::verify_dep_info(&design);
     // if let Some(act_file) = args.act {

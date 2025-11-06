@@ -2,6 +2,7 @@
 
 {%- let part = &ctx.parts[part_id] %}
 void {{ ctx.name }}_{{ part_id.0 }}::reset_{{ group_id }}() {
+    bool any_reset = false;
 {%- for (id, reset) in part.iter_reset_group(*group_id) %}
     if({{ part.name(reset.reset) }} || {{ part.name(reset.reset) }}$LAST) [[unlikely]] {
         {{ part.name(reset.reset) }}$LAST = {{ part.name(reset.reset) }};
@@ -15,6 +16,7 @@ void {{ ctx.name }}_{{ part_id.0 }}::reset_{{ group_id }}() {
         {%- for act in reset.acts %}
         __act_mask[{{ act.0 / ctx.cfg.act_mask_width }}] |= 1 << {{ act.0 % ctx.cfg.act_mask_width }};
         {%- endfor %}
+        any_reset = true;
     }
 {%- endfor %}
 }
