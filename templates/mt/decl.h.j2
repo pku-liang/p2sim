@@ -32,8 +32,8 @@ struct prof_record {
         memset(avg_act, 0, sizeof(avg_act));
     }
     inline void update(int cur_cycle) {
-        if(cur_cycle && cur_cycle < 255 * AVG_ACT_SIZE) {
-            avg_act[cur_cycle / 255]++;
+        if(cur_cycle && cur_cycle % 256 == 0) {
+            avg_act[cur_cycle / 256]++;
         }
     }
 };
