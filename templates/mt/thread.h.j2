@@ -13,10 +13,6 @@ struct {{ ctx.name }}_shared;
 struct {{ cls }} {
     {{ ctx.name }}_shared * shared;
 
-    {%- if ctx.cfg.prof %}
-    MH cur_act_hash;
-    {%- endif %}
-
     using act_t = uint{{ ctx.cfg.act_mask_width }}_t;
 
     static void gprintf(const char *fmt, ...);
@@ -45,7 +41,6 @@ struct {{ cls }} {
     {%- endfor %}
     char __state_end[0];
 
-    {%- if ctx.cfg.prof %}
+    MH cur_act_hash;
     prof_obj prof;
-    {%- endif %}
 };

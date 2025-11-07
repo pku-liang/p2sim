@@ -43,9 +43,7 @@ struct {{ cls }}_decl {
     void * {{ lm.state.name }};
     {%- endif %}
     {%- endfor %}
-    {%- if ctx.cfg.prof %}
     MH * cur_act_hash;
-    {%- endif %}
 };
 {%- endfor %}
 

@@ -4,10 +4,7 @@ use std::borrow::Cow;
 
 use clap::{Args, Parser, ValueEnum};
 use ggsim::{
-    act::{ActInfo, BincodeExt, BlockIdMap, ProfData, get_block_act},
-    comp::parse_file,
-    ir::BlockId,
-    pass,
+    act::{ActInfo, BincodeExt, BlockIdMap, ProfData, get_block_act}, comp::parse_file, ir::BlockId, mt::ProfCfg, pass
 };
 use itertools::Itertools;
 use log::info;
@@ -48,6 +45,15 @@ struct PGOArgs {
     pgo_prof_data: Option<String>,
 }
 
+#[derive(Args, Default)]
+struct ProfArgs {
+    #[arg(long)]
+    prof_act_cnt: bool,
+    #[arg(long)]
+    prof_rdtsc_ticks: bool,
+    #[arg(long)]
+    prof_minhash: bool,
+}
 #[derive(Parser)]
 struct Cli {
     inputs: Vec<String>,
@@ -65,8 +71,8 @@ struct Cli {
     dump_stats: Option<String>,
     #[arg(long)]
     diff_test: bool,
-    #[arg(long)]
-    prof: bool,
+    #[command(flatten)]
+    prof: ProfArgs,
     #[arg(long)]
     act: Option<String>,
     #[arg(short)]
@@ -192,7 +198,11 @@ fn main() {
                 defines: args.repr_cc.defines.iter().map(|d| legalize_define(d)).collect_vec(),
                 debug: args.repr_cc.debug,
             },
-            prof: args.prof,
+            prof: ProfCfg{
+                act_cnt: args.prof.prof_act_cnt,
+                rdtsc_ticks: args.prof.prof_rdtsc_ticks,
+                minhash: args.prof.prof_minhash,
+            },
             ..Default::default()
         };
         mt_gen(&td, &cfg).unwrap();

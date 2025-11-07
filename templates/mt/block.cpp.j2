@@ -2,6 +2,9 @@
 
 {%- let part = ctx.parts[part_id] %}
 void {{ ctx.name }}_{{ part_id.0 }}::step_{{ group_id }}() {
+    {%- if ctx.cfg.prof.minhash %}
+    MH act_hash = cur_act_hash;
+    {%- endif %}
     {%- for (grp, iter) in part.iter_block_act_group(*group_id) %}
     if(__act_mask[{{ grp }}])
     {
@@ -11,9 +14,11 @@ void {{ ctx.name }}_{{ part_id.0 }}::step_{{ group_id }}() {
         if(__act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] & ((act_t)1 << {{ id.0 % ctx.cfg.act_mask_width }}))
         {%- endif %}
         {
-            {%- if ctx.cfg.prof %}
+            {%- if ctx.cfg.prof.act_cnt %}
             prof.act_cnt[{{ id.0 }}]++;
-            prof.act_hash[{{ id.0 }}].update(cur_act_hash);
+            {%- endif %}
+            {%- if ctx.cfg.prof.minhash %}
+            prof.act_hash[{{ id.0 }}].update(act_hash);
             {%- endif %}
             // block {{ id.0 }}
             __act_mask[{{ id.0 / ctx.cfg.act_mask_width }}] &= ~((act_t)1 << {{ id.0 % ctx.cfg.act_mask_width }});

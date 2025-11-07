@@ -33,10 +33,6 @@ EXTRA_CXXFLAGS = \
 	-D{{ define }}
 {%- endfor %}
 
-{%- if ctx.cfg.prof %}
-EXTRA_CXXFLAGS += -DPROFILE
-{%- endif %}
-
 ifneq ($(CONDA_PREFIX),)
 EXTRA_CXXFLAGS += -I$(CONDA_PREFIX)/include
 LDFLAGS += -L$(CONDA_PREFIX)/lib

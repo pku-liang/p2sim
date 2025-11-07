@@ -16,7 +16,13 @@ struct alignas(32) MH {
   }
   inline void update(const MH & data) {
     {%- for i in 0..n_avx2_cnt %}
-    val[{{ i }}] = _mm256_min_epu{{ dtype_bits }}(val[{{ i }}], data.val[{{ i }}]);
+    __m256i val_{{ i }} = _mm256_load_si256(&val[{{ i }}]);
+    {%- endfor %}
+    {%- for i in 0..n_avx2_cnt %}
+    val_{{ i }} = _mm256_min_epu{{ dtype_bits }}(val_{{ i }}, data.val[{{ i }}]);
+    {%- endfor %}
+    {%- for i in 0..n_avx2_cnt %}
+    _mm256_store_si256(&val[{{ i }}], val_{{ i }});
     {%- endfor %}
   }
   inline static MH from_max_val() {

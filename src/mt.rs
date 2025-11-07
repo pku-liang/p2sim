@@ -22,12 +22,19 @@ fn int_ty_impl(width: usize) -> Cow<'static, str> {
     }
 }
 
+#[derive(Default)]
+pub struct ProfCfg {
+    pub act_cnt: bool,
+    pub rdtsc_ticks: bool,
+    pub minhash: bool,
+}
+
 pub struct CGenCfg {
     pub file_inst_size: usize,
     pub act_mask_width: u32,
     pub output_dir: String,
     pub ccargs: CCArgs,
-    pub prof: bool,
+    pub prof: ProfCfg,
 }
 
 impl Default for CGenCfg {
@@ -37,7 +44,7 @@ impl Default for CGenCfg {
             act_mask_width: 32,
             output_dir: "".to_string(),
             ccargs: CCArgs::default(),
-            prof: false,
+            prof: ProfCfg::default(),
         }
     }
 }

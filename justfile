@@ -3,7 +3,6 @@ build-gsim:
 
 prof-1234 target: (prof target "1") (prof target "2") (prof target "3") (prof target "4") (prof target "5") (prof target "6")
     mkdir -p prof
-    python scripts/plot-prof.py build/{{ target }}.* prof/{{ target }}
 
 prof target threads:
     MAX_CYCLES=100000 taskset -c 48-68 ./build/{{ target }}.T{{ threads }}/sim ./exe/linux.bin || true
@@ -25,7 +24,7 @@ compile target threads="1" pgo="false":
         -lfesvr \
         -o build/{{ target }}.T{{ threads }} \
         -k {{ threads }} 2>&1 \
-        --prof \
+        --prof-act-cnt --prof-rdtsc-ticks \
         -DPROF_FILE="\"$PWD/pgo-data/{{ target }}.T{{ threads }}.prof.bin\"" \
         | tee build/{{ target }}.T{{ threads }}/build.log
     pixi run make -C build/{{ target }}.T{{ threads }}
