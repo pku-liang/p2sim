@@ -179,6 +179,20 @@ impl<'ir> PartCGenCtx<'ir> {
             Some((last_pos_group, iter))
         })
     }
+    fn iter_pull_act(&self) -> impl Iterator<Item = (usize, impl Iterator<Item = (BlockId, &PullTask)>)> {
+        let range = self.pulls.len();
+        let mut last_pos = 0;
+        std::iter::from_fn(move || {
+            if last_pos >= range {
+                return None;
+            }
+            let last_pos_group = last_pos / self.cfg.act_mask_width as usize;
+            let next_pos = ((last_pos_group + 1) * self.cfg.act_mask_width as usize).min(range);
+            let iter = (last_pos..next_pos).map(|i| (BlockId(i as u32), &self.pulls[i]));
+            last_pos = next_pos;
+            Some((last_pos_group, iter))
+        })
+    }
     fn act_map(&self, sid: &StateId) -> &[BlockId] {
         match self.act_map.get(sid) {
             Some(act_map) => act_map,

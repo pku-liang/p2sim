@@ -21,40 +21,44 @@ void {{ cls }}::step(bool eval_reset) {
 }
 
 void {{ cls }}::pull() {
-{%- for pull in part.pulls %}
-    {%- set grp_id = pull.act_id as u32 / ctx.cfg.act_mask_width %}
-    {%- set grp_item_id = pull.act_id as u32  % ctx.cfg.act_mask_width %}
-    if(shared->__s_act_mask[{{ grp_id }}] & (1 << {{ grp_item_id }}))
-    {
-        shared->__s_act_mask[{{ grp_id }}] &= ~(1 << {{ grp_item_id }});
-        {%- for pull in pull.pulls %}
-            {%- if part.is_array(pull.local_id) %}
-            bool {{ part.name(pull.local_id) }}$CHG = memcmp(&{{ part.name(pull.local_id) }}, &shared->{{ ctx.name(pull.shared_id) }}, sizeof({{ part.name(pull.local_id) }})) != 0;
-            {%- else %}
-            bool {{ part.name(pull.local_id) }}$CHG = {{ part.name(pull.local_id) }} != shared->{{ ctx.name(pull.shared_id) }};
-            {%- endif %}
-        {%- endfor %}
-        {%- for pull in pull.pulls %}
-            {%- if part.is_array(pull.local_id) %}
-            memcpy(&{{ part.name(pull.local_id) }}, &shared->{{ ctx.name(pull.shared_id) }}, sizeof({{ part.name(pull.local_id) }}));
-            {%- else %}
-            {{ part.name(pull.local_id) }} = shared->{{ ctx.name(pull.shared_id) }};
-            {%- endif %}
-        {%- endfor %}
-        {%- for pull in pull.pulls %}
-            {%- if part.act_map(pull.local_id).len() < 5 %}
-            {%- for blk_id in part.act_map(pull.local_id) %}
-            __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= (act_t){{ part.name(pull.local_id) }}$CHG << {{ blk_id.0 % ctx.cfg.act_mask_width }}; // activate {{ blk_id.0 }}
+{%- for (grp_id, iter) in part.iter_pull_act() %}
+    {%- for (blk_id, pull) in iter %}
+    if(shared->__s_act_mask[{{ grp_id }}])
+    {# { #}
+        {%- set grp_item_id = pull.act_id as u32  % ctx.cfg.act_mask_width %}
+        if(shared->__s_act_mask[{{ grp_id }}] & (1 << {{ grp_item_id }}))
+        {
+            shared->__s_act_mask[{{ grp_id }}] &= ~(1 << {{ grp_item_id }});
+            {%- for pull in pull.pulls %}
+                {%- if part.is_array(pull.local_id) %}
+                bool {{ part.name(pull.local_id) }}$CHG = memcmp(&{{ part.name(pull.local_id) }}, &shared->{{ ctx.name(pull.shared_id) }}, sizeof({{ part.name(pull.local_id) }})) != 0;
+                {%- else %}
+                bool {{ part.name(pull.local_id) }}$CHG = {{ part.name(pull.local_id) }} != shared->{{ ctx.name(pull.shared_id) }};
+                {%- endif %}
             {%- endfor %}
-            {%- else %}
-            if({{ part.name(pull.local_id) }}$CHG) {
+            {%- for pull in pull.pulls %}
+                {%- if part.is_array(pull.local_id) %}
+                memcpy(&{{ part.name(pull.local_id) }}, &shared->{{ ctx.name(pull.shared_id) }}, sizeof({{ part.name(pull.local_id) }}));
+                {%- else %}
+                {{ part.name(pull.local_id) }} = shared->{{ ctx.name(pull.shared_id) }};
+                {%- endif %}
+            {%- endfor %}
+            {%- for pull in pull.pulls %}
+                {%- if part.act_map(pull.local_id).len() < 5 %}
                 {%- for blk_id in part.act_map(pull.local_id) %}
-                __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= (act_t)1 << {{ blk_id.0 % ctx.cfg.act_mask_width }}; // activate {{ blk_id.0 }}
+                __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= (act_t){{ part.name(pull.local_id) }}$CHG << {{ blk_id.0 % ctx.cfg.act_mask_width }}; // activate {{ blk_id.0 }}
                 {%- endfor %}
-            }
-            {%- endif %}
-        {%- endfor %}
-    }
+                {%- else %}
+                if({{ part.name(pull.local_id) }}$CHG) {
+                    {%- for blk_id in part.act_map(pull.local_id) %}
+                    __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] |= (act_t)1 << {{ blk_id.0 % ctx.cfg.act_mask_width }}; // activate {{ blk_id.0 }}
+                    {%- endfor %}
+                }
+                {%- endif %}
+            {%- endfor %}
+        }
+    {# } #}
+    {%- endfor %}
 {%- endfor %}
 }
 
