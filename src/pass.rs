@@ -14,7 +14,7 @@ use petgraph::{
 use rustc_hash::{FxHashMap, FxHashSet};
 use tabular::{Row, Table};
 
-use crate::{act::BlockIdMap, actv2::OrigBlockRecord, ir::*};
+use crate::{actv2::OrigBlockRecord, ir::*};
 
 pub type ActMap = FxHashMap<StateId, Vec<BlockId>>;
 
@@ -771,30 +771,6 @@ pub fn merge_block(blocks: &[Block]) -> Block {
         ..Block::default()
     }
 }
-
-impl BlockIdMap {
-    pub fn from_pd(d: &TDesign) -> Self {
-        Self {
-            map: d
-                .parts
-                .iter()
-                .map(|p| {
-                    p.blocks
-                        .iter()
-                        .map(|b| b.orig_ids.iter().map(|x| x.0).collect())
-                        .collect()
-                })
-                .collect(),
-        }
-    }
-}
-
-// pub fn gen_state_decl(state: &State) -> String {
-//     let ty = int_ty_impl(state.width);
-//     let name = &state.name;
-//     let dims = state.dims.iter().map(|d| format!("[{}]", d)).join("");
-//     format!("{ty} {name}{dims};")
-// }
 
 pub fn linear_coarsen_part(part: &mut TPart) {
     let dep = get_dep_info(part);

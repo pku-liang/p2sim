@@ -4,7 +4,6 @@ use std::borrow::Cow;
 
 use clap::{Args, Parser, ValueEnum};
 use ggsim::{
-    act::{ActInfo, BincodeExt, BlockIdMap, ProfData, get_block_act},
     comp::parse_file,
     ir::BlockId,
     mt::ProfCfg,
@@ -104,20 +103,6 @@ fn parse_input_files(files: &[impl AsRef<str>]) -> InputFiles {
     InputFiles { sexpr, cpp }
 }
 
-fn load_prof_data(pdata: &PGOArgs) -> FxHashMap<BlockId, u32> {
-    info!(
-        "Loading prof data from {}",
-        pdata.pgo_id_map.as_ref().unwrap()
-    );
-    let id_map = BlockIdMap::read_file(pdata.pgo_id_map.as_ref().unwrap()).unwrap();
-    info!(
-        "Loading prof data from {}",
-        pdata.pgo_prof_data.as_ref().unwrap()
-    );
-    let prof_data = ProfData::read_file(pdata.pgo_prof_data.as_ref().unwrap()).unwrap();
-    get_block_act(&id_map, &prof_data)
-}
-
 fn main() {
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
     let args = Cli::parse();
@@ -136,15 +121,7 @@ fn main() {
     );
     pass::leaglize_empty_block(&mut design.part);
     pass::verify_act_map(&design.part);
-    let pd;
-    if args.pgo_args.pgo {
-        let act_map = load_prof_data(&args.pgo_args);
-        pd = pass::partition(&design, args.k.unwrap_or(2), |x| {
-            *act_map.get(&x).unwrap() as i32
-        });
-    } else {
-        pd = pass::partition(&design, args.k.unwrap_or(2), |x| 1);
-    }
+    let pd = pass::partition(&design, args.k.unwrap_or(2), |x| 1);
     pass::print_part_stats(&pd);
     let mut td = pass::build_tdesign(&pd);
     pass::linear_coarsen(&mut td);

@@ -8,7 +8,6 @@ use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use crate::{
-    act::{BincodeExt, BlockIdMap},
     actv2::{MH_VER, MHVer, OrigBlockRecord},
     cgen::{CCArgs, CGenTask, run_cgen_tasks},
     ir::*,
