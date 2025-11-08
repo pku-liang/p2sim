@@ -7,7 +7,7 @@ CXXFLAGS += -O2
 {%- endif %}
 
 objs = \
-	objs/{{ ctx.smap.impl_cc }}.o
+	objs/{{ ctx.smap.impl_cc() }}.o
 {%- for file in ctx.iter_all_group_files() %} \
 	objs/{{ file }}.o
 {%- endfor %}
@@ -41,7 +41,7 @@ endif
 sim: $(objs)
 	$(CXX) $^ -o $@ $(LDFLAGS) $(LDLIBS)
 
-objs/%.cc.o: src/%.cc src/{{ ctx.smap.decl_h }}
+objs/%.cc.o: src/%.cc src/{{ ctx.smap.decl_h() }}
 	@mkdir -p objs
 	$(CCACHE) $(CXX) -c $(CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
 

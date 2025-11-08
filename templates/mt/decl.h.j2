@@ -1,6 +1,5 @@
-#pragma once
-
-{% include "common/decl.h.j2" %}
+#ifndef __{{ ctx.name }}_H__
+#define __{{ ctx.name }}_H__
 
 #include "{{ ctx.smap.minhash_h() }}"
 
@@ -8,17 +7,7 @@
 {{ ext }}
 {%- endfor %}
 
-struct alignas(64) {{ ctx.name }}_shared {
-    using act_t = uint{{ ctx.cfg.act_mask_width }}_t;
-    act_t __s_act_mask[{{ (ctx.shared_acts as u32 + ctx.cfg.act_mask_width - 1) / ctx.cfg.act_mask_width }}];
-
-{%- for state in ctx.shared %}
-    {%- if !state.is_disabled %}
-    {{ state.width | int_ty }} {{ state.name }}
-    {%- for dim in state.dims -%} [{{ dim }}] {%- endfor -%};
-    {%- endif %}
-{%- endfor %}
-};
+struct alignas(64) {{ ctx.name }}_shared;
 
 struct prof_obj {
     std::vector<uint32_t> act_cnt;
@@ -32,12 +21,13 @@ struct prof_obj {
 {%- set cls = ctx.name ~ "_" ~ part_id.0 %}
 struct {{ cls }};
 struct {{ cls }}_decl {
-    {{ cls }} * impl;
+    {{ cls }}* impl = nullptr;
+    void init({{ ctx.name }}_shared * shared);
     void step();
-    void init({{ ctx.name }}_shared *);
     void pull();
     void push();
-    prof_obj * get_prof();
+    ~{{ cls }}_decl();
+    prof_obj * prof;
     {%- for lm in ctx.large_mem %}
     {%- if lm.part_id == part_id %}
     void * {{ lm.state.name }};
@@ -48,14 +38,16 @@ struct {{ cls }}_decl {
 {%- endfor %}
 
 struct alignas(64) {{ ctx.name }} {
-    {{ ctx.name }}_shared shared;
+    {{ ctx.name }}_shared * shared = nullptr;
     {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
     {%- set cls = ctx.name ~ "_" ~ part_id.0 %}
     {{ cls }}_decl part_{{ part_id.0 }};
     {%- endfor %}
-    void step();
+
+    ~{{ ctx.name }}();
     void init();
-    void step_mt(int cycles, int start_core=0);
+    void step(int cycles=1);
+    void step_mt(int cycles=1);
     bool dump_prof(const char * filename);
 
     {%- for s in ctx.ext_states %}
@@ -68,3 +60,5 @@ struct alignas(64) {{ ctx.name }} {
     void * {{ lm.state.name }};
     {%- endfor %}
 };
+
+#endif

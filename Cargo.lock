@@ -426,6 +426,7 @@ dependencies = [
  "mt-kahypar",
  "num",
  "ordered-float",
+ "paste",
  "pathdiff",
  "petgraph",
  "priority-queue",
@@ -738,6 +739,12 @@ checksum = "e2c1f9f56e534ac6a9b8a4600bdf0f530fb393b5f393e7b4d03489c3cf0c3f01"
 dependencies = [
  "num-traits",
 ]
+
+[[package]]
+name = "paste"
+version = "1.0.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
 name = "pathdiff"

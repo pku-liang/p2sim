@@ -203,70 +203,60 @@ impl<'ir> PartCGenCtx<'ir> {
 
 pub struct SourceMap<'ir> {
     pub output_dir: &'ir str,
-    pub decl_h: String,
-    pub impl_cc: String,
-    pub thread_pfx: String,
-    pub block_pfx: String,
-    pub reset_pfx: String,
-    pub orig_blk_record: String,
-    pub minhash_h: String,
-    pub makefile: String,
+    pub name: &'ir str,
     pub extra_cpp: &'ir [String],
+}
+
+macro_rules! def_src_files {
+    ($($name:ident($(&self)?$(,)?$($param:ident : $type:ty),*) => ($($body:tt)*)),*$(,)?)=> {
+        $(
+        fn $name(&self, $($param : $type),*) -> String {
+            format!($($body)*)
+        }
+        paste::paste! {
+            fn [<$name _abs>](&self, $($param : $type),*) -> String {
+                format!("{}/src/{}", self.output_dir, self.$name($($param),*))
+            }
+        }
+        )*
+    }
 }
 
 impl<'ir> SourceMap<'ir> {
     fn new(output_dir: &'ir str, name: &'ir str, extra_cpp: &'ir [String]) -> Self {
         Self {
             output_dir,
-            decl_h: format!("{}.h", name),
-            impl_cc: format!("{}.cc", name),
-            thread_pfx: format!("{}_thread_", name),
-            block_pfx: format!("{}_blk_", name),
-            reset_pfx: format!("{}_rst_", name),
-            orig_blk_record: format!("{}_obr.cc", name),
-            minhash_h: format!("{}_minhash.h", name),
-            makefile: format!("Makefile"),
+            name: name,
             extra_cpp,
         }
     }
-    fn thread_h(&self, part_id: PartId) -> String {
-        format!("{}{}.h", self.thread_pfx, part_id.0)
+    def_src_files! {
+        thread_h(part_id: PartId) => ("thread_{}.h", part_id.0),
+        thread_cc(part_id: PartId) => ("thread_{}.cc", part_id.0),
+        shared_h() => ("shared.h"),
+        block_group(part_id: PartId, id: usize) => ("blk_{}_{}.cc", part_id.0, id),
+        reset_group(part_id: PartId, id: usize) => ("rst_{}_{}.cc", part_id.0, id),
+        orig_blk_record() => ("obr.cc"),
+        minhash_h() => ("minhash.h"),
+        prof_h() => ("prof.h"),
     }
-    fn thread_h_abs(&self, part_id: PartId) -> String {
-        format!("{}/src/{}", self.output_dir, self.thread_h(part_id))
-    }
-    fn thread_cc(&self, part_id: PartId) -> String {
-        format!("{}{}.cc", self.thread_pfx, part_id.0)
-    }
-    fn thread_cc_abs(&self, part_id: PartId) -> String {
-        format!("{}/src/{}", self.output_dir, self.thread_cc(part_id))
-    }
-    fn decl_h_abs(&self) -> String {
-        format!("{}/src/{}", self.output_dir, self.decl_h)
-    }
-    fn impl_cc_abs(&self) -> String {
-        format!("{}/src/{}", self.output_dir, self.impl_cc)
-    }
-    fn block_pfx_abs(&self) -> String {
-        format!("{}/src/{}", self.output_dir, self.block_pfx)
-    }
-    fn reset_pfx_abs(&self) -> String {
-        format!("{}/src/{}", self.output_dir, self.reset_pfx)
+    fn makefile(&self) -> String {
+        "Makefile".to_string()
     }
     fn makefile_abs(&self) -> String {
-        format!("{}/{}", self.output_dir, self.makefile)
+        format!("{}/Makefile", self.output_dir)
     }
-    fn block_group(&self, part_id: PartId, id: usize) -> String {
-        format!("{}{}_{}.cc", self.block_pfx, part_id.0, id)
+    fn decl_h(&self) -> String {
+        format!("{}.h", self.name)
     }
-    fn block_group_abs(&self, part_id: PartId, id: usize) -> String {
-        format!("{}/src/{}", self.output_dir, self.block_group(part_id, id))
+    fn decl_h_abs(&self) -> String {
+        format!("{}/src/{}", self.output_dir, self.decl_h())
     }
-    fn reset_group(&self, part_id: PartId, id: usize) -> String {
-        format!("{}{}_{}.cc", self.reset_pfx, part_id.0, id)
+    fn impl_cc(&self) -> String {
+        format!("{}.cc", self.name)
     }
-    fn reset_group_abs(&self, part_id: PartId, id: usize) -> String {
-        format!("{}/src/{}", self.output_dir, self.reset_group(part_id, id))
+    fn impl_cc_abs(&self) -> String {
+        format!("{}/src/{}", self.output_dir, self.impl_cc())
     }
     fn extra_obj(&self, name: &str) -> String {
         use sha1::{Digest, Sha1};
@@ -282,18 +272,6 @@ impl<'ir> SourceMap<'ir> {
     }
     fn extra_obj_abs(&self, name: &str) -> String {
         format!("{}/{}", self.output_dir, self.extra_obj(name))
-    }
-    fn orig_blk_record(&self) -> String {
-        format!("{}", self.orig_blk_record)
-    }
-    fn orig_blk_record_abs(&self) -> String {
-        format!("{}/src/{}", self.output_dir, self.orig_blk_record)
-    }
-    fn minhash_h(&self) -> String {
-        format!("{}", self.minhash_h)
-    }
-    fn minhash_h_abs(&self) -> String {
-        format!("{}/src/{}", self.output_dir, self.minhash_h)
     }
 }
 
@@ -445,6 +423,18 @@ struct MTMinHashHGen<'ir> {
     ctx: &'ir MTCGenCtx<'ir>,
 }
 
+#[derive(Template)]
+#[template(escape = "none", path = "mt/shared.h.j2")]
+struct MTSharedHGen<'ir> {
+    ctx: &'ir MTCGenCtx<'ir>,
+}
+
+#[derive(Template)]
+#[template(escape = "none", path = "mt/prof.h.j2")]
+struct MTProfHGen<'ir> {
+    ctx: &'ir MTCGenCtx<'ir>,
+}
+
 pub fn mt_gen(d: &TDesign, cfg: &CGenCfg) -> std::io::Result<()> {
     let ctx = MTCGenCtx::new(cfg, d);
     let map = &ctx.smap;
@@ -500,6 +490,14 @@ pub fn mt_gen(d: &TDesign, cfg: &CGenCfg) -> std::io::Result<()> {
     tasks.push(CGenTask {
         task: Box::new(MTMinHashHGen { ctx: &ctx }),
         file: map.minhash_h_abs(),
+    });
+    tasks.push(CGenTask {
+        task: Box::new(MTSharedHGen { ctx: &ctx }),
+        file: map.shared_h_abs(),
+    });
+    tasks.push(CGenTask {
+        task: Box::new(MTProfHGen { ctx: &ctx }),
+        file: map.prof_h_abs(),
     });
     run_cgen_tasks(tasks).unwrap();
     Ok(())

@@ -1,5 +1,6 @@
 #pragma once
-#include "{{ ctx.smap.decl_h }}"
+
+#include "{{ ctx.smap.decl_h() }}"
 #include <immintrin.h>
 
 {%- for ext in ctx.ext_fns %}
@@ -9,14 +10,14 @@
 {%- let part = ctx.parts[part_id] %}
 {%- set cls = ctx.name ~ "_" ~ part_id.0 %}
 
-struct {{ ctx.name }}_shared;
+struct alignas(64) {{ ctx.name }}_shared;
 struct {{ cls }} {
     {{ ctx.name }}_shared * shared;
 
     using act_t = uint{{ ctx.cfg.act_mask_width }}_t;
 
     static void gprintf(const char *fmt, ...);
-    void step(bool eval_reset=true);
+    void step();
     void init();
     void pull();
     void push();

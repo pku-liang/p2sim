@@ -1,0 +1,22 @@
+#pragma once
+
+{% include "common/decl.h.j2" %}
+
+#include <memory>
+#include "{{ ctx.smap.minhash_h() }}"
+
+{%- for ext in ctx.ext_fns %}
+{{ ext }}
+{%- endfor %}
+
+struct alignas(64) {{ ctx.name }}_shared {
+    using act_t = uint{{ ctx.cfg.act_mask_width }}_t;
+    act_t __s_act_mask[{{ (ctx.shared_acts as u32 + ctx.cfg.act_mask_width - 1) / ctx.cfg.act_mask_width }}];
+
+{%- for state in ctx.shared %}
+    {%- if !state.is_disabled %}
+    {{ state.width | int_ty }} {{ state.name }}
+    {%- for dim in state.dims -%} [{{ dim }}] {%- endfor -%};
+    {%- endif %}
+{%- endfor %}
+};
