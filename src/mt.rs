@@ -8,7 +8,7 @@ use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use crate::{
-    actv2::{MH_VER, MHVer, OrigBlockRecord},
+    act::{MH_VER, MHVer, OrigBlockRecord},
     cgen::{CCArgs, CGenTask, run_cgen_tasks},
     ir::*,
     pass::{ActMap, ExternalState, PartId, TDesign, compute_shared_layout, get_orig_block_record},

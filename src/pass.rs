@@ -14,7 +14,7 @@ use petgraph::{
 use rustc_hash::{FxHashMap, FxHashSet};
 use tabular::{Row, Table};
 
-use crate::{actv2::OrigBlockRecord, ir::*};
+use crate::{act::OrigBlockRecord, ir::*};
 
 pub type ActMap = FxHashMap<StateId, Vec<BlockId>>;
 

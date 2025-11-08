@@ -1,6 +1,6 @@
 #![feature(step_trait)]
 
-pub mod actv2;
+pub mod act;
 pub mod cgen;
 pub mod comp;
 pub mod ir;
