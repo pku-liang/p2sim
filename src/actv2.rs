@@ -41,7 +41,6 @@ pub struct ProfData {
 
 impl BincodeExt<LegacyConfig> for ProfData {}
 
-
 #[cfg(test)]
 mod tests {
     use super::*;

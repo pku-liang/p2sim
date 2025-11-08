@@ -4,7 +4,11 @@ use std::borrow::Cow;
 
 use clap::{Args, Parser, ValueEnum};
 use ggsim::{
-    act::{ActInfo, BincodeExt, BlockIdMap, ProfData, get_block_act}, comp::parse_file, ir::BlockId, mt::ProfCfg, pass
+    act::{ActInfo, BincodeExt, BlockIdMap, ProfData, get_block_act},
+    comp::parse_file,
+    ir::BlockId,
+    mt::ProfCfg,
+    pass,
 };
 use itertools::Itertools;
 use log::info;
@@ -173,10 +177,15 @@ fn main() {
                 inc_dirs: to_abs_path_vec(&args.repr_cc.inc_dirs),
                 link_dirs: to_abs_path_vec(&args.repr_cc.link_dirs),
                 link_libs: args.repr_cc.link_libs,
-                defines: args.repr_cc.defines.iter().map(|d| legalize_define(d)).collect_vec(),
+                defines: args
+                    .repr_cc
+                    .defines
+                    .iter()
+                    .map(|d| legalize_define(d))
+                    .collect_vec(),
                 debug: args.repr_cc.debug,
             },
-            prof: ProfCfg{
+            prof: ProfCfg {
                 act_cnt: args.prof.prof_act_cnt,
                 rdtsc_ticks: args.prof.prof_rdtsc_ticks,
                 minhash: args.prof.prof_minhash,

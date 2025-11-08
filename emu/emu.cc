@@ -67,12 +67,7 @@ int main(int argc, char** argv) {
     max_cycles = std::atoi(getenv("MAX_CYCLES"));
   }
   printf("start simulation\n");
-  // clock_t prev = clock();
-  auto start = std::chrono::high_resolution_clock::now();
   dut->step_mt(max_cycles);
-  auto stop = std::chrono::high_resolution_clock::now();
-  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
-  std::cout << "cycle=" << max_cycles << ", freq=" << max_cycles * 1.0 / duration << " kHz\n";
   if(getenv("PROF_FILE")) {
     std::cout << "Saving prof data to " << getenv("PROF_FILE") << std::endl;
     dut->dump_prof(getenv("PROF_FILE"));

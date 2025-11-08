@@ -8,7 +8,11 @@ use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use crate::{
-    act::{BincodeExt, BlockIdMap}, actv2::{MH_VER, MHVer, OrigBlockRecord}, cgen::{CCArgs, CGenTask, run_cgen_tasks}, ir::*, pass::{ActMap, ExternalState, PartId, TDesign, compute_shared_layout, get_orig_block_record}
+    act::{BincodeExt, BlockIdMap},
+    actv2::{MH_VER, MHVer, OrigBlockRecord},
+    cgen::{CCArgs, CGenTask, run_cgen_tasks},
+    ir::*,
+    pass::{ActMap, ExternalState, PartId, TDesign, compute_shared_layout, get_orig_block_record},
 };
 
 fn int_ty_impl(width: usize) -> Cow<'static, str> {
@@ -82,6 +86,7 @@ struct PartCGenCtx<'ir> {
     block_groups: Vec<Range<usize>>,
     reset_groups: Vec<Range<usize>>,
     reset_states: Vec<StateId>,
+    push_range: Range<usize>,
     act_map: ActMap,
 }
 
@@ -96,6 +101,51 @@ mod filters {
     pub fn int_ty(width: &usize, _: &dyn askama::Values) -> askama::Result<Cow<'static, str>> {
         Ok(int_ty_impl(*width))
     }
+}
+
+pub fn iter_group<Item>(
+    iter: &[Item],
+    range: Range<usize>,
+    group_fn: impl Fn(usize, &Item) -> usize,
+) -> impl Iterator<Item = (usize, Range<usize>)> {
+    let mut ptr = range.start;
+    std::iter::from_fn(move || {
+        if ptr >= range.end {
+            return None;
+        }
+        let group_id = group_fn(ptr, &iter[ptr]);
+        let mut next_ptr = ptr;
+        loop {
+            if next_ptr >= range.end {
+                break;
+            }
+            if group_fn(next_ptr, &iter[next_ptr]) != group_id {
+                break;
+            }
+            next_ptr += 1;
+        }
+        let range = ptr..next_ptr;
+        ptr = next_ptr;
+        Some((group_id, range))
+    })
+}
+
+fn get_push_range(part: &TPart) -> Range<usize> {
+    let mut first = usize::MAX;
+    let mut last = usize::MIN;
+    for (i, blk) in part.blocks.iter().enumerate() {
+        if blk.pushes.is_some() {
+            first = first.min(i);
+            last = last.max(i + 1);
+        }
+    }
+    if first == usize::MAX {
+        return 0..0;
+    }
+    for blk in part.blocks[first..last].iter() {
+        assert!(blk.pushes.is_some());
+    }
+    first..last
 }
 
 impl<'ir> PartCGenCtx<'ir> {
@@ -124,6 +174,7 @@ impl<'ir> PartCGenCtx<'ir> {
                 cfg.file_inst_size,
             ),
             act_map: part.get_act_map(),
+            push_range: get_push_range(part),
         }
     }
     fn name(&self, sid: &StateId) -> &str {
@@ -167,30 +218,37 @@ impl<'ir> PartCGenCtx<'ir> {
         group_id: usize,
     ) -> impl Iterator<Item = (usize, impl Iterator<Item = (BlockId, &Block)>)> {
         let range = self.block_groups[group_id].clone();
-        let mut last_pos = range.start;
-        std::iter::from_fn(move || {
-            if last_pos >= range.end {
-                return None;
-            }
-            let last_pos_group = last_pos / self.cfg.act_mask_width as usize;
-            let next_pos = ((last_pos_group + 1) * self.cfg.act_mask_width as usize).min(range.end);
-            let iter = (last_pos..next_pos).map(|i| (BlockId(i as u32), &self.blocks[i]));
-            last_pos = next_pos;
-            Some((last_pos_group, iter))
+        iter_group(self.blocks, range, |idx, _| {
+            idx / self.cfg.act_mask_width as usize
+        })
+        .map(move |(group_id, range)| {
+            (
+                group_id,
+                range.map(|i| (BlockId(i as u32), &self.blocks[i])),
+            )
         })
     }
-    fn iter_pull_act(&self) -> impl Iterator<Item = (usize, impl Iterator<Item = (BlockId, &PullTask)>)> {
-        let range = self.pulls.len();
-        let mut last_pos = 0;
-        std::iter::from_fn(move || {
-            if last_pos >= range {
-                return None;
-            }
-            let last_pos_group = last_pos / self.cfg.act_mask_width as usize;
-            let next_pos = ((last_pos_group + 1) * self.cfg.act_mask_width as usize).min(range);
-            let iter = (last_pos..next_pos).map(|i| (BlockId(i as u32), &self.pulls[i]));
-            last_pos = next_pos;
-            Some((last_pos_group, iter))
+    fn iter_pull_act(
+        &self,
+    ) -> impl Iterator<Item = (usize, impl Iterator<Item = (BlockId, &PullTask)>)> {
+        iter_group(self.pulls, 0..self.pulls.len(), |_, pull| {
+            pull.act_id / self.cfg.act_mask_width as usize
+        })
+        .map(move |(group_id, range)| {
+            (group_id, range.map(|i| (BlockId(i as u32), &self.pulls[i])))
+        })
+    }
+    fn iter_push(
+        &self,
+    ) -> impl Iterator<Item = (usize, impl Iterator<Item = (BlockId, &PushTask)>)> {
+        iter_group(self.blocks, self.push_range.clone(), |idx, _| {
+            idx / self.cfg.act_mask_width as usize
+        })
+        .map(move |(group_id, range)| {
+            (
+                group_id,
+                range.map(|i| (BlockId(i as u32), self.blocks[i].pushes.as_ref().unwrap())),
+            )
         })
     }
     fn act_map(&self, sid: &StateId) -> &[BlockId] {
@@ -293,7 +351,7 @@ struct MTCGenCtx<'ir> {
     large_mem: Vec<LargeMem<'ir>>,
     parts: Vec<PartCGenCtx<'ir>>,
     smap: SourceMap<'ir>,
-    mh_ver: MHVer
+    mh_ver: MHVer,
 }
 
 index_ext! {containers PartId, PartCGenCtx<'ir>}
@@ -484,7 +542,10 @@ pub fn mt_gen(d: &TDesign, cfg: &CGenCfg) -> std::io::Result<()> {
         file: map.makefile_abs(),
     });
     tasks.push(CGenTask {
-        task: Box::new(MTOrigBlockRecordGen { ctx: &ctx, records: &records }),
+        task: Box::new(MTOrigBlockRecordGen {
+            ctx: &ctx,
+            records: &records,
+        }),
         file: map.orig_blk_record_abs(),
     });
     tasks.push(CGenTask {

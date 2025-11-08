@@ -29,6 +29,9 @@ compile-1234 target: \
     (compile target "7") \
     (compile target "8")
 
+run target threads="1": (compile target threads)
+    ./build/{{ target }}.T{{ threads }}/sim exe/linux.bin
+
 compile target threads="1" pgo="false":
     rm -rf build/{{ target }}.T{{ threads }}
     mkdir -p build/{{ target }}.T{{ threads }}
@@ -39,8 +42,6 @@ compile target threads="1" pgo="false":
         -lfesvr \
         -o build/{{ target }}.T{{ threads }} \
         -k {{ threads }} 2>&1 \
-        --prof-act-cnt \
-        --prof-rdtsc-ticks \
         | tee build/{{ target }}.T{{ threads }}/build.log
     pixi run make -C build/{{ target }}.T{{ threads }}
     echo "Logfile: build/{{ target }}.T{{ threads }}/build.log"
