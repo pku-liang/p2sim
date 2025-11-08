@@ -7,14 +7,14 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <cassert>
-#include <chrono>
 #include <iostream>
+#include <memory>
 
 // for better syntax highlighting
 #ifndef __LINT_ONLY__
-#include "TestHarness.h"
+#include SIM_INC
 #else
-struct TestHarness {
+struct SIM_NAME {
   void init();
   void step(int cycles);
   void step_mt(int cycles);
@@ -42,23 +42,21 @@ static Program load_program(const char *filename) {
   void *program = mmap(NULL, program_sz, PROT_READ, MAP_PRIVATE, program_fd, 0);
   assert(program != (void *)-1);
 
-  printf("load program size: 0x%x\n", program_sz);
   return {program, program_sz};
 }
 
-static TestHarness * dut = nullptr;
-
 int main(int argc, char** argv) {
-  dut = new TestHarness();
+  auto dut = std::make_unique<SIM_NAME>();
   dut->init();
-  printf("load program to memory\n");
+  std::cout << "load program to memory\n";
   Program program = load_program(argv[1]);
+  std::cout << "  program_size=" << program.program_sz << "\n";
   void * memory = dut->mem$srams$mem;
   memcpy(memory, program.program, program.program_sz);
-  printf("set reset to 1\n");
+  std::cout << "set reset to 1\n";
   dut->set_reset(1);
   dut->step(10);
-  printf("set reset to 0\n");
+  std::cout << "set reset to 0\n";
   dut->set_reset(0);
   dut->step(1);
   int cycle = 0;
@@ -66,10 +64,10 @@ int main(int argc, char** argv) {
   if(getenv("MAX_CYCLES")) {
     max_cycles = std::atoi(getenv("MAX_CYCLES"));
   }
-  printf("start simulation\n");
+  std::cout << "start simulation: max_cycles=" << max_cycles << "\n";
   dut->step_mt(max_cycles);
   if(getenv("PROF_FILE")) {
-    std::cout << "Saving prof data to " << getenv("PROF_FILE") << std::endl;
+    std::cout << "Saving prof data to " << getenv("PROF_FILE") << "\n";
     dut->dump_prof(getenv("PROF_FILE"));
   }
   return 0;

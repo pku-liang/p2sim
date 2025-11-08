@@ -294,7 +294,7 @@ impl<'ir> SourceMap<'ir> {
         shared_h() => ("shared.h"),
         block_group(part_id: PartId, id: usize) => ("blk_{}_{}.cc", part_id.0, id),
         reset_group(part_id: PartId, id: usize) => ("rst_{}_{}.cc", part_id.0, id),
-        orig_blk_record() => ("obr.cc"),
+        profdata() => ("profdata.cc"),
         minhash_h() => ("minhash.h"),
         prof_h() => ("prof.h"),
     }
@@ -412,8 +412,8 @@ impl<'ir> MTCGenCtx<'ir> {
             (0..part.reset_groups.len())
                 .map(move |group_id| self.smap.reset_group(part_id, group_id))
         });
-        let obr = std::iter::once(self.smap.orig_blk_record());
-        srcs.chain(rsts).chain(obr)
+        let profdata = std::iter::once(self.smap.profdata());
+        srcs.chain(rsts).chain(profdata)
     }
     fn name(&self, sid: &StateId) -> &str {
         &self.shared[*sid].name
@@ -469,8 +469,8 @@ struct MakefileGen<'ir> {
 }
 
 #[derive(Template)]
-#[template(escape = "none", path = "mt/origblk.cpp.j2")]
-struct MTOrigBlockRecordGen<'ir> {
+#[template(escape = "none", path = "mt/profdata.cpp.j2")]
+struct MTProfDataGen<'ir> {
     ctx: &'ir MTCGenCtx<'ir>,
     records: &'ir [OrigBlockRecord],
 }
@@ -542,11 +542,11 @@ pub fn mt_gen(d: &TDesign, cfg: &CGenCfg) -> std::io::Result<()> {
         file: map.makefile_abs(),
     });
     tasks.push(CGenTask {
-        task: Box::new(MTOrigBlockRecordGen {
+        task: Box::new(MTProfDataGen {
             ctx: &ctx,
             records: &records,
         }),
-        file: map.orig_blk_record_abs(),
+        file: map.profdata_abs(),
     });
     tasks.push(CGenTask {
         task: Box::new(MTMinHashHGen { ctx: &ctx }),

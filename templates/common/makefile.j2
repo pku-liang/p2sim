@@ -25,7 +25,9 @@ LDFLAGS +=
 
 EXTRA_CXXFLAGS = \
 	-I$(CURDIR)/src \
-	-DCURDIR="\"$(CURDIR)\""
+	-DCURDIR="\"$(CURDIR)\"" \
+	-DSIM_NAME="{{ ctx.name }}" \
+	-DSIM_INC="\"{{ ctx.smap.decl_h() }}\""
 {%- for inc_dir in ctx.cfg.ccargs.inc_dirs %} \
 	-I{{ inc_dir }}
 {%- endfor %}
