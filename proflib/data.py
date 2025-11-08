@@ -23,6 +23,7 @@ class Loader:
 
 @dataclass
 class ThreadProfData:
+    rdtsc_avg: np.ndarray
     # [blocks]
     act_cnt: np.ndarray
     # [blocks, width]
@@ -36,6 +37,10 @@ class ProfData:
     threads: list[ThreadProfData]
     # [thread, block, orig_block]
     obr: np.ndarray
+
+    def rdtsc_avg(self) -> np.ndarray:
+        data = np.array([thread.rdtsc_avg for thread in self.threads])
+        return (data[:, 1:] / data[:, :1]).copy()
 
 def load_profdata(filename):
     with open(filename, 'rb') as f:
@@ -51,11 +56,12 @@ def load_profdata(filename):
     part_count = loader.load_uint64()
     th = []
     for _ in range(part_count):
+        rdtsc_avg = loader.load_array(np.uint64, 6)
         act_cnt = loader.load_array(np.uint32)
         act_hash_cnt = loader.load_uint64()
         act_hash = loader.load_array(act_hash_dtype, act_hash_cnt * act_hash_width).reshape(act_hash_cnt, act_hash_width)
         rdtsc_ticks = loader.load_array(np.uint64)
-        th.append(ThreadProfData(act_cnt, act_hash, rdtsc_ticks))
+        th.append(ThreadProfData(rdtsc_avg, act_cnt, act_hash, rdtsc_ticks))
     obr_len = loader.load_uint64()
     obr = loader.load_array(np.uint32, obr_len * 3).reshape(obr_len, 3)
     return ProfData(th, obr)

@@ -4,10 +4,7 @@ use std::borrow::Cow;
 
 use clap::{Args, Parser, ValueEnum};
 use ggsim::{
-    comp::parse_file,
-    ir::BlockId,
-    mt::ProfCfg,
-    pass,
+    act::{ProfData, compute_block_act_map}, comp::parse_file, ir::BlockId, mt::ProfCfg, pass
 };
 use itertools::Itertools;
 use log::info;
@@ -28,22 +25,14 @@ struct ReprCCArgs {
     defines: Vec<String>,
 }
 
-#[derive(Args)]
-struct PGOArgs {
-    #[arg(long)]
-    pgo: bool,
-    #[arg(long)]
-    pgo_id_map: Option<String>,
-    #[arg(long)]
-    pgo_prof_data: Option<String>,
-}
-
 #[derive(Args, Default)]
 struct ProfArgs {
     #[arg(long)]
     prof_act_cnt: bool,
     #[arg(long)]
     prof_rdtsc_ticks: bool,
+    #[arg(long)]
+    prof_rdtsc_avg: bool,
     #[arg(long)]
     prof_minhash: bool,
 }
@@ -53,8 +42,10 @@ struct Cli {
     inputs: Vec<String>,
     #[command(flatten)]
     repr_cc: ReprCCArgs,
-    #[command(flatten)]
-    pgo_args: PGOArgs,
+    #[arg(long)]
+    pgo: bool,
+    #[arg(long)]
+    prof_data: Option<String>,
     #[arg(short, long)]
     output: Option<String>,
     #[arg(long)]
@@ -121,7 +112,14 @@ fn main() {
     );
     pass::leaglize_empty_block(&mut design.part);
     pass::verify_act_map(&design.part);
-    let pd = pass::partition(&design, args.k.unwrap_or(2), |x| 1);
+    let mut pd = if args.pgo {
+        let profdata = args.prof_data.unwrap();
+        let prof = ProfData::from_file(&profdata).unwrap();
+        let blk_act_map = compute_block_act_map(&prof);
+        pass::partition(&design, args.k.unwrap_or(2), |x| (blk_act_map[x.0 as usize] * 10000.0) as i32)
+    } else {
+        pass::partition(&design, args.k.unwrap_or(2), |x| 1)
+    };
     pass::print_part_stats(&pd);
     let mut td = pass::build_tdesign(&pd);
     pass::linear_coarsen(&mut td);
@@ -165,8 +163,10 @@ fn main() {
             prof: ProfCfg {
                 act_cnt: args.prof.prof_act_cnt,
                 rdtsc_ticks: args.prof.prof_rdtsc_ticks,
+                rdtsc_avg: args.prof.prof_rdtsc_avg,
                 minhash: args.prof.prof_minhash,
             },
+            pgo: args.pgo,
             ..Default::default()
         };
         mt_gen(&td, &cfg).unwrap();

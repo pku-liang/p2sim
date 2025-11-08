@@ -23,6 +23,7 @@ pub const MH_VER: MHVer = MHVer {
 };
 
 pub struct ThreadProf {
+    pub rdtsc_avg: [u64; 6],
     pub act_cnt: Vec<u32>,
     pub act_hash: Vec<MinHash>,
     pub rdtsc_ticks: Vec<u64>,
@@ -52,6 +53,10 @@ impl ProfData {
         let part_count = reader.read_u64::<LittleEndian>()?;
         let mut threads = vec![];
         for _ in 0..part_count {
+            let mut rdtsc_avg = [0u64; 6];
+            for i in 0..6 {
+                rdtsc_avg[i] = reader.read_u64::<LittleEndian>()?;
+            }
             let act_cnt_size = reader.read_u64::<LittleEndian>()? as usize;
             let act_cnt = unsafe {
                 let mut vec = Vec::<u32>::with_capacity(act_cnt_size);
@@ -77,6 +82,7 @@ impl ProfData {
                 vec
             };
             threads.push(ThreadProf {
+                rdtsc_avg,
                 act_cnt,
                 act_hash,
                 rdtsc_ticks,
@@ -107,4 +113,26 @@ impl ProfData {
         info!("Read prof data from {} in {:?}, size {:.2} MB, speed: {:.2} MB/s", path.as_ref().display(), duration, size_mb, speed);
         Ok(data)
     }
+}
+
+pub fn compute_block_act_map(prof: &ProfData) -> Vec<f64> {
+    let max_orig_block = prof.orig_blocks.iter().map(|x| x.orig_block).max();
+    let orig_blk_size = match max_orig_block {
+        Some(max) => max as usize + 1,
+        None => 0,
+    };
+    let mut blk_act = vec![0u64; orig_blk_size];
+    let mut blk_act_div = vec![0; orig_blk_size];
+    for record in prof.orig_blocks.iter() {
+        blk_act_div[record.orig_block as usize] += 1;
+        blk_act[record.orig_block as usize] += prof.threads[record.thread as usize].act_cnt[record.block as usize] as u64;
+    }
+    for (i, div) in blk_act_div.iter().enumerate() {
+        if *div > 0 {
+            blk_act[i] /= *div;
+        }
+    }
+    let max_act = blk_act.iter().max().cloned().unwrap_or(1);
+    info!("max act count: {}", max_act);
+    blk_act.iter().map(|x| *x as f64 / max_act as f64).collect()
 }

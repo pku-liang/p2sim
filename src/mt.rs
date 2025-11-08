@@ -28,6 +28,7 @@ fn int_ty_impl(width: usize) -> Cow<'static, str> {
 #[derive(Default)]
 pub struct ProfCfg {
     pub act_cnt: bool,
+    pub rdtsc_avg: bool,
     pub rdtsc_ticks: bool,
     pub minhash: bool,
 }
@@ -38,6 +39,7 @@ pub struct CGenCfg {
     pub output_dir: String,
     pub ccargs: CCArgs,
     pub prof: ProfCfg,
+    pub pgo: bool,
 }
 
 impl Default for CGenCfg {
@@ -48,6 +50,7 @@ impl Default for CGenCfg {
             output_dir: "".to_string(),
             ccargs: CCArgs::default(),
             prof: ProfCfg::default(),
+            pgo: false,
         }
     }
 }

@@ -10,6 +10,7 @@
 struct alignas(64) {{ ctx.name }}_shared;
 
 struct prof_obj {
+    uint64_t rdtsc_avg[6];
     std::vector<uint32_t> act_cnt;
     std::vector<MH> act_hash;
     std::vector<uint64_t> rdtsc_ticks;
