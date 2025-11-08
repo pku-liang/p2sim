@@ -4,6 +4,17 @@ set unstable
 build-gsim:
     pixi run make -C gsim build-gsim
 
+run-all: \
+    (run-target-all "rocket_m_1") \
+    (run-target-all "boom_m_1") \
+    (run-target-all "boom_l_1")
+
+run-target-all target: \
+    (compile-1234 target "0") \
+    (prof-1234 target "linux.bin" "0") \
+    (compile-1234 target "1") \
+    (prof-1234 target "linux.bin" "1")
+
 prof-1234 target exe pgo="0": \
     (prof target exe "1" pgo) \
     (prof target exe "2" pgo) \
@@ -12,7 +23,11 @@ prof-1234 target exe pgo="0": \
     (prof target exe "5" pgo) \
     (prof target exe "6" pgo) \
     (prof target exe "7" pgo) \
-    (prof target exe "8" pgo)
+    (prof target exe "8" pgo) \
+    (prof target exe "9" pgo) \
+    (prof target exe "10" pgo) \
+    (prof target exe "11" pgo) \
+    (prof target exe "12" pgo)
 
 [script("bash")]
 prof target exe threads pgo="0":
@@ -41,7 +56,11 @@ compile-1234 target pgo="0": \
     (compile target "5" pgo) \
     (compile target "6" pgo) \
     (compile target "7" pgo) \
-    (compile target "8" pgo)
+    (compile target "8" pgo) \
+    (compile target "9" pgo) \
+    (compile target "10" pgo) \
+    (compile target "11" pgo) \
+    (compile target "12" pgo)
 
 run target threads="1": (compile target threads)
     ./build/{{ target }}.T{{ threads }}/sim exe/linux.bin
@@ -62,9 +81,6 @@ compile target threads="1" pgo="0":
         | tee build/{{ target }}.T{{ threads }}/build.{{ pgo}}.log
     pixi run make -C build/{{ target }}.T{{ threads }}
     echo "Logfile: build/{{ target }}.T{{ threads }}/build.{{ pgo }}.log"
-
-# [parallel]
-# gen-all: (gen "boom_m_1") (gen "boom_m_2") (gen "boom_m_4") (gen "rocket_m_1") (gen "rocket_m_2") (gen "rocket_m_4") (gen "boom_l_1") (gen "boom_l_2") (gen "boom_l_4")
 
 gen target: (build-gsim)
     gsim/build/gsim/gsim --supernode-max-size=1 --output designs/{{ target }}.ggsim.sexp emu/rsrc/{{ target }}.gsim.fir
