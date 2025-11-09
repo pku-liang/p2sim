@@ -1,0 +1,52 @@
+set unstable
+
+run-all: (compile-all) (prof-all "linux.bin")
+
+prof-all exe: \
+    (prof "rocket_m_1" exe) \
+    (prof "rocket_m_2" exe) \
+    (prof "rocket_m_4" exe) \
+    (prof "boom_m_1" exe) \
+    (prof "boom_m_2" exe) \
+    (prof "boom_m_4" exe) \
+    (prof "boom_l_1" exe) \
+    (prof "boom_l_2" exe) \
+    (prof "boom_l_4" exe)
+
+[parallel]
+compile-all: \
+    (compile "rocket_m_1") \
+    (compile "rocket_m_2") \
+    (compile "rocket_m_4") \
+    (compile "boom_m_1") \
+    (compile "boom_m_2") \
+    (compile "boom_m_4") \
+    (compile "boom_l_1") \
+    (compile "boom_l_2") \
+    (compile "boom_l_4")
+
+[script("bash")]
+prof target exe:
+    target_dir=build/{{ target }}
+    bind_cpus=48-49
+    MAX_CYCLES=100000 taskset -c $bind_cpus $target_dir/sim.gsim ./exe/{{ exe }} || true
+    mkdir -p $target_dir/prof.gsim
+    env \
+        MAX_CYCLES=1500000 \
+        PROF_FILE=$target_dir/prof.gsim/{{ exe }} \
+        taskset -c $bind_cpus \
+        $target_dir/sim.gsim ./exe/{{ exe }} \
+        > >(tee $target_dir/prof.gsim/{{ exe }}.out) \
+        > >(tee $target_dir/prof.gsim/{{ exe }}.log >&2) \
+        || true
+
+compile target:
+    mkdir -p build/{{ target }}/generated
+    pixi run gsim \
+        --dir build/{{ target }}/generated \
+        --supernode-max-size=65 \
+        --cpp-max-size-KB=4096 \
+        rsrc/{{ target }}.fir
+    ./emu/gen-gsim-mk.sh build/{{ target }}/generated emu/emu.cc
+    pixi run make -C build/{{ target }}/generated
+    cp build/{{ target }}/generated/STestHarness build/{{ target }}/sim.gsim

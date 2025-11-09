@@ -22,6 +22,9 @@ bison = ">=3.8.2,<4"
 gmp = ">=6.3.0,<7"
 spike = ">=1.1.0,<2"
 openmp = ">=8.0.1,<9"
+verilator = ">=5.36,<6"
+llvm-tools = ">=21.1.2,<22"
+gsim = ">=0.1.0,<0.2"
 
 [activation.env]
 CXX = "clang++"

@@ -42,11 +42,6 @@ endif
 
 sim: $(objs)
 	$(CXX) $^ -o $@ $(LDFLAGS) $(LDLIBS)
-{%- if ctx.cfg.pgo %}
-	cp sim sim.pgo
-{%- else %}
-	cp sim sim.ref
-{%- endif %}
 
 objs/%.cc.o: src/%.cc src/{{ ctx.smap.decl_h() }}
 	@mkdir -p objs

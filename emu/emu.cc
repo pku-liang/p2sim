@@ -1,4 +1,3 @@
-#include <time.h>
 #include <cstring>
 #include <cassert>
 #include <csignal>
@@ -59,7 +58,6 @@ int main(int argc, char** argv) {
   std::cout << "set reset to 0\n";
   dut->set_reset(0);
   dut->step(1);
-  int cycle = 0;
   int max_cycles = 1e6;
   if(getenv("MAX_CYCLES")) {
     max_cycles = std::atoi(getenv("MAX_CYCLES"));
