@@ -118,7 +118,7 @@ fn main() {
         let blk_act_map = compute_block_act_map(&prof);
         pass::partition(&design, args.k.unwrap_or(2), |x| (blk_act_map[x.0 as usize] * 10000.0) as i32)
     } else {
-        pass::partition(&design, args.k.unwrap_or(2), |x| 1)
+        pass::partition(&design, args.k.unwrap_or(2), |x| 0)
     };
     pass::print_part_stats(&pd);
     let mut td = pass::build_tdesign(&pd);

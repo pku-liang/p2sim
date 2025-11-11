@@ -1,11 +1,18 @@
 #!/bin/bash
 
-out_dir=$1
+set -xe
 
-if [ -z "$out_dir" ]; then
+out_base=$1
+
+if [ -z "$out_base" ]; then
     echo "Usage: $0 <output-directory>"
     exit 1
 fi
+
+mkdir -p $out_base
+cp -r proflib $out_base
+git rev-parse HEAD > $out_base/git-rev.txt
+out_dir=$1/data
 
 for ggexp in build/*/prof.*; do
     base=${ggexp##build/}
@@ -26,3 +33,6 @@ for gexp in baseline/gsim/build/*; do
     mkdir -p "$out_dir/$base.T1"
     cp -r "$gexp/prof.gsim" "$out_dir/$base.T1/"
 done
+
+tar cvf $out_base.tar $out_base
+xz -9 $out_base.tar
