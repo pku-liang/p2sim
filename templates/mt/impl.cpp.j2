@@ -149,6 +149,7 @@ void {{ ctx.name }}::step_mt(int cycles) {
     auto {{ ref_obj }} = &part_{{ part_id.0 }};
     threads.push_back(std::thread{
       [&, cycles, ref_{{ part_id.0 }}](){
+        pin_to_core(48 + {{ part_id.0 }});
         prof_obj * prof = {{ ref_obj }}->prof;
         size_t old_size = 0;
         {%- if ctx.cfg.prof.rdtsc_ticks %}

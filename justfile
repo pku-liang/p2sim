@@ -36,8 +36,7 @@ prof-1234 target exe sfx="ref": \
     (prof target exe "16" sfx) \
     (prof target exe "20" sfx) \
     (prof target exe "24" sfx) \
-    (prof target exe "28" sfx) \
-    (prof target exe "32" sfx)
+    (prof target exe "28" sfx)
 
 [parallel]
 compile-1234 target sfx="ref": \
@@ -55,8 +54,7 @@ compile-1234 target sfx="ref": \
     (compile target "16" sfx) \
     (compile target "20" sfx) \
     (compile target "24" sfx) \
-    (compile target "28" sfx) \
-    (compile target "32" sfx)
+    (compile target "28" sfx)
 
 [script("bash")]
 prof target exe threads sfx="ref":
@@ -73,7 +71,7 @@ prof target exe threads sfx="ref":
         PROF_FILE=$prof_dir/{{ exe }} \
             taskset -c $bind_cpus \
                 $target_sim ./exe/{{ exe }} \
-                > >(tee $prof_dir/{{ exe }}.out) \
+                1> >(tee $prof_dir/{{ exe }}.out) \
                 2> >(tee $prof_dir/{{ exe }}.log >&2) \
         || true
 
@@ -93,7 +91,7 @@ compile target threads="1" sfx="ref":
         {{ if sfx == "pgo" { "--pgo" } else { "" } }} \
         --prof-data build/{{ target }}.T{{ threads }}/prof.ref/linux.bin \
         | tee build/{{ target }}.T{{ threads }}/build.{{ sfx }}.log
-    pixi run make -C build/{{ target }}.T{{ threads }}
+    pixi run make -C build/{{ target }}.T{{ threads }} || true
     cp build/{{ target }}.T{{ threads }}/sim build/{{ target }}.T{{ threads }}/sim.{{ sfx }}
     echo "Logfile: build/{{ target }}.T{{ threads }}/build.{{ sfx }}.log"
 

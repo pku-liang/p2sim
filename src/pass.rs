@@ -352,7 +352,8 @@ pub fn partition<'d>(
         if cost(blk_id) == 0 {
             continue
         }
-        let cost = (cost(blk_id) + bis.len() as i32) / bis.len() as i32;
+        let cnt = part.blocks[blk_id].insts.len();
+        let cost = cnt as i32 * (cost(blk_id) + bis.len() as i32) / bis.len() as i32;
         for sink in bis {
             sink_size[*sink] += cost;
         }
