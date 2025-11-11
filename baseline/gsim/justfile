@@ -37,7 +37,7 @@ prof target exe:
         taskset -c $bind_cpus \
         $target_dir/sim.gsim ./exe/{{ exe }} \
         > >(tee $target_dir/prof.gsim/{{ exe }}.out) \
-        > >(tee $target_dir/prof.gsim/{{ exe }}.log >&2) \
+        2> >(tee $target_dir/prof.gsim/{{ exe }}.log >&2) \
         || true
 
 compile target:

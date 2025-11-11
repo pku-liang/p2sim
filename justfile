@@ -73,8 +73,8 @@ prof target exe threads sfx="ref":
         PROF_FILE=$prof_dir/{{ exe }} \
             taskset -c $bind_cpus \
                 $target_sim ./exe/{{ exe }} \
-                > >(tee $prof_dir/{{ exe }}.{{ sfx }}.out) \
-                2> >(tee $prof_dir/{{ exe }}.{{ sfx }}.log >&2) \
+                > >(tee $prof_dir/{{ exe }}.out) \
+                2> >(tee $prof_dir/{{ exe }}.log >&2) \
         || true
 
 run target threads="1": (compile target threads)
@@ -91,7 +91,7 @@ compile target threads="1" sfx="ref":
         -k {{ threads }} 2>&1 \
         --prof-act-cnt --prof-rdtsc-avg \
         {{ if sfx == "pgo" { "--pgo" } else { "" } }} \
-        --prof-data build/{{ target }}.T{{ threads }}/prof/linux.bin \
+        --prof-data build/{{ target }}.T{{ threads }}/prof.ref/linux.bin \
         | tee build/{{ target }}.T{{ threads }}/build.{{ sfx }}.log
     pixi run make -C build/{{ target }}.T{{ threads }}
     cp build/{{ target }}.T{{ threads }}/sim build/{{ target }}.T{{ threads }}/sim.{{ sfx }}

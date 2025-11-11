@@ -64,7 +64,7 @@ prof target exe threads:
         taskset -c $bind_cpus \
         $target_dir/sim.vlt ./exe/{{ exe }} \
         > >(tee $target_dir/prof.vlt/{{ exe }}.out) \
-        > >(tee $target_dir/prof.vlt/{{ exe }}.log >&2) \
+        2> >(tee $target_dir/prof.vlt/{{ exe }}.log >&2) \
         || true
 
 compile target threads:
