@@ -1,6 +1,9 @@
 #!/bin/bash
 
-out_dir=$1
+out_base=$1
+
+out_dir=$out_base/data
+mkdir -p $out_dir
 
 if [ -z "$out_dir" ]; then
     echo "Usage: $0 <output-directory>"
@@ -26,3 +29,12 @@ for gexp in baseline/gsim/build/*; do
     mkdir -p "$out_dir/$base.T1"
     cp -r "$gexp/prof.gsim" "$out_dir/$base.T1/"
 done
+
+for rexp in ../repcut-eval/build/*; do
+    base=${rexp##../repcut-eval/build/}
+    mkdir -p "$out_dir/$base"
+    cp -r "$rexp/prof.repcut" "$out_dir/$base"
+    cp $out_dir/$base/prof.repcut/{dhrystone,linux.bin}.out
+done
+
+cp -r proflib $out_base
