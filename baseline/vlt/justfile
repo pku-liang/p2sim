@@ -12,8 +12,7 @@ run-all: \
     (run-target-all "boom_l_4")
 
 run-target-all target: \
-    (compile-1234 target) \
-    (prof-1234 target "linux.bin")
+    (prof-1234 target "coremark-2.bin")
 
 prof-1234 target exe: \
     (prof target exe "1") \

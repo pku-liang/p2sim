@@ -310,10 +310,16 @@ impl<'d> Part<'d> {
     }
 }
 
+pub struct Config {
+    pub disable_node_weight: bool,
+    pub disable_comm_cost: bool,
+}
+
 pub fn partition<'d>(
     design: &'d Design,
     k: usize,
     cost: impl Fn(BlockId) -> i32,
+    cfg: &Config,
 ) -> PartDesign<'d> {
     let part = &design.part;
     info!("Start repcut partition");
@@ -349,9 +355,16 @@ pub fn partition<'d>(
         }
         blk_in_sinks[blk_id.0 as usize].extend(succs);
         let bis = &blk_in_sinks[blk_id.0 as usize];
-        let cost = (cost(blk_id) + bis.len() as i32) / bis.len() as i32;
-        for sink in bis {
-            sink_size[*sink] += cost;
+        if !cfg.disable_node_weight {
+            let cost = (cost(blk_id) + bis.len() as i32) / bis.len() as i32;
+            for sink in bis {
+                sink_size[*sink] += cost;
+            }
+        } else {
+            let cost = (100 + bis.len() as i32) / bis.len() as i32;
+            for sink in bis {
+                sink_size[*sink] += cost;
+            }
         }
     }
 
@@ -367,7 +380,7 @@ pub fn partition<'d>(
     }
     for (sid, s) in dep.states.enumerate_ids() {
         if part.states[sid].element_count() > 32 {
-            let weight = part.states[sid].element_count() as i32;
+            let weight = 2 * part.states[sid].element_count() as i32;
             let mut edges = vec![];
             for r in &s.reads {
                 edges.extend(get_edges(*r));
@@ -392,7 +405,6 @@ pub fn partition<'d>(
             builder.add_edge(10000, edges);
         }
     }
-
     info!("4. Partition");
     let mut part_id = vec![0; sinks.len()];
     if k != 1 {
@@ -417,9 +429,6 @@ pub fn partition<'d>(
 
     for (i, sink) in sinks.iter().enumerate() {
         blk_in_parts[sink.0 as usize].insert(part_id[i] as usize);
-        if sink.0 == 6789 {
-            eprintln!("sink = {:?} part_id = {:?}", sink, part_id[i]);
-        }
         parts[part_id[i] as usize].sinks.push(*sink);
     }
     for blk_id in part.blocks.ids().rev() {

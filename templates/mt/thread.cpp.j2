@@ -21,14 +21,20 @@ void {{ cls }}::step() {
 
 void {{ cls }}::pull() {
 {%- for (grp_id, iter) in part.iter_pull_act() %}
+    {%- if !ctx.cfg.disable_cacheline_task %}
     if(shared->__s_act_mask[{{ grp_id }}])
+    {%- endif %}
     {
     {%- for (blk_id, pull) in iter %}
         {%- let item_id = pull.act_id as u32 % ctx.cfg.act_mask_width %}
+        {%- if !ctx.cfg.disable_cacheline_task %}
         if(shared->__s_act_mask[{{ grp_id }}] & (1 << {{ item_id }}))
+        {%- endif %}
         {
             // {{ pull | debug }}
+            {%- if !ctx.cfg.disable_cacheline_task %}
             shared->__s_act_mask[{{ grp_id }}] &= ~(1 << {{ item_id }});
+            {%- endif %}
             {%- for pull in pull.pulls %}
                 {%- if part.is_array(pull.local_id) %}
                 bool {{ part.name(pull.local_id) }}$CHG = memcmp(&{{ part.name(pull.local_id) }}, &shared->{{ ctx.name(pull.shared_id) }}, sizeof({{ part.name(pull.local_id) }})) != 0;
@@ -64,12 +70,18 @@ void {{ cls }}::pull() {
 
 void {{ cls }}::push() {
 {%- for (grp_id, iter) in part.iter_push() %}
+    {%- if !ctx.cfg.disable_cacheline_task %}
     if(__act_mask[{{ grp_id }}])
+    {%- endif %}
     {
         {%- for (blk_id, push) in iter%}
+        {%- if !ctx.cfg.disable_cacheline_task %}
         if(__act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] & (1 << {{ blk_id.0 % ctx.cfg.act_mask_width }}))
+        {%- endif %}
         {
+            {%- if !ctx.cfg.disable_cacheline_task %}
             __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] &= ~(1 << {{ blk_id.0 % ctx.cfg.act_mask_width }});
+            {%- endif %}
             {%- for push in push.pushes %}
             {%- if part.is_array(push.local_id) %}
             memcpy(&shared->{{ ctx.name(push.shared_id) }}, &{{ part.name(push.local_id) }}, sizeof({{ part.name(push.local_id) }}));

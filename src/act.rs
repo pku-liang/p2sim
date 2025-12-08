@@ -7,7 +7,7 @@ use log::info;
 // use crate::{BincodeExt, LegacyConfig};
 
 pub type MHType = u32;
-pub const MH_WIDTH: usize = 32;
+pub const MH_WIDTH: usize = 16;
 
 pub type MinHash = [MHType; MH_WIDTH];
 

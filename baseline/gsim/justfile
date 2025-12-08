@@ -1,6 +1,6 @@
 set unstable
 
-run-all: (compile-all) (prof-all "linux.bin")
+run-all: (prof-all "coremark-2.bin")
 
 prof-all exe: \
     (prof "rocket_m_1" exe) \

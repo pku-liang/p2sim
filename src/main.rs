@@ -35,6 +35,12 @@ struct ProfArgs {
     prof_rdtsc_avg: bool,
     #[arg(long)]
     prof_minhash: bool,
+    #[arg(long)]
+    disable_cacheline_task: bool,
+    #[arg(long)]
+    disable_node_weight: bool,
+    #[arg(long)]
+    disable_comm_cost: bool,
 }
 
 #[derive(Parser)]
@@ -112,13 +118,17 @@ fn main() {
     );
     pass::leaglize_empty_block(&mut design.part);
     pass::verify_act_map(&design.part);
+    let part_config = pass::Config {
+        disable_node_weight: args.prof.disable_node_weight,
+        disable_comm_cost: args.prof.disable_comm_cost,
+    };
     let mut pd = if args.pgo {
         let profdata = args.prof_data.unwrap();
         let prof = ProfData::from_file(&profdata).unwrap();
         let blk_act_map = compute_block_act_map(&prof);
-        pass::partition(&design, args.k.unwrap_or(2), |x| (blk_act_map[x.0 as usize] * 10000.0) as i32)
+        pass::partition(&design, args.k.unwrap_or(2), |x| (blk_act_map[x.0 as usize] * 10000.0) as i32, &part_config)
     } else {
-        pass::partition(&design, args.k.unwrap_or(2), |x| 1)
+        pass::partition(&design, args.k.unwrap_or(2), |x| 1, &part_config)
     };
     pass::print_part_stats(&pd);
     let mut td = pass::build_tdesign(&pd);
@@ -160,6 +170,7 @@ fn main() {
                     .collect_vec(),
                 debug: args.repr_cc.debug,
             },
+            disable_cacheline_task: args.prof.disable_cacheline_task,
             prof: ProfCfg {
                 act_cnt: args.prof.prof_act_cnt,
                 rdtsc_ticks: args.prof.prof_rdtsc_ticks,

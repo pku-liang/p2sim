@@ -4,7 +4,7 @@
 .pixi
 *.egg-info
 
-/build
+/build*
 
 /rsrc
 /designs

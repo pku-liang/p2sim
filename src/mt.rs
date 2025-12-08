@@ -40,6 +40,7 @@ pub struct CGenCfg {
     pub ccargs: CCArgs,
     pub prof: ProfCfg,
     pub pgo: bool,
+    pub disable_cacheline_task: bool,
 }
 
 impl Default for CGenCfg {
@@ -51,6 +52,7 @@ impl Default for CGenCfg {
             ccargs: CCArgs::default(),
             prof: ProfCfg::default(),
             pgo: false,
+            disable_cacheline_task: false,
         }
     }
 }

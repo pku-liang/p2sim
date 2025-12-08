@@ -1,5 +1,6 @@
 set shell := ["bash", "-uc"]
 set unstable
+prof_exe := "linux.bin"
 
 build-gsim:
     pixi run make -C gsim build-gsim
@@ -17,9 +18,9 @@ run-all: \
 
 run-target-all target: \
     (compile-1234 target "ref") \
-    (prof-1234 target "linux.bin" "ref") \
+    (prof-1234 target prof_exe "ref") \
     (compile-1234 target "pgo") \
-    (prof-1234 target "linux.bin" "pgo")
+    (prof-1234 target prof_exe "pgo")
 
 prof-1234 target exe sfx="ref": \
     (prof target exe "1" sfx) \
@@ -58,12 +59,29 @@ compile-1234 target sfx="ref": \
     (compile target "28" sfx) \
     (compile target "32" sfx)
 
+ablation-all: \
+    (ablation "boom_l_1" "8") \
+    (ablation "boom_l_2" "8") \
+    (ablation "boom_l_4" "8")
+
+ablation target threads: \
+    (compile target threads "ref") \
+    (prof target "linux.bin" threads "ref" ) \
+    (compile target threads "pgo") \
+    (compile target threads "ref" "no-opt") \
+    (compile target threads "ref" "cl-task") \
+    (compile target threads "pgo" "comm-cost") \
+    (prof target "linux.bin" threads "ref" "no-opt") \
+    (prof target "linux.bin" threads "ref" "cl-task") \
+    (prof target "linux.bin" threads "pgo" "comm-cost") \
+    (prof target "linux.bin" threads "pgo" ) \
+
 [script("bash")]
-prof target exe threads sfx="ref":
+prof target exe threads sfx="ref" sfx2="":
     set -ex
     target_dir=build/{{ target }}.T{{ threads }}
-    prof_dir=$target_dir/prof.{{ sfx }}
-    target_sim=$target_dir/sim.{{ sfx }}
+    prof_dir=$target_dir/prof.{{ sfx }}{{ if sfx2 != "" { "." + sfx2 } else { "" } }}
+    target_sim=$target_dir/sim.{{ sfx }}{{ if sfx2 != "" { "." + sfx2 } else { "" } }}
     bind_cpus=48-$((48 + {{ threads }}))
     MAX_CYCLES=100000 taskset -c $bind_cpus $target_sim ./exe/{{ exe }} || true
     MAX_CYCLES=100000 taskset -c $bind_cpus $target_sim ./exe/{{ exe }} || true
@@ -77,10 +95,7 @@ prof target exe threads sfx="ref":
                 2> >(tee $prof_dir/{{ exe }}.log >&2) \
         || true
 
-run target threads="1": (compile target threads)
-    ./build/{{ target }}.T{{ threads }}/sim exe/linux.bin
-
-compile target threads="1" sfx="ref":
+compile target threads="1" sfx="ref" sfx2="":
     rm -rf build/{{ target }}.T{{ threads }}/src
     mkdir -p build/{{ target }}.T{{ threads }}/src
     cargo run --bin ggsim --release -- \
@@ -89,12 +104,15 @@ compile target threads="1" sfx="ref":
         -lfesvr \
         -o build/{{ target }}.T{{ threads }} \
         -k {{ threads }} 2>&1 \
-        --prof-act-cnt --prof-rdtsc-avg \
+        --prof-act-cnt --prof-rdtsc-avg {{ if sfx == "mh" { "--prof-minhash" } else { "" } }} \
+        {{ if sfx2 == "no-opt" { "--disable-cacheline-task --disable-comm-cost --disable-node-weight" } else { "" } }} \
         {{ if sfx == "pgo" { "--pgo" } else { "" } }} \
-        --prof-data build/{{ target }}.T{{ threads }}/prof.ref/linux.bin \
+        {{ if sfx2 == "cl-task" { "--disable-comm-cost --disable-node-weight" } else { "" } }} \
+        {{ if sfx2 == "comm-cost" { "--disable-node-weight" } else { "" } }} \
+        --prof-data build/{{ target }}.T{{ threads }}/prof.ref/{{ prof_exe }} \
         | tee build/{{ target }}.T{{ threads }}/build.{{ sfx }}.log
     pixi run make -C build/{{ target }}.T{{ threads }}
-    cp build/{{ target }}.T{{ threads }}/sim build/{{ target }}.T{{ threads }}/sim.{{ sfx }}
+    cp build/{{ target }}.T{{ threads }}/sim build/{{ target }}.T{{ threads }}/sim.{{ sfx }}{{ if sfx2 != "" { "." + sfx2 } else { "" } }}
     echo "Logfile: build/{{ target }}.T{{ threads }}/build.{{ sfx }}.log"
 
 gen target: (build-gsim)
