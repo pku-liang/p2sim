@@ -8,6 +8,7 @@
 #include <atomic>
 #include <chrono>
 #include <iostream>
+#include <taskflow/taskflow.hpp>
 
 #include "{{ ctx.smap.shared_h() }}"
 #include "{{ ctx.smap.decl_h() }}"
@@ -142,71 +143,34 @@ inline uint64_t rdtsc() {
 void {{ ctx.name }}::step_mt(int cycles) {
   at_barrier barrier({{ ctx.parts.len() }});
   std::vector<std::thread> threads;
+  tf::Executor executor;
+  tf::Taskflow taskflow;
+  auto PRE = taskflow.emplace([](){});
+  auto SYNC = taskflow.emplace([](){});
+  auto POST = taskflow.emplace([](){});
+  perf_monitor monitor;
   {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
-  /* thread {{ part_id.0 }} */ {
-    {%- let master = part_id.0 == 0 %}
-    {%- set ref_obj = "ref_" ~ part_id.0 %}
-    auto {{ ref_obj }} = &part_{{ part_id.0 }};
-    threads.push_back(std::thread{
-      [&, cycles, ref_{{ part_id.0 }}](){
-        prof_obj * prof = {{ ref_obj }}->prof;
-        size_t old_size = 0;
-        {%- if ctx.cfg.prof.rdtsc_ticks %}
-        /* rdtsc ticks */ {
-          old_size = prof->rdtsc_ticks.size();
-          prof->rdtsc_ticks.resize(old_size + cycles*6);
-        }
-        {%- endif %}
-        perf_monitor monitor;
-        int local_epoch = 0;
-        std::mt19937_64 rng(0);
-        for(int i = 0; i < cycles; i++) {
-          {%- if ctx.cfg.prof.minhash %}
-          /* minhash */ {
-            *({{ ref_obj }}->cur_act_hash) = MH::from_gen(rng);
-          }
-          {%- endif %}
-          uint64_t t1 = rdtsc();
-          barrier.arrive_and_wait({{part_id.0}}, local_epoch);
-          uint64_t t2 = rdtsc();
-          {{ ref_obj }}->pull();
-          uint64_t t3 = rdtsc();
-          {{ ref_obj }}->step();
-          uint64_t t4 = rdtsc();
-          barrier.arrive_and_wait({{part_id.0}}, local_epoch);
-          uint64_t t5 = rdtsc();
-          {{ ref_obj }}->push();
-          uint64_t t6 = rdtsc();
-          {%- if ctx.cfg.prof.rdtsc_ticks %}
-          /* rdtsc ticks */ {
-            prof->rdtsc_ticks[old_size + i*6 + 0] = t1;
-            prof->rdtsc_ticks[old_size + i*6 + 1] = t2;
-            prof->rdtsc_ticks[old_size + i*6 + 2] = t3;
-            prof->rdtsc_ticks[old_size + i*6 + 3] = t4;
-            prof->rdtsc_ticks[old_size + i*6 + 4] = t5;
-            prof->rdtsc_ticks[old_size + i*6 + 5] = t6;
-          }
-          {%- endif %}
-          {%- if ctx.cfg.prof.rdtsc_avg %}
-          /* rdtsc avg */ {
-            prof->rdtsc_avg[0] ++;
-            prof->rdtsc_avg[1] += t2 - t1;
-            prof->rdtsc_avg[2] += t3 - t2;
-            prof->rdtsc_avg[3] += t4 - t3;
-            prof->rdtsc_avg[4] += t5 - t4;
-            prof->rdtsc_avg[5] += t6 - t5;
-          }
-          {%- endif %}
-          {%- if master %}
-          /* master */ {
-            monitor.tick();
-          }
-          {%- endif %}
-        }
-      }
-    });
-  }
+  {%- let master = part_id.0 == 0 %}
+  {%- set ref_obj = "ref_" ~ part_id.0 %}
+  auto {{ ref_obj }} = &part_{{ part_id.0 }};
+  auto TASK_PRE_{{ part_id.0 }} = taskflow.emplace([{{ ref_obj }}]() {
+    {{ ref_obj }}->pull();
+    {{ ref_obj }}->step();
+  });
+  TASK_PRE_{{ part_id.0 }}.succeed(PRE);
+  TASK_PRE_{{ part_id.0 }}.precede(SYNC);
+  auto TASK_POST_{{ part_id.0 }} = taskflow.emplace([&, {{ ref_obj }}]() {
+    {{ ref_obj }}->push();
+    {%- if master %}
+    /* master */ {
+      monitor.tick();
+    }
+    {%- endif %}
+  });
+  TASK_POST_{{ part_id.0 }}.succeed(SYNC);
+  TASK_POST_{{ part_id.0 }}.precede(POST);
   {%- endfor %}
+  executor.run_n(taskflow, cycles).wait();
   for(auto & thread: threads) {
     thread.join();
   }
