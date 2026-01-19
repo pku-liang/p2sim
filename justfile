@@ -111,9 +111,9 @@ compile target threads="1" sfx="ref" sfx2="":
         {{ if sfx2 == "comm-cost" { "--disable-node-weight" } else { "" } }} \
         --prof-data build/{{ target }}.T{{ threads }}/prof.ref/{{ prof_exe }} \
         | tee build/{{ target }}.T{{ threads }}/build.{{ sfx }}.log
-    pixi run make -C build/{{ target }}.T{{ threads }}
-    cp build/{{ target }}.T{{ threads }}/sim build/{{ target }}.T{{ threads }}/sim.{{ sfx }}{{ if sfx2 != "" { "." + sfx2 } else { "" } }}
-    echo "Logfile: build/{{ target }}.T{{ threads }}/build.{{ sfx }}.log"
+    # pixi run make -C build/{{ target }}.T{{ threads }}
+    # cp build/{{ target }}.T{{ threads }}/sim build/{{ target }}.T{{ threads }}/sim.{{ sfx }}{{ if sfx2 != "" { "." + sfx2 } else { "" } }}
+    # echo "Logfile: build/{{ target }}.T{{ threads }}/build.{{ sfx }}.log"
 
 gen target: (build-gsim)
     gsim/build/gsim/gsim --supernode-max-size=1 --output designs/{{ target }}.ggsim.sexp emu/rsrc/{{ target }}.gsim.fir
