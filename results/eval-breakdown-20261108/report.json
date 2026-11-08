@@ -1,0 +1,5046 @@
+{
+  "branch": "v2-exp",
+  "base_commit": "890d7205ee5a6bb5d48cfe5de9c495d6b9be4fa1",
+  "cases": [
+    {
+      "design": "rocket_m_1",
+      "workload": "linux",
+      "straggler_threads": [
+        12,
+        13
+      ],
+      "straggler_comparison": [
+        {
+          "tid": 12,
+          "p2sim": {
+            "tid": 12,
+            "compute_main_us": 1.9669,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.9669,
+            "state_update_us": 1.7276,
+            "sync_wait_us": 1.5556,
+            "sync_and_update_us": 3.2832,
+            "total_us": 5.2501
+          },
+          "s2sim": {
+            "tid": 12,
+            "compute_main_us": 1.3578,
+            "compute_spec_us": 0.0478,
+            "compute_total_us": 1.4056,
+            "state_update_us": 0.8355,
+            "sync_wait_us": 0.956,
+            "sync_and_update_us": 1.7915,
+            "total_us": 3.197
+          }
+        },
+        {
+          "tid": 13,
+          "p2sim": {
+            "tid": 13,
+            "compute_main_us": 1.0789,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.0789,
+            "state_update_us": 1.6197,
+            "sync_wait_us": 2.4847,
+            "sync_and_update_us": 4.1045,
+            "total_us": 5.1834
+          },
+          "s2sim": {
+            "tid": 13,
+            "compute_main_us": 1.4298,
+            "compute_spec_us": 0.0359,
+            "compute_total_us": 1.4657,
+            "state_update_us": 0.9597,
+            "sync_wait_us": 0.7641,
+            "sync_and_update_us": 1.7238,
+            "total_us": 3.1895
+          }
+        }
+      ],
+      "off": {
+        "counter_hz": 2599880355.926791,
+        "avg_compute_main_us": 0.2878735092086708,
+        "avg_compute_spec_us": 0.0,
+        "avg_compute_total_us": 0.2878735092086708,
+        "avg_state_update_us": 1.4535155839647198,
+        "avg_sync_wait_us": 3.507390662328914,
+        "avg_sync_and_update_us": 4.960906246293633,
+        "avg_total_us": 5.248779755502304,
+        "per_thread": [
+          {
+            "tid": 0,
+            "compute_main_us": 0.0569,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0569,
+            "state_update_us": 1.3233,
+            "sync_wait_us": 3.8975,
+            "sync_and_update_us": 5.2208,
+            "total_us": 5.2777
+          },
+          {
+            "tid": 1,
+            "compute_main_us": 0.0691,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0691,
+            "state_update_us": 1.3717,
+            "sync_wait_us": 3.8326,
+            "sync_and_update_us": 5.2043,
+            "total_us": 5.2734
+          },
+          {
+            "tid": 2,
+            "compute_main_us": 0.0455,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0455,
+            "state_update_us": 1.4265,
+            "sync_wait_us": 3.7982,
+            "sync_and_update_us": 5.2247,
+            "total_us": 5.2702
+          },
+          {
+            "tid": 3,
+            "compute_main_us": 0.0292,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0292,
+            "state_update_us": 1.2193,
+            "sync_wait_us": 4.0183,
+            "sync_and_update_us": 5.2376,
+            "total_us": 5.2668
+          },
+          {
+            "tid": 4,
+            "compute_main_us": 0.0328,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0328,
+            "state_update_us": 1.3113,
+            "sync_wait_us": 3.9173,
+            "sync_and_update_us": 5.2286,
+            "total_us": 5.2614
+          },
+          {
+            "tid": 5,
+            "compute_main_us": 0.0214,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0214,
+            "state_update_us": 1.088,
+            "sync_wait_us": 4.1611,
+            "sync_and_update_us": 5.2491,
+            "total_us": 5.2705
+          },
+          {
+            "tid": 6,
+            "compute_main_us": 0.0254,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0254,
+            "state_update_us": 1.1691,
+            "sync_wait_us": 4.0799,
+            "sync_and_update_us": 5.249,
+            "total_us": 5.2744
+          },
+          {
+            "tid": 7,
+            "compute_main_us": 0.0658,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0658,
+            "state_update_us": 1.4815,
+            "sync_wait_us": 3.7106,
+            "sync_and_update_us": 5.1921,
+            "total_us": 5.2579
+          },
+          {
+            "tid": 8,
+            "compute_main_us": 0.0238,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0238,
+            "state_update_us": 1.1101,
+            "sync_wait_us": 4.1388,
+            "sync_and_update_us": 5.2489,
+            "total_us": 5.2727
+          },
+          {
+            "tid": 9,
+            "compute_main_us": 0.0232,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0232,
+            "state_update_us": 1.0706,
+            "sync_wait_us": 4.1887,
+            "sync_and_update_us": 5.2592,
+            "total_us": 5.2824
+          },
+          {
+            "tid": 10,
+            "compute_main_us": 0.0676,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0676,
+            "state_update_us": 1.5794,
+            "sync_wait_us": 3.5666,
+            "sync_and_update_us": 5.146,
+            "total_us": 5.2136
+          },
+          {
+            "tid": 11,
+            "compute_main_us": 0.0845,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0845,
+            "state_update_us": 1.4801,
+            "sync_wait_us": 3.706,
+            "sync_and_update_us": 5.1862,
+            "total_us": 5.2707
+          },
+          {
+            "tid": 12,
+            "compute_main_us": 1.9669,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.9669,
+            "state_update_us": 1.7276,
+            "sync_wait_us": 1.5556,
+            "sync_and_update_us": 3.2832,
+            "total_us": 5.2501
+          },
+          {
+            "tid": 13,
+            "compute_main_us": 1.0789,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.0789,
+            "state_update_us": 1.6197,
+            "sync_wait_us": 2.4847,
+            "sync_and_update_us": 4.1045,
+            "total_us": 5.1834
+          },
+          {
+            "tid": 14,
+            "compute_main_us": 0.2615,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.2615,
+            "state_update_us": 1.568,
+            "sync_wait_us": 3.3571,
+            "sync_and_update_us": 4.9251,
+            "total_us": 5.1866
+          },
+          {
+            "tid": 15,
+            "compute_main_us": 0.4819,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.4819,
+            "state_update_us": 1.4738,
+            "sync_wait_us": 3.2992,
+            "sync_and_update_us": 4.7731,
+            "total_us": 5.255
+          },
+          {
+            "tid": 16,
+            "compute_main_us": 0.2069,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.2069,
+            "state_update_us": 1.5906,
+            "sync_wait_us": 3.4563,
+            "sync_and_update_us": 5.0469,
+            "total_us": 5.2538
+          },
+          {
+            "tid": 17,
+            "compute_main_us": 0.3762,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.3762,
+            "state_update_us": 1.7314,
+            "sync_wait_us": 3.1046,
+            "sync_and_update_us": 4.836,
+            "total_us": 5.2122
+          },
+          {
+            "tid": 18,
+            "compute_main_us": 0.0797,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0797,
+            "state_update_us": 1.4353,
+            "sync_wait_us": 3.7435,
+            "sync_and_update_us": 5.1788,
+            "total_us": 5.2585
+          },
+          {
+            "tid": 19,
+            "compute_main_us": 0.1508,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.1508,
+            "state_update_us": 1.7175,
+            "sync_wait_us": 3.3772,
+            "sync_and_update_us": 5.0947,
+            "total_us": 5.2455
+          },
+          {
+            "tid": 20,
+            "compute_main_us": 0.3878,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.3878,
+            "state_update_us": 1.6342,
+            "sync_wait_us": 3.1882,
+            "sync_and_update_us": 4.8224,
+            "total_us": 5.2102
+          },
+          {
+            "tid": 21,
+            "compute_main_us": 0.4814,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.4814,
+            "state_update_us": 1.5974,
+            "sync_wait_us": 3.1668,
+            "sync_and_update_us": 4.7641,
+            "total_us": 5.2455
+          },
+          {
+            "tid": 22,
+            "compute_main_us": 0.6109,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.6109,
+            "state_update_us": 1.6703,
+            "sync_wait_us": 2.9683,
+            "sync_and_update_us": 4.6386,
+            "total_us": 5.2495
+          },
+          {
+            "tid": 23,
+            "compute_main_us": 0.2807,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.2807,
+            "state_update_us": 1.4876,
+            "sync_wait_us": 3.4602,
+            "sync_and_update_us": 4.9478,
+            "total_us": 5.2285
+          }
+        ]
+      },
+      "on": {
+        "counter_hz": 2599911263.469223,
+        "avg_compute_main_us": 0.3047262393971747,
+        "avg_compute_spec_us": 0.024788194340398712,
+        "avg_compute_total_us": 0.3295144337375734,
+        "avg_state_update_us": 0.7442566169487933,
+        "avg_sync_wait_us": 2.116898912095692,
+        "avg_sync_and_update_us": 2.861155529044485,
+        "avg_total_us": 3.190669962782058,
+        "per_thread": [
+          {
+            "tid": 0,
+            "compute_main_us": 0.0392,
+            "compute_spec_us": 0.0184,
+            "compute_total_us": 0.0576,
+            "state_update_us": 0.5288,
+            "sync_wait_us": 2.6099,
+            "sync_and_update_us": 3.1387,
+            "total_us": 3.1962
+          },
+          {
+            "tid": 1,
+            "compute_main_us": 0.1401,
+            "compute_spec_us": 0.0253,
+            "compute_total_us": 0.1654,
+            "state_update_us": 0.7871,
+            "sync_wait_us": 2.2417,
+            "sync_and_update_us": 3.0287,
+            "total_us": 3.1942
+          },
+          {
+            "tid": 2,
+            "compute_main_us": 0.0425,
+            "compute_spec_us": 0.0189,
+            "compute_total_us": 0.0614,
+            "state_update_us": 0.7511,
+            "sync_wait_us": 2.3819,
+            "sync_and_update_us": 3.133,
+            "total_us": 3.1944
+          },
+          {
+            "tid": 3,
+            "compute_main_us": 0.0312,
+            "compute_spec_us": 0.0195,
+            "compute_total_us": 0.0507,
+            "state_update_us": 0.5637,
+            "sync_wait_us": 2.5785,
+            "sync_and_update_us": 3.1422,
+            "total_us": 3.1929
+          },
+          {
+            "tid": 4,
+            "compute_main_us": 0.0316,
+            "compute_spec_us": 0.0188,
+            "compute_total_us": 0.0504,
+            "state_update_us": 0.6017,
+            "sync_wait_us": 2.5387,
+            "sync_and_update_us": 3.1404,
+            "total_us": 3.1908
+          },
+          {
+            "tid": 5,
+            "compute_main_us": 0.0361,
+            "compute_spec_us": 0.0203,
+            "compute_total_us": 0.0563,
+            "state_update_us": 0.6047,
+            "sync_wait_us": 2.5223,
+            "sync_and_update_us": 3.1271,
+            "total_us": 3.1834
+          },
+          {
+            "tid": 6,
+            "compute_main_us": 0.0234,
+            "compute_spec_us": 0.0144,
+            "compute_total_us": 0.0378,
+            "state_update_us": 0.482,
+            "sync_wait_us": 2.6718,
+            "sync_and_update_us": 3.1538,
+            "total_us": 3.1916
+          },
+          {
+            "tid": 7,
+            "compute_main_us": 0.0573,
+            "compute_spec_us": 0.0193,
+            "compute_total_us": 0.0766,
+            "state_update_us": 0.7976,
+            "sync_wait_us": 2.3173,
+            "sync_and_update_us": 3.1149,
+            "total_us": 3.1914
+          },
+          {
+            "tid": 8,
+            "compute_main_us": 0.0218,
+            "compute_spec_us": 0.0136,
+            "compute_total_us": 0.0354,
+            "state_update_us": 0.4763,
+            "sync_wait_us": 2.6788,
+            "sync_and_update_us": 3.1551,
+            "total_us": 3.1905
+          },
+          {
+            "tid": 9,
+            "compute_main_us": 0.0211,
+            "compute_spec_us": 0.0133,
+            "compute_total_us": 0.0344,
+            "state_update_us": 0.4324,
+            "sync_wait_us": 2.7276,
+            "sync_and_update_us": 3.16,
+            "total_us": 3.1944
+          },
+          {
+            "tid": 10,
+            "compute_main_us": 0.0403,
+            "compute_spec_us": 0.0151,
+            "compute_total_us": 0.0554,
+            "state_update_us": 0.9106,
+            "sync_wait_us": 2.2278,
+            "sync_and_update_us": 3.1384,
+            "total_us": 3.1938
+          },
+          {
+            "tid": 11,
+            "compute_main_us": 0.0782,
+            "compute_spec_us": 0.0209,
+            "compute_total_us": 0.0991,
+            "state_update_us": 0.7573,
+            "sync_wait_us": 2.3339,
+            "sync_and_update_us": 3.0912,
+            "total_us": 3.1903
+          },
+          {
+            "tid": 12,
+            "compute_main_us": 1.3578,
+            "compute_spec_us": 0.0478,
+            "compute_total_us": 1.4056,
+            "state_update_us": 0.8355,
+            "sync_wait_us": 0.956,
+            "sync_and_update_us": 1.7915,
+            "total_us": 3.197
+          },
+          {
+            "tid": 13,
+            "compute_main_us": 1.4298,
+            "compute_spec_us": 0.0359,
+            "compute_total_us": 1.4657,
+            "state_update_us": 0.9597,
+            "sync_wait_us": 0.7641,
+            "sync_and_update_us": 1.7238,
+            "total_us": 3.1895
+          },
+          {
+            "tid": 14,
+            "compute_main_us": 0.3246,
+            "compute_spec_us": 0.0151,
+            "compute_total_us": 0.3397,
+            "state_update_us": 0.7567,
+            "sync_wait_us": 2.0968,
+            "sync_and_update_us": 2.8536,
+            "total_us": 3.1932
+          },
+          {
+            "tid": 15,
+            "compute_main_us": 0.5923,
+            "compute_spec_us": 0.0284,
+            "compute_total_us": 0.6207,
+            "state_update_us": 0.834,
+            "sync_wait_us": 1.7352,
+            "sync_and_update_us": 2.5691,
+            "total_us": 3.1899
+          },
+          {
+            "tid": 16,
+            "compute_main_us": 0.1767,
+            "compute_spec_us": 0.0183,
+            "compute_total_us": 0.195,
+            "state_update_us": 0.9376,
+            "sync_wait_us": 2.0606,
+            "sync_and_update_us": 2.9982,
+            "total_us": 3.1932
+          },
+          {
+            "tid": 17,
+            "compute_main_us": 0.3994,
+            "compute_spec_us": 0.0274,
+            "compute_total_us": 0.4268,
+            "state_update_us": 0.8975,
+            "sync_wait_us": 1.865,
+            "sync_and_update_us": 2.7625,
+            "total_us": 3.1893
+          },
+          {
+            "tid": 18,
+            "compute_main_us": 0.0835,
+            "compute_spec_us": 0.0268,
+            "compute_total_us": 0.1103,
+            "state_update_us": 0.6956,
+            "sync_wait_us": 2.3798,
+            "sync_and_update_us": 3.0754,
+            "total_us": 3.1857
+          },
+          {
+            "tid": 19,
+            "compute_main_us": 0.1459,
+            "compute_spec_us": 0.0162,
+            "compute_total_us": 0.162,
+            "state_update_us": 0.8488,
+            "sync_wait_us": 2.1815,
+            "sync_and_update_us": 3.0303,
+            "total_us": 3.1923
+          },
+          {
+            "tid": 20,
+            "compute_main_us": 0.5858,
+            "compute_spec_us": 0.0553,
+            "compute_total_us": 0.6411,
+            "state_update_us": 0.8287,
+            "sync_wait_us": 1.7113,
+            "sync_and_update_us": 2.5401,
+            "total_us": 3.1811
+          },
+          {
+            "tid": 21,
+            "compute_main_us": 0.6875,
+            "compute_spec_us": 0.0345,
+            "compute_total_us": 0.7221,
+            "state_update_us": 0.8051,
+            "sync_wait_us": 1.6572,
+            "sync_and_update_us": 2.4623,
+            "total_us": 3.1843
+          },
+          {
+            "tid": 22,
+            "compute_main_us": 0.7175,
+            "compute_spec_us": 0.0493,
+            "compute_total_us": 0.7667,
+            "state_update_us": 0.8926,
+            "sync_wait_us": 1.5262,
+            "sync_and_update_us": 2.4189,
+            "total_us": 3.1856
+          },
+          {
+            "tid": 23,
+            "compute_main_us": 0.25,
+            "compute_spec_us": 0.0221,
+            "compute_total_us": 0.2721,
+            "state_update_us": 0.8771,
+            "sync_wait_us": 2.0418,
+            "sync_and_update_us": 2.9189,
+            "total_us": 3.191
+          }
+        ]
+      }
+    },
+    {
+      "design": "rocket_m_1",
+      "workload": "coremark",
+      "straggler_threads": [
+        12,
+        13
+      ],
+      "straggler_comparison": [
+        {
+          "tid": 12,
+          "p2sim": {
+            "tid": 12,
+            "compute_main_us": 3.0497,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 3.0497,
+            "state_update_us": 1.8649,
+            "sync_wait_us": 1.2437,
+            "sync_and_update_us": 3.1086,
+            "total_us": 6.1583
+          },
+          "s2sim": {
+            "tid": 12,
+            "compute_main_us": 3.1194,
+            "compute_spec_us": 0.0876,
+            "compute_total_us": 3.207,
+            "state_update_us": 1.2362,
+            "sync_wait_us": 0.512,
+            "sync_and_update_us": 1.7482,
+            "total_us": 4.9552
+          }
+        },
+        {
+          "tid": 13,
+          "p2sim": {
+            "tid": 13,
+            "compute_main_us": 2.218,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 2.218,
+            "state_update_us": 1.6996,
+            "sync_wait_us": 2.1674,
+            "sync_and_update_us": 3.867,
+            "total_us": 6.085
+          },
+          "s2sim": {
+            "tid": 13,
+            "compute_main_us": 2.1099,
+            "compute_spec_us": 0.0402,
+            "compute_total_us": 2.1501,
+            "state_update_us": 1.0118,
+            "sync_wait_us": 1.7943,
+            "sync_and_update_us": 2.8061,
+            "total_us": 4.9563
+          }
+        }
+      ],
+      "off": {
+        "counter_hz": 2599901248.279104,
+        "avg_compute_main_us": 0.36391057996641946,
+        "avg_compute_spec_us": 0.0,
+        "avg_compute_total_us": 0.36391057996641946,
+        "avg_state_update_us": 1.468165927895618,
+        "avg_sync_wait_us": 4.3183540393690345,
+        "avg_sync_and_update_us": 5.7865199672646535,
+        "avg_total_us": 6.150430547231072,
+        "per_thread": [
+          {
+            "tid": 0,
+            "compute_main_us": 0.0408,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0408,
+            "state_update_us": 1.1925,
+            "sync_wait_us": 4.9505,
+            "sync_and_update_us": 6.143,
+            "total_us": 6.1838
+          },
+          {
+            "tid": 1,
+            "compute_main_us": 0.0503,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0503,
+            "state_update_us": 1.373,
+            "sync_wait_us": 4.7489,
+            "sync_and_update_us": 6.1219,
+            "total_us": 6.1722
+          },
+          {
+            "tid": 2,
+            "compute_main_us": 0.0427,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0427,
+            "state_update_us": 1.5096,
+            "sync_wait_us": 4.625,
+            "sync_and_update_us": 6.1346,
+            "total_us": 6.1772
+          },
+          {
+            "tid": 3,
+            "compute_main_us": 0.0162,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0162,
+            "state_update_us": 1.073,
+            "sync_wait_us": 5.082,
+            "sync_and_update_us": 6.1551,
+            "total_us": 6.1713
+          },
+          {
+            "tid": 4,
+            "compute_main_us": 0.0151,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0151,
+            "state_update_us": 1.0456,
+            "sync_wait_us": 5.126,
+            "sync_and_update_us": 6.1717,
+            "total_us": 6.1868
+          },
+          {
+            "tid": 5,
+            "compute_main_us": 0.0271,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0271,
+            "state_update_us": 1.2946,
+            "sync_wait_us": 4.8319,
+            "sync_and_update_us": 6.1265,
+            "total_us": 6.1535
+          },
+          {
+            "tid": 6,
+            "compute_main_us": 0.0202,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0202,
+            "state_update_us": 1.2875,
+            "sync_wait_us": 4.8577,
+            "sync_and_update_us": 6.1452,
+            "total_us": 6.1654
+          },
+          {
+            "tid": 7,
+            "compute_main_us": 0.0462,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0462,
+            "state_update_us": 1.4796,
+            "sync_wait_us": 4.6395,
+            "sync_and_update_us": 6.1191,
+            "total_us": 6.1654
+          },
+          {
+            "tid": 8,
+            "compute_main_us": 0.0183,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0183,
+            "state_update_us": 1.1115,
+            "sync_wait_us": 5.0405,
+            "sync_and_update_us": 6.152,
+            "total_us": 6.1703
+          },
+          {
+            "tid": 9,
+            "compute_main_us": 0.0184,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0184,
+            "state_update_us": 1.0793,
+            "sync_wait_us": 5.0719,
+            "sync_and_update_us": 6.1512,
+            "total_us": 6.1696
+          },
+          {
+            "tid": 10,
+            "compute_main_us": 0.0508,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0508,
+            "state_update_us": 1.5346,
+            "sync_wait_us": 4.4707,
+            "sync_and_update_us": 6.0052,
+            "total_us": 6.0561
+          },
+          {
+            "tid": 11,
+            "compute_main_us": 0.0649,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0649,
+            "state_update_us": 1.504,
+            "sync_wait_us": 4.605,
+            "sync_and_update_us": 6.109,
+            "total_us": 6.1738
+          },
+          {
+            "tid": 12,
+            "compute_main_us": 3.0497,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 3.0497,
+            "state_update_us": 1.8649,
+            "sync_wait_us": 1.2437,
+            "sync_and_update_us": 3.1086,
+            "total_us": 6.1583
+          },
+          {
+            "tid": 13,
+            "compute_main_us": 2.218,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 2.218,
+            "state_update_us": 1.6996,
+            "sync_wait_us": 2.1674,
+            "sync_and_update_us": 3.867,
+            "total_us": 6.085
+          },
+          {
+            "tid": 14,
+            "compute_main_us": 0.5907,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.5907,
+            "state_update_us": 1.6358,
+            "sync_wait_us": 3.8566,
+            "sync_and_update_us": 5.4925,
+            "total_us": 6.0832
+          },
+          {
+            "tid": 15,
+            "compute_main_us": 0.7885,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.7885,
+            "state_update_us": 1.526,
+            "sync_wait_us": 3.8356,
+            "sync_and_update_us": 5.3617,
+            "total_us": 6.1501
+          },
+          {
+            "tid": 16,
+            "compute_main_us": 0.2652,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.2652,
+            "state_update_us": 1.6229,
+            "sync_wait_us": 4.2818,
+            "sync_and_update_us": 5.9047,
+            "total_us": 6.1698
+          },
+          {
+            "tid": 17,
+            "compute_main_us": 0.4228,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.4228,
+            "state_update_us": 1.7037,
+            "sync_wait_us": 3.9565,
+            "sync_and_update_us": 5.6602,
+            "total_us": 6.083
+          },
+          {
+            "tid": 18,
+            "compute_main_us": 0.061,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.061,
+            "state_update_us": 1.3889,
+            "sync_wait_us": 4.7185,
+            "sync_and_update_us": 6.1074,
+            "total_us": 6.1684
+          },
+          {
+            "tid": 19,
+            "compute_main_us": 0.0735,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0735,
+            "state_update_us": 1.7535,
+            "sync_wait_us": 4.3152,
+            "sync_and_update_us": 6.0686,
+            "total_us": 6.1421
+          },
+          {
+            "tid": 20,
+            "compute_main_us": 0.1602,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.1602,
+            "state_update_us": 1.6979,
+            "sync_wait_us": 4.2637,
+            "sync_and_update_us": 5.9616,
+            "total_us": 6.1218
+          },
+          {
+            "tid": 21,
+            "compute_main_us": 0.3565,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.3565,
+            "state_update_us": 1.6069,
+            "sync_wait_us": 4.2005,
+            "sync_and_update_us": 5.8075,
+            "total_us": 6.164
+          },
+          {
+            "tid": 22,
+            "compute_main_us": 0.1653,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.1653,
+            "state_update_us": 1.7438,
+            "sync_wait_us": 4.2628,
+            "sync_and_update_us": 6.0066,
+            "total_us": 6.1719
+          },
+          {
+            "tid": 23,
+            "compute_main_us": 0.1713,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.1713,
+            "state_update_us": 1.5073,
+            "sync_wait_us": 4.4886,
+            "sync_and_update_us": 5.9958,
+            "total_us": 6.1672
+          }
+        ]
+      },
+      "on": {
+        "counter_hz": 2599862608.985343,
+        "avg_compute_main_us": 0.37430048157934004,
+        "avg_compute_spec_us": 0.02604792971852324,
+        "avg_compute_total_us": 0.4003484112978633,
+        "avg_state_update_us": 0.7906650577402065,
+        "avg_sync_wait_us": 3.7637471820554826,
+        "avg_sync_and_update_us": 4.554412239795689,
+        "avg_total_us": 4.954760651093553,
+        "per_thread": [
+          {
+            "tid": 0,
+            "compute_main_us": 0.0564,
+            "compute_spec_us": 0.0257,
+            "compute_total_us": 0.0821,
+            "state_update_us": 0.7162,
+            "sync_wait_us": 4.1562,
+            "sync_and_update_us": 4.8724,
+            "total_us": 4.9545
+          },
+          {
+            "tid": 1,
+            "compute_main_us": 0.0974,
+            "compute_spec_us": 0.0261,
+            "compute_total_us": 0.1234,
+            "state_update_us": 0.8039,
+            "sync_wait_us": 4.0345,
+            "sync_and_update_us": 4.8383,
+            "total_us": 4.9618
+          },
+          {
+            "tid": 2,
+            "compute_main_us": 0.0271,
+            "compute_spec_us": 0.0154,
+            "compute_total_us": 0.0425,
+            "state_update_us": 0.799,
+            "sync_wait_us": 4.1228,
+            "sync_and_update_us": 4.9218,
+            "total_us": 4.9643
+          },
+          {
+            "tid": 3,
+            "compute_main_us": 0.0243,
+            "compute_spec_us": 0.0215,
+            "compute_total_us": 0.0458,
+            "state_update_us": 0.6011,
+            "sync_wait_us": 4.31,
+            "sync_and_update_us": 4.911,
+            "total_us": 4.9569
+          },
+          {
+            "tid": 4,
+            "compute_main_us": 0.0192,
+            "compute_spec_us": 0.0184,
+            "compute_total_us": 0.0376,
+            "state_update_us": 0.5647,
+            "sync_wait_us": 4.3576,
+            "sync_and_update_us": 4.9223,
+            "total_us": 4.9599
+          },
+          {
+            "tid": 5,
+            "compute_main_us": 0.0198,
+            "compute_spec_us": 0.0175,
+            "compute_total_us": 0.0373,
+            "state_update_us": 0.5018,
+            "sync_wait_us": 4.4224,
+            "sync_and_update_us": 4.9242,
+            "total_us": 4.9615
+          },
+          {
+            "tid": 6,
+            "compute_main_us": 0.022,
+            "compute_spec_us": 0.0177,
+            "compute_total_us": 0.0397,
+            "state_update_us": 0.5786,
+            "sync_wait_us": 4.331,
+            "sync_and_update_us": 4.9096,
+            "total_us": 4.9493
+          },
+          {
+            "tid": 7,
+            "compute_main_us": 0.0543,
+            "compute_spec_us": 0.0247,
+            "compute_total_us": 0.079,
+            "state_update_us": 0.8307,
+            "sync_wait_us": 4.037,
+            "sync_and_update_us": 4.8677,
+            "total_us": 4.9467
+          },
+          {
+            "tid": 8,
+            "compute_main_us": 0.0213,
+            "compute_spec_us": 0.0186,
+            "compute_total_us": 0.0399,
+            "state_update_us": 0.5702,
+            "sync_wait_us": 4.3396,
+            "sync_and_update_us": 4.9098,
+            "total_us": 4.9497
+          },
+          {
+            "tid": 9,
+            "compute_main_us": 0.0209,
+            "compute_spec_us": 0.0186,
+            "compute_total_us": 0.0396,
+            "state_update_us": 0.5489,
+            "sync_wait_us": 4.363,
+            "sync_and_update_us": 4.9119,
+            "total_us": 4.9515
+          },
+          {
+            "tid": 10,
+            "compute_main_us": 0.0511,
+            "compute_spec_us": 0.0194,
+            "compute_total_us": 0.0705,
+            "state_update_us": 0.9107,
+            "sync_wait_us": 3.9694,
+            "sync_and_update_us": 4.8801,
+            "total_us": 4.9506
+          },
+          {
+            "tid": 11,
+            "compute_main_us": 0.0541,
+            "compute_spec_us": 0.0193,
+            "compute_total_us": 0.0734,
+            "state_update_us": 0.8009,
+            "sync_wait_us": 4.08,
+            "sync_and_update_us": 4.8809,
+            "total_us": 4.9543
+          },
+          {
+            "tid": 12,
+            "compute_main_us": 3.1194,
+            "compute_spec_us": 0.0876,
+            "compute_total_us": 3.207,
+            "state_update_us": 1.2362,
+            "sync_wait_us": 0.512,
+            "sync_and_update_us": 1.7482,
+            "total_us": 4.9552
+          },
+          {
+            "tid": 13,
+            "compute_main_us": 2.1099,
+            "compute_spec_us": 0.0402,
+            "compute_total_us": 2.1501,
+            "state_update_us": 1.0118,
+            "sync_wait_us": 1.7943,
+            "sync_and_update_us": 2.8061,
+            "total_us": 4.9563
+          },
+          {
+            "tid": 14,
+            "compute_main_us": 0.4908,
+            "compute_spec_us": 0.015,
+            "compute_total_us": 0.5058,
+            "state_update_us": 0.8454,
+            "sync_wait_us": 3.6082,
+            "sync_and_update_us": 4.4536,
+            "total_us": 4.9594
+          },
+          {
+            "tid": 15,
+            "compute_main_us": 0.7319,
+            "compute_spec_us": 0.0303,
+            "compute_total_us": 0.7622,
+            "state_update_us": 0.853,
+            "sync_wait_us": 3.3356,
+            "sync_and_update_us": 4.1886,
+            "total_us": 4.9508
+          },
+          {
+            "tid": 16,
+            "compute_main_us": 0.3096,
+            "compute_spec_us": 0.0254,
+            "compute_total_us": 0.335,
+            "state_update_us": 0.9942,
+            "sync_wait_us": 3.6266,
+            "sync_and_update_us": 4.6208,
+            "total_us": 4.9557
+          },
+          {
+            "tid": 17,
+            "compute_main_us": 0.5763,
+            "compute_spec_us": 0.0283,
+            "compute_total_us": 0.6046,
+            "state_update_us": 0.8271,
+            "sync_wait_us": 3.5209,
+            "sync_and_update_us": 4.348,
+            "total_us": 4.9526
+          },
+          {
+            "tid": 18,
+            "compute_main_us": 0.0648,
+            "compute_spec_us": 0.026,
+            "compute_total_us": 0.0908,
+            "state_update_us": 0.7397,
+            "sync_wait_us": 4.1247,
+            "sync_and_update_us": 4.8644,
+            "total_us": 4.9552
+          },
+          {
+            "tid": 19,
+            "compute_main_us": 0.1023,
+            "compute_spec_us": 0.0217,
+            "compute_total_us": 0.124,
+            "state_update_us": 0.8822,
+            "sync_wait_us": 3.9481,
+            "sync_and_update_us": 4.8303,
+            "total_us": 4.9543
+          },
+          {
+            "tid": 20,
+            "compute_main_us": 0.299,
+            "compute_spec_us": 0.0231,
+            "compute_total_us": 0.3221,
+            "state_update_us": 0.8289,
+            "sync_wait_us": 3.8014,
+            "sync_and_update_us": 4.6304,
+            "total_us": 4.9525
+          },
+          {
+            "tid": 21,
+            "compute_main_us": 0.3415,
+            "compute_spec_us": 0.0286,
+            "compute_total_us": 0.37,
+            "state_update_us": 0.7768,
+            "sync_wait_us": 3.8062,
+            "sync_and_update_us": 4.583,
+            "total_us": 4.9531
+          },
+          {
+            "tid": 22,
+            "compute_main_us": 0.2645,
+            "compute_spec_us": 0.0377,
+            "compute_total_us": 0.3022,
+            "state_update_us": 0.9059,
+            "sync_wait_us": 3.7432,
+            "sync_and_update_us": 4.6491,
+            "total_us": 4.9513
+          },
+          {
+            "tid": 23,
+            "compute_main_us": 0.1055,
+            "compute_spec_us": 0.0184,
+            "compute_total_us": 0.1238,
+            "state_update_us": 0.8481,
+            "sync_wait_us": 3.9851,
+            "sync_and_update_us": 4.8332,
+            "total_us": 4.9571
+          }
+        ]
+      }
+    },
+    {
+      "design": "rocket_m_1",
+      "workload": "dhry",
+      "straggler_threads": [
+        12,
+        13
+      ],
+      "straggler_comparison": [
+        {
+          "tid": 12,
+          "p2sim": {
+            "tid": 12,
+            "compute_main_us": 2.9932,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 2.9932,
+            "state_update_us": 1.7302,
+            "sync_wait_us": 1.261,
+            "sync_and_update_us": 2.9912,
+            "total_us": 5.9844
+          },
+          "s2sim": {
+            "tid": 12,
+            "compute_main_us": 1.8106,
+            "compute_spec_us": 0.0609,
+            "compute_total_us": 1.8715,
+            "state_update_us": 0.9869,
+            "sync_wait_us": 1.5089,
+            "sync_and_update_us": 2.4959,
+            "total_us": 4.3674
+          }
+        },
+        {
+          "tid": 13,
+          "p2sim": {
+            "tid": 13,
+            "compute_main_us": 1.4136,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.4136,
+            "state_update_us": 1.4929,
+            "sync_wait_us": 2.9861,
+            "sync_and_update_us": 4.479,
+            "total_us": 5.8925
+          },
+          "s2sim": {
+            "tid": 13,
+            "compute_main_us": 1.3033,
+            "compute_spec_us": 0.0242,
+            "compute_total_us": 1.3275,
+            "state_update_us": 1.0314,
+            "sync_wait_us": 2.0093,
+            "sync_and_update_us": 3.0407,
+            "total_us": 4.3683
+          }
+        }
+      ],
+      "off": {
+        "counter_hz": 2599933110.967675,
+        "avg_compute_main_us": 0.31982440128001877,
+        "avg_compute_spec_us": 0.0,
+        "avg_compute_total_us": 0.31982440128001877,
+        "avg_state_update_us": 1.3871375695152792,
+        "avg_sync_wait_us": 4.274935423452715,
+        "avg_sync_and_update_us": 5.662072992967995,
+        "avg_total_us": 5.981897394248013,
+        "per_thread": [
+          {
+            "tid": 0,
+            "compute_main_us": 0.0341,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0341,
+            "state_update_us": 1.1668,
+            "sync_wait_us": 4.8131,
+            "sync_and_update_us": 5.9798,
+            "total_us": 6.0139
+          },
+          {
+            "tid": 1,
+            "compute_main_us": 0.0578,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0578,
+            "state_update_us": 1.3948,
+            "sync_wait_us": 4.5538,
+            "sync_and_update_us": 5.9486,
+            "total_us": 6.0064
+          },
+          {
+            "tid": 2,
+            "compute_main_us": 0.0367,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0367,
+            "state_update_us": 1.392,
+            "sync_wait_us": 4.5778,
+            "sync_and_update_us": 5.9698,
+            "total_us": 6.0065
+          },
+          {
+            "tid": 3,
+            "compute_main_us": 0.0191,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0191,
+            "state_update_us": 1.1358,
+            "sync_wait_us": 4.8461,
+            "sync_and_update_us": 5.9819,
+            "total_us": 6.001
+          },
+          {
+            "tid": 4,
+            "compute_main_us": 0.0162,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0162,
+            "state_update_us": 1.0663,
+            "sync_wait_us": 4.926,
+            "sync_and_update_us": 5.9923,
+            "total_us": 6.0086
+          },
+          {
+            "tid": 5,
+            "compute_main_us": 0.0155,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0155,
+            "state_update_us": 1.01,
+            "sync_wait_us": 4.9738,
+            "sync_and_update_us": 5.9838,
+            "total_us": 5.9993
+          },
+          {
+            "tid": 6,
+            "compute_main_us": 0.0178,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0178,
+            "state_update_us": 1.0863,
+            "sync_wait_us": 4.9085,
+            "sync_and_update_us": 5.9948,
+            "total_us": 6.0126
+          },
+          {
+            "tid": 7,
+            "compute_main_us": 0.0387,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0387,
+            "state_update_us": 1.4005,
+            "sync_wait_us": 4.5665,
+            "sync_and_update_us": 5.967,
+            "total_us": 6.0057
+          },
+          {
+            "tid": 8,
+            "compute_main_us": 0.0149,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0149,
+            "state_update_us": 1.0201,
+            "sync_wait_us": 4.9677,
+            "sync_and_update_us": 5.9878,
+            "total_us": 6.0026
+          },
+          {
+            "tid": 9,
+            "compute_main_us": 0.0199,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0199,
+            "state_update_us": 1.1212,
+            "sync_wait_us": 4.863,
+            "sync_and_update_us": 5.9842,
+            "total_us": 6.0041
+          },
+          {
+            "tid": 10,
+            "compute_main_us": 0.0402,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0402,
+            "state_update_us": 1.4024,
+            "sync_wait_us": 4.4496,
+            "sync_and_update_us": 5.852,
+            "total_us": 5.8922
+          },
+          {
+            "tid": 11,
+            "compute_main_us": 0.0576,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0576,
+            "state_update_us": 1.4552,
+            "sync_wait_us": 4.4881,
+            "sync_and_update_us": 5.9433,
+            "total_us": 6.0009
+          },
+          {
+            "tid": 12,
+            "compute_main_us": 2.9932,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 2.9932,
+            "state_update_us": 1.7302,
+            "sync_wait_us": 1.261,
+            "sync_and_update_us": 2.9912,
+            "total_us": 5.9844
+          },
+          {
+            "tid": 13,
+            "compute_main_us": 1.4136,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.4136,
+            "state_update_us": 1.4929,
+            "sync_wait_us": 2.9861,
+            "sync_and_update_us": 4.479,
+            "total_us": 5.8925
+          },
+          {
+            "tid": 14,
+            "compute_main_us": 0.4374,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.4374,
+            "state_update_us": 1.5254,
+            "sync_wait_us": 3.8873,
+            "sync_and_update_us": 5.4127,
+            "total_us": 5.8501
+          },
+          {
+            "tid": 15,
+            "compute_main_us": 0.7826,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.7826,
+            "state_update_us": 1.5063,
+            "sync_wait_us": 3.6985,
+            "sync_and_update_us": 5.2048,
+            "total_us": 5.9875
+          },
+          {
+            "tid": 16,
+            "compute_main_us": 0.186,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.186,
+            "state_update_us": 1.4971,
+            "sync_wait_us": 4.2997,
+            "sync_and_update_us": 5.7968,
+            "total_us": 5.9828
+          },
+          {
+            "tid": 17,
+            "compute_main_us": 0.4689,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.4689,
+            "state_update_us": 1.6939,
+            "sync_wait_us": 3.8068,
+            "sync_and_update_us": 5.5007,
+            "total_us": 5.9697
+          },
+          {
+            "tid": 18,
+            "compute_main_us": 0.0401,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0401,
+            "state_update_us": 1.2168,
+            "sync_wait_us": 4.7479,
+            "sync_and_update_us": 5.9647,
+            "total_us": 6.0048
+          },
+          {
+            "tid": 19,
+            "compute_main_us": 0.0605,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0605,
+            "state_update_us": 1.6673,
+            "sync_wait_us": 4.2509,
+            "sync_and_update_us": 5.9182,
+            "total_us": 5.9787
+          },
+          {
+            "tid": 20,
+            "compute_main_us": 0.2056,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.2056,
+            "state_update_us": 1.6256,
+            "sync_wait_us": 4.1346,
+            "sync_and_update_us": 5.7602,
+            "total_us": 5.9658
+          },
+          {
+            "tid": 21,
+            "compute_main_us": 0.3546,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.3546,
+            "state_update_us": 1.5446,
+            "sync_wait_us": 4.0969,
+            "sync_and_update_us": 5.6414,
+            "total_us": 5.996
+          },
+          {
+            "tid": 22,
+            "compute_main_us": 0.194,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.194,
+            "state_update_us": 1.6736,
+            "sync_wait_us": 4.1331,
+            "sync_and_update_us": 5.8067,
+            "total_us": 6.0007
+          },
+          {
+            "tid": 23,
+            "compute_main_us": 0.1706,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.1706,
+            "state_update_us": 1.4662,
+            "sync_wait_us": 4.3619,
+            "sync_and_update_us": 5.8281,
+            "total_us": 5.9986
+          }
+        ]
+      },
+      "on": {
+        "counter_hz": 2599922230.116792,
+        "avg_compute_main_us": 0.2806689023158025,
+        "avg_compute_spec_us": 0.0248680750143421,
+        "avg_compute_total_us": 0.30553697733014457,
+        "avg_state_update_us": 0.8374100308642168,
+        "avg_sync_wait_us": 3.2152015970587278,
+        "avg_sync_and_update_us": 4.052611627922945,
+        "avg_total_us": 4.358148605253089,
+        "per_thread": [
+          {
+            "tid": 0,
+            "compute_main_us": 0.0433,
+            "compute_spec_us": 0.0251,
+            "compute_total_us": 0.0684,
+            "state_update_us": 0.7085,
+            "sync_wait_us": 3.581,
+            "sync_and_update_us": 4.2896,
+            "total_us": 4.3579
+          },
+          {
+            "tid": 1,
+            "compute_main_us": 0.1207,
+            "compute_spec_us": 0.0302,
+            "compute_total_us": 0.1509,
+            "state_update_us": 0.8982,
+            "sync_wait_us": 3.3052,
+            "sync_and_update_us": 4.2034,
+            "total_us": 4.3543
+          },
+          {
+            "tid": 2,
+            "compute_main_us": 0.026,
+            "compute_spec_us": 0.0147,
+            "compute_total_us": 0.0407,
+            "state_update_us": 0.8392,
+            "sync_wait_us": 3.4866,
+            "sync_and_update_us": 4.3258,
+            "total_us": 4.3665
+          },
+          {
+            "tid": 3,
+            "compute_main_us": 0.0161,
+            "compute_spec_us": 0.0145,
+            "compute_total_us": 0.0306,
+            "state_update_us": 0.4788,
+            "sync_wait_us": 3.8565,
+            "sync_and_update_us": 4.3352,
+            "total_us": 4.3659
+          },
+          {
+            "tid": 4,
+            "compute_main_us": 0.02,
+            "compute_spec_us": 0.0195,
+            "compute_total_us": 0.0395,
+            "state_update_us": 0.6543,
+            "sync_wait_us": 3.6607,
+            "sync_and_update_us": 4.3149,
+            "total_us": 4.3544
+          },
+          {
+            "tid": 5,
+            "compute_main_us": 0.0165,
+            "compute_spec_us": 0.0145,
+            "compute_total_us": 0.0311,
+            "state_update_us": 0.4959,
+            "sync_wait_us": 3.8329,
+            "sync_and_update_us": 4.3288,
+            "total_us": 4.3599
+          },
+          {
+            "tid": 6,
+            "compute_main_us": 0.0217,
+            "compute_spec_us": 0.0184,
+            "compute_total_us": 0.04,
+            "state_update_us": 0.6888,
+            "sync_wait_us": 3.6217,
+            "sync_and_update_us": 4.3104,
+            "total_us": 4.3505
+          },
+          {
+            "tid": 7,
+            "compute_main_us": 0.0555,
+            "compute_spec_us": 0.0248,
+            "compute_total_us": 0.0803,
+            "state_update_us": 0.9077,
+            "sync_wait_us": 3.3663,
+            "sync_and_update_us": 4.274,
+            "total_us": 4.3543
+          },
+          {
+            "tid": 8,
+            "compute_main_us": 0.0213,
+            "compute_spec_us": 0.0181,
+            "compute_total_us": 0.0394,
+            "state_update_us": 0.6435,
+            "sync_wait_us": 3.6681,
+            "sync_and_update_us": 4.3117,
+            "total_us": 4.3511
+          },
+          {
+            "tid": 9,
+            "compute_main_us": 0.0155,
+            "compute_spec_us": 0.0139,
+            "compute_total_us": 0.0295,
+            "state_update_us": 0.4854,
+            "sync_wait_us": 3.8484,
+            "sync_and_update_us": 4.3338,
+            "total_us": 4.3633
+          },
+          {
+            "tid": 10,
+            "compute_main_us": 0.0469,
+            "compute_spec_us": 0.0204,
+            "compute_total_us": 0.0673,
+            "state_update_us": 0.9965,
+            "sync_wait_us": 3.2974,
+            "sync_and_update_us": 4.2939,
+            "total_us": 4.3612
+          },
+          {
+            "tid": 11,
+            "compute_main_us": 0.0626,
+            "compute_spec_us": 0.0231,
+            "compute_total_us": 0.0857,
+            "state_update_us": 0.9143,
+            "sync_wait_us": 3.3584,
+            "sync_and_update_us": 4.2727,
+            "total_us": 4.3584
+          },
+          {
+            "tid": 12,
+            "compute_main_us": 1.8106,
+            "compute_spec_us": 0.0609,
+            "compute_total_us": 1.8715,
+            "state_update_us": 0.9869,
+            "sync_wait_us": 1.5089,
+            "sync_and_update_us": 2.4959,
+            "total_us": 4.3674
+          },
+          {
+            "tid": 13,
+            "compute_main_us": 1.3033,
+            "compute_spec_us": 0.0242,
+            "compute_total_us": 1.3275,
+            "state_update_us": 1.0314,
+            "sync_wait_us": 2.0093,
+            "sync_and_update_us": 3.0407,
+            "total_us": 4.3683
+          },
+          {
+            "tid": 14,
+            "compute_main_us": 0.444,
+            "compute_spec_us": 0.0144,
+            "compute_total_us": 0.4584,
+            "state_update_us": 0.9369,
+            "sync_wait_us": 2.9725,
+            "sync_and_update_us": 3.9094,
+            "total_us": 4.3678
+          },
+          {
+            "tid": 15,
+            "compute_main_us": 0.4776,
+            "compute_spec_us": 0.0228,
+            "compute_total_us": 0.5004,
+            "state_update_us": 0.9491,
+            "sync_wait_us": 2.9182,
+            "sync_and_update_us": 3.8673,
+            "total_us": 4.3678
+          },
+          {
+            "tid": 16,
+            "compute_main_us": 0.3098,
+            "compute_spec_us": 0.0283,
+            "compute_total_us": 0.3381,
+            "state_update_us": 1.0548,
+            "sync_wait_us": 2.9595,
+            "sync_and_update_us": 4.0143,
+            "total_us": 4.3524
+          },
+          {
+            "tid": 17,
+            "compute_main_us": 0.6251,
+            "compute_spec_us": 0.0322,
+            "compute_total_us": 0.6572,
+            "state_update_us": 0.9547,
+            "sync_wait_us": 2.742,
+            "sync_and_update_us": 3.6967,
+            "total_us": 4.3539
+          },
+          {
+            "tid": 18,
+            "compute_main_us": 0.0645,
+            "compute_spec_us": 0.027,
+            "compute_total_us": 0.0916,
+            "state_update_us": 0.8129,
+            "sync_wait_us": 3.4439,
+            "sync_and_update_us": 4.2568,
+            "total_us": 4.3483
+          },
+          {
+            "tid": 19,
+            "compute_main_us": 0.0921,
+            "compute_spec_us": 0.0245,
+            "compute_total_us": 0.1165,
+            "state_update_us": 0.9609,
+            "sync_wait_us": 3.2756,
+            "sync_and_update_us": 4.2365,
+            "total_us": 4.3531
+          },
+          {
+            "tid": 20,
+            "compute_main_us": 0.2835,
+            "compute_spec_us": 0.0243,
+            "compute_total_us": 0.3078,
+            "state_update_us": 0.9125,
+            "sync_wait_us": 3.1376,
+            "sync_and_update_us": 4.0501,
+            "total_us": 4.3579
+          },
+          {
+            "tid": 21,
+            "compute_main_us": 0.382,
+            "compute_spec_us": 0.0315,
+            "compute_total_us": 0.4135,
+            "state_update_us": 0.854,
+            "sync_wait_us": 3.0866,
+            "sync_and_update_us": 3.9407,
+            "total_us": 4.3541
+          },
+          {
+            "tid": 22,
+            "compute_main_us": 0.282,
+            "compute_spec_us": 0.0423,
+            "compute_total_us": 0.3243,
+            "state_update_us": 0.9832,
+            "sync_wait_us": 3.0454,
+            "sync_and_update_us": 4.0286,
+            "total_us": 4.3529
+          },
+          {
+            "tid": 23,
+            "compute_main_us": 0.1955,
+            "compute_spec_us": 0.0272,
+            "compute_total_us": 0.2227,
+            "state_update_us": 0.9495,
+            "sync_wait_us": 3.1819,
+            "sync_and_update_us": 4.1314,
+            "total_us": 4.3541
+          }
+        ]
+      }
+    },
+    {
+      "design": "boom_s_1",
+      "workload": "linux",
+      "straggler_threads": [
+        9,
+        10
+      ],
+      "straggler_comparison": [
+        {
+          "tid": 9,
+          "p2sim": {
+            "tid": 9,
+            "compute_main_us": 3.3276,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 3.3276,
+            "state_update_us": 1.835,
+            "sync_wait_us": 2.1788,
+            "sync_and_update_us": 4.0138,
+            "total_us": 7.3414
+          },
+          "s2sim": {
+            "tid": 9,
+            "compute_main_us": 3.0608,
+            "compute_spec_us": 0.6808,
+            "compute_total_us": 3.7415,
+            "state_update_us": 1.2531,
+            "sync_wait_us": 1.1054,
+            "sync_and_update_us": 2.3586,
+            "total_us": 6.1001
+          }
+        },
+        {
+          "tid": 10,
+          "p2sim": {
+            "tid": 10,
+            "compute_main_us": 1.7586,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.7586,
+            "state_update_us": 2.1652,
+            "sync_wait_us": 3.4294,
+            "sync_and_update_us": 5.5946,
+            "total_us": 7.3532
+          },
+          "s2sim": {
+            "tid": 10,
+            "compute_main_us": 1.7821,
+            "compute_spec_us": 0.1444,
+            "compute_total_us": 1.9266,
+            "state_update_us": 1.5373,
+            "sync_wait_us": 2.6326,
+            "sync_and_update_us": 4.1698,
+            "total_us": 6.0964
+          }
+        }
+      ],
+      "off": {
+        "counter_hz": 2599926959.760332,
+        "avg_compute_main_us": 0.5945458865733522,
+        "avg_compute_spec_us": 0.0,
+        "avg_compute_total_us": 0.5945458865733522,
+        "avg_state_update_us": 1.6701109975670005,
+        "avg_sync_wait_us": 5.119942604962161,
+        "avg_sync_and_update_us": 6.790053602529163,
+        "avg_total_us": 7.384599489102514,
+        "per_thread": [
+          {
+            "tid": 0,
+            "compute_main_us": 0.5188,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.5188,
+            "state_update_us": 1.9306,
+            "sync_wait_us": 4.9156,
+            "sync_and_update_us": 6.8462,
+            "total_us": 7.365
+          },
+          {
+            "tid": 1,
+            "compute_main_us": 1.2593,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.2593,
+            "state_update_us": 2.2865,
+            "sync_wait_us": 3.8407,
+            "sync_and_update_us": 6.1273,
+            "total_us": 7.3866
+          },
+          {
+            "tid": 2,
+            "compute_main_us": 0.9801,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.9801,
+            "state_update_us": 2.3952,
+            "sync_wait_us": 3.962,
+            "sync_and_update_us": 6.3572,
+            "total_us": 7.3373
+          },
+          {
+            "tid": 3,
+            "compute_main_us": 0.4488,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.4488,
+            "state_update_us": 1.7616,
+            "sync_wait_us": 5.1651,
+            "sync_and_update_us": 6.9267,
+            "total_us": 7.3755
+          },
+          {
+            "tid": 4,
+            "compute_main_us": 0.4313,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.4313,
+            "state_update_us": 1.8936,
+            "sync_wait_us": 5.042,
+            "sync_and_update_us": 6.9356,
+            "total_us": 7.3669
+          },
+          {
+            "tid": 5,
+            "compute_main_us": 0.5838,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.5838,
+            "state_update_us": 2.0227,
+            "sync_wait_us": 4.762,
+            "sync_and_update_us": 6.7848,
+            "total_us": 7.3685
+          },
+          {
+            "tid": 6,
+            "compute_main_us": 0.4052,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.4052,
+            "state_update_us": 1.661,
+            "sync_wait_us": 5.3131,
+            "sync_and_update_us": 6.9742,
+            "total_us": 7.3793
+          },
+          {
+            "tid": 7,
+            "compute_main_us": 1.6796,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.6796,
+            "state_update_us": 2.4725,
+            "sync_wait_us": 3.2299,
+            "sync_and_update_us": 5.7024,
+            "total_us": 7.3819
+          },
+          {
+            "tid": 8,
+            "compute_main_us": 1.062,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.062,
+            "state_update_us": 1.515,
+            "sync_wait_us": 4.8252,
+            "sync_and_update_us": 6.3402,
+            "total_us": 7.4023
+          },
+          {
+            "tid": 9,
+            "compute_main_us": 3.3276,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 3.3276,
+            "state_update_us": 1.835,
+            "sync_wait_us": 2.1788,
+            "sync_and_update_us": 4.0138,
+            "total_us": 7.3414
+          },
+          {
+            "tid": 10,
+            "compute_main_us": 1.7586,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.7586,
+            "state_update_us": 2.1652,
+            "sync_wait_us": 3.4294,
+            "sync_and_update_us": 5.5946,
+            "total_us": 7.3532
+          },
+          {
+            "tid": 11,
+            "compute_main_us": 0.5822,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.5822,
+            "state_update_us": 1.8541,
+            "sync_wait_us": 4.9369,
+            "sync_and_update_us": 6.7911,
+            "total_us": 7.3732
+          },
+          {
+            "tid": 12,
+            "compute_main_us": 0.2503,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.2503,
+            "state_update_us": 1.5333,
+            "sync_wait_us": 5.6108,
+            "sync_and_update_us": 7.1441,
+            "total_us": 7.3945
+          },
+          {
+            "tid": 13,
+            "compute_main_us": 0.1001,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.1001,
+            "state_update_us": 1.5192,
+            "sync_wait_us": 5.7772,
+            "sync_and_update_us": 7.2964,
+            "total_us": 7.3965
+          },
+          {
+            "tid": 14,
+            "compute_main_us": 0.1703,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.1703,
+            "state_update_us": 1.805,
+            "sync_wait_us": 5.4206,
+            "sync_and_update_us": 7.2256,
+            "total_us": 7.3959
+          },
+          {
+            "tid": 15,
+            "compute_main_us": 0.0622,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0622,
+            "state_update_us": 1.2327,
+            "sync_wait_us": 6.1112,
+            "sync_and_update_us": 7.3439,
+            "total_us": 7.406
+          },
+          {
+            "tid": 16,
+            "compute_main_us": 0.2516,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.2516,
+            "state_update_us": 1.5114,
+            "sync_wait_us": 5.6302,
+            "sync_and_update_us": 7.1416,
+            "total_us": 7.3931
+          },
+          {
+            "tid": 17,
+            "compute_main_us": 0.1311,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.1311,
+            "state_update_us": 1.3047,
+            "sync_wait_us": 5.9644,
+            "sync_and_update_us": 7.2691,
+            "total_us": 7.4002
+          },
+          {
+            "tid": 18,
+            "compute_main_us": 0.0309,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0309,
+            "state_update_us": 1.1739,
+            "sync_wait_us": 6.19,
+            "sync_and_update_us": 7.3639,
+            "total_us": 7.3948
+          },
+          {
+            "tid": 19,
+            "compute_main_us": 0.0361,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0361,
+            "state_update_us": 1.187,
+            "sync_wait_us": 6.1805,
+            "sync_and_update_us": 7.3675,
+            "total_us": 7.4036
+          },
+          {
+            "tid": 20,
+            "compute_main_us": 0.0628,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0628,
+            "state_update_us": 1.2121,
+            "sync_wait_us": 6.1233,
+            "sync_and_update_us": 7.3354,
+            "total_us": 7.3982
+          },
+          {
+            "tid": 21,
+            "compute_main_us": 0.0406,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0406,
+            "state_update_us": 1.1552,
+            "sync_wait_us": 6.2069,
+            "sync_and_update_us": 7.3621,
+            "total_us": 7.4027
+          },
+          {
+            "tid": 22,
+            "compute_main_us": 0.0555,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0555,
+            "state_update_us": 1.4542,
+            "sync_wait_us": 5.8935,
+            "sync_and_update_us": 7.3477,
+            "total_us": 7.4033
+          },
+          {
+            "tid": 23,
+            "compute_main_us": 0.0404,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0404,
+            "state_update_us": 1.2008,
+            "sync_wait_us": 6.1693,
+            "sync_and_update_us": 7.37,
+            "total_us": 7.4104
+          }
+        ]
+      },
+      "on": {
+        "counter_hz": 2599928503.866545,
+        "avg_compute_main_us": 0.5819197396646284,
+        "avg_compute_spec_us": 0.0665788700699153,
+        "avg_compute_total_us": 0.6484986097345437,
+        "avg_state_update_us": 1.0141448512701137,
+        "avg_sync_wait_us": 4.43704463081477,
+        "avg_sync_and_update_us": 5.4511894820848825,
+        "avg_total_us": 6.099688091819428,
+        "per_thread": [
+          {
+            "tid": 0,
+            "compute_main_us": 0.5601,
+            "compute_spec_us": 0.0441,
+            "compute_total_us": 0.6042,
+            "state_update_us": 1.3763,
+            "sync_wait_us": 4.1249,
+            "sync_and_update_us": 5.5012,
+            "total_us": 6.1053
+          },
+          {
+            "tid": 1,
+            "compute_main_us": 1.3015,
+            "compute_spec_us": 0.0593,
+            "compute_total_us": 1.3609,
+            "state_update_us": 1.6254,
+            "sync_wait_us": 3.1214,
+            "sync_and_update_us": 4.7468,
+            "total_us": 6.1077
+          },
+          {
+            "tid": 2,
+            "compute_main_us": 1.0173,
+            "compute_spec_us": 0.0402,
+            "compute_total_us": 1.0576,
+            "state_update_us": 1.9133,
+            "sync_wait_us": 3.1326,
+            "sync_and_update_us": 5.0459,
+            "total_us": 6.1035
+          },
+          {
+            "tid": 3,
+            "compute_main_us": 0.4276,
+            "compute_spec_us": 0.0323,
+            "compute_total_us": 0.4599,
+            "state_update_us": 1.228,
+            "sync_wait_us": 4.4176,
+            "sync_and_update_us": 5.6456,
+            "total_us": 6.1054
+          },
+          {
+            "tid": 4,
+            "compute_main_us": 0.4714,
+            "compute_spec_us": 0.0225,
+            "compute_total_us": 0.494,
+            "state_update_us": 1.2719,
+            "sync_wait_us": 4.3392,
+            "sync_and_update_us": 5.6111,
+            "total_us": 6.1051
+          },
+          {
+            "tid": 5,
+            "compute_main_us": 0.5259,
+            "compute_spec_us": 0.0361,
+            "compute_total_us": 0.562,
+            "state_update_us": 1.42,
+            "sync_wait_us": 4.1251,
+            "sync_and_update_us": 5.5451,
+            "total_us": 6.1071
+          },
+          {
+            "tid": 6,
+            "compute_main_us": 0.4304,
+            "compute_spec_us": 0.0208,
+            "compute_total_us": 0.4512,
+            "state_update_us": 0.8656,
+            "sync_wait_us": 4.7865,
+            "sync_and_update_us": 5.6522,
+            "total_us": 6.1034
+          },
+          {
+            "tid": 7,
+            "compute_main_us": 1.5345,
+            "compute_spec_us": 0.0899,
+            "compute_total_us": 1.6245,
+            "state_update_us": 1.8704,
+            "sync_wait_us": 2.6127,
+            "sync_and_update_us": 4.4831,
+            "total_us": 6.1076
+          },
+          {
+            "tid": 8,
+            "compute_main_us": 0.9473,
+            "compute_spec_us": 0.1002,
+            "compute_total_us": 1.0475,
+            "state_update_us": 0.6177,
+            "sync_wait_us": 4.3929,
+            "sync_and_update_us": 5.0106,
+            "total_us": 6.0581
+          },
+          {
+            "tid": 9,
+            "compute_main_us": 3.0608,
+            "compute_spec_us": 0.6808,
+            "compute_total_us": 3.7415,
+            "state_update_us": 1.2531,
+            "sync_wait_us": 1.1054,
+            "sync_and_update_us": 2.3586,
+            "total_us": 6.1001
+          },
+          {
+            "tid": 10,
+            "compute_main_us": 1.7821,
+            "compute_spec_us": 0.1444,
+            "compute_total_us": 1.9266,
+            "state_update_us": 1.5373,
+            "sync_wait_us": 2.6326,
+            "sync_and_update_us": 4.1698,
+            "total_us": 6.0964
+          },
+          {
+            "tid": 11,
+            "compute_main_us": 0.5782,
+            "compute_spec_us": 0.0307,
+            "compute_total_us": 0.6089,
+            "state_update_us": 1.2441,
+            "sync_wait_us": 4.2435,
+            "sync_and_update_us": 5.4876,
+            "total_us": 6.0965
+          },
+          {
+            "tid": 12,
+            "compute_main_us": 0.2518,
+            "compute_spec_us": 0.0324,
+            "compute_total_us": 0.2842,
+            "state_update_us": 0.8604,
+            "sync_wait_us": 4.9532,
+            "sync_and_update_us": 5.8136,
+            "total_us": 6.0978
+          },
+          {
+            "tid": 13,
+            "compute_main_us": 0.0934,
+            "compute_spec_us": 0.0298,
+            "compute_total_us": 0.1231,
+            "state_update_us": 0.843,
+            "sync_wait_us": 5.1329,
+            "sync_and_update_us": 5.9759,
+            "total_us": 6.099
+          },
+          {
+            "tid": 14,
+            "compute_main_us": 0.2025,
+            "compute_spec_us": 0.0281,
+            "compute_total_us": 0.2305,
+            "state_update_us": 0.9606,
+            "sync_wait_us": 4.9066,
+            "sync_and_update_us": 5.8673,
+            "total_us": 6.0978
+          },
+          {
+            "tid": 15,
+            "compute_main_us": 0.0697,
+            "compute_spec_us": 0.0264,
+            "compute_total_us": 0.0961,
+            "state_update_us": 0.5517,
+            "sync_wait_us": 5.4567,
+            "sync_and_update_us": 6.0084,
+            "total_us": 6.1045
+          },
+          {
+            "tid": 16,
+            "compute_main_us": 0.2689,
+            "compute_spec_us": 0.0269,
+            "compute_total_us": 0.2959,
+            "state_update_us": 0.8509,
+            "sync_wait_us": 4.9598,
+            "sync_and_update_us": 5.8107,
+            "total_us": 6.1065
+          },
+          {
+            "tid": 17,
+            "compute_main_us": 0.1498,
+            "compute_spec_us": 0.0216,
+            "compute_total_us": 0.1714,
+            "state_update_us": 0.6647,
+            "sync_wait_us": 5.2654,
+            "sync_and_update_us": 5.9301,
+            "total_us": 6.1015
+          },
+          {
+            "tid": 18,
+            "compute_main_us": 0.0321,
+            "compute_spec_us": 0.0195,
+            "compute_total_us": 0.0516,
+            "state_update_us": 0.4991,
+            "sync_wait_us": 5.5508,
+            "sync_and_update_us": 6.0499,
+            "total_us": 6.1015
+          },
+          {
+            "tid": 19,
+            "compute_main_us": 0.0363,
+            "compute_spec_us": 0.0242,
+            "compute_total_us": 0.0605,
+            "state_update_us": 0.4767,
+            "sync_wait_us": 5.5636,
+            "sync_and_update_us": 6.0403,
+            "total_us": 6.1008
+          },
+          {
+            "tid": 20,
+            "compute_main_us": 0.0689,
+            "compute_spec_us": 0.0208,
+            "compute_total_us": 0.0897,
+            "state_update_us": 0.5777,
+            "sync_wait_us": 5.4289,
+            "sync_and_update_us": 6.0066,
+            "total_us": 6.0963
+          },
+          {
+            "tid": 21,
+            "compute_main_us": 0.0424,
+            "compute_spec_us": 0.0211,
+            "compute_total_us": 0.0635,
+            "state_update_us": 0.5246,
+            "sync_wait_us": 5.5102,
+            "sync_and_update_us": 6.0348,
+            "total_us": 6.0983
+          },
+          {
+            "tid": 22,
+            "compute_main_us": 0.0697,
+            "compute_spec_us": 0.0245,
+            "compute_total_us": 0.0942,
+            "state_update_us": 0.7816,
+            "sync_wait_us": 5.2204,
+            "sync_and_update_us": 6.002,
+            "total_us": 6.0962
+          },
+          {
+            "tid": 23,
+            "compute_main_us": 0.0433,
+            "compute_spec_us": 0.0212,
+            "compute_total_us": 0.0645,
+            "state_update_us": 0.5253,
+            "sync_wait_us": 5.5061,
+            "sync_and_update_us": 6.0314,
+            "total_us": 6.096
+          }
+        ]
+      }
+    },
+    {
+      "design": "boom_s_1",
+      "workload": "coremark",
+      "straggler_threads": [
+        9,
+        10
+      ],
+      "straggler_comparison": [
+        {
+          "tid": 9,
+          "p2sim": {
+            "tid": 9,
+            "compute_main_us": 4.2408,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 4.2408,
+            "state_update_us": 2.379,
+            "sync_wait_us": 1.6231,
+            "sync_and_update_us": 4.0022,
+            "total_us": 8.243
+          },
+          "s2sim": {
+            "tid": 9,
+            "compute_main_us": 3.4033,
+            "compute_spec_us": 0.7186,
+            "compute_total_us": 4.1219,
+            "state_update_us": 1.997,
+            "sync_wait_us": 0.4155,
+            "sync_and_update_us": 2.4125,
+            "total_us": 6.5344
+          }
+        },
+        {
+          "tid": 10,
+          "p2sim": {
+            "tid": 10,
+            "compute_main_us": 2.9073,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 2.9073,
+            "state_update_us": 2.8421,
+            "sync_wait_us": 2.4967,
+            "sync_and_update_us": 5.3388,
+            "total_us": 8.2461
+          },
+          "s2sim": {
+            "tid": 10,
+            "compute_main_us": 2.4062,
+            "compute_spec_us": 0.1603,
+            "compute_total_us": 2.5665,
+            "state_update_us": 2.0073,
+            "sync_wait_us": 1.9624,
+            "sync_and_update_us": 3.9697,
+            "total_us": 6.5362
+          }
+        }
+      ],
+      "off": {
+        "counter_hz": 2599940806.495619,
+        "avg_compute_main_us": 0.8123939267538959,
+        "avg_compute_spec_us": 0.0,
+        "avg_compute_total_us": 0.8123939267538959,
+        "avg_state_update_us": 1.7935568596983973,
+        "avg_sync_wait_us": 5.669189487657479,
+        "avg_sync_and_update_us": 7.462746347355875,
+        "avg_total_us": 8.275140274109772,
+        "per_thread": [
+          {
+            "tid": 0,
+            "compute_main_us": 1.0261,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.0261,
+            "state_update_us": 2.2888,
+            "sync_wait_us": 4.8457,
+            "sync_and_update_us": 7.1345,
+            "total_us": 8.1606
+          },
+          {
+            "tid": 1,
+            "compute_main_us": 1.343,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.343,
+            "state_update_us": 2.6261,
+            "sync_wait_us": 4.2897,
+            "sync_and_update_us": 6.9158,
+            "total_us": 8.2588
+          },
+          {
+            "tid": 2,
+            "compute_main_us": 1.0787,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.0787,
+            "state_update_us": 3.1112,
+            "sync_wait_us": 4.041,
+            "sync_and_update_us": 7.1523,
+            "total_us": 8.231
+          },
+          {
+            "tid": 3,
+            "compute_main_us": 1.1137,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.1137,
+            "state_update_us": 2.3415,
+            "sync_wait_us": 4.7837,
+            "sync_and_update_us": 7.1253,
+            "total_us": 8.239
+          },
+          {
+            "tid": 4,
+            "compute_main_us": 0.8362,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.8362,
+            "state_update_us": 2.3254,
+            "sync_wait_us": 4.9874,
+            "sync_and_update_us": 7.3128,
+            "total_us": 8.149
+          },
+          {
+            "tid": 5,
+            "compute_main_us": 1.081,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.081,
+            "state_update_us": 2.6427,
+            "sync_wait_us": 4.5473,
+            "sync_and_update_us": 7.19,
+            "total_us": 8.271
+          },
+          {
+            "tid": 6,
+            "compute_main_us": 0.8737,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.8737,
+            "state_update_us": 1.6877,
+            "sync_wait_us": 5.5089,
+            "sync_and_update_us": 7.1967,
+            "total_us": 8.0704
+          },
+          {
+            "tid": 7,
+            "compute_main_us": 2.8052,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 2.8052,
+            "state_update_us": 3.2545,
+            "sync_wait_us": 2.2196,
+            "sync_and_update_us": 5.474,
+            "total_us": 8.2792
+          },
+          {
+            "tid": 8,
+            "compute_main_us": 0.5564,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.5564,
+            "state_update_us": 1.4209,
+            "sync_wait_us": 6.345,
+            "sync_and_update_us": 7.7658,
+            "total_us": 8.3222
+          },
+          {
+            "tid": 9,
+            "compute_main_us": 4.2408,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 4.2408,
+            "state_update_us": 2.379,
+            "sync_wait_us": 1.6231,
+            "sync_and_update_us": 4.0022,
+            "total_us": 8.243
+          },
+          {
+            "tid": 10,
+            "compute_main_us": 2.9073,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 2.9073,
+            "state_update_us": 2.8421,
+            "sync_wait_us": 2.4967,
+            "sync_and_update_us": 5.3388,
+            "total_us": 8.2461
+          },
+          {
+            "tid": 11,
+            "compute_main_us": 0.8802,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.8802,
+            "state_update_us": 2.0803,
+            "sync_wait_us": 5.3101,
+            "sync_and_update_us": 7.3904,
+            "total_us": 8.2706
+          },
+          {
+            "tid": 12,
+            "compute_main_us": 0.1862,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.1862,
+            "state_update_us": 1.3564,
+            "sync_wait_us": 6.7608,
+            "sync_and_update_us": 8.1172,
+            "total_us": 8.3034
+          },
+          {
+            "tid": 13,
+            "compute_main_us": 0.0704,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0704,
+            "state_update_us": 1.3055,
+            "sync_wait_us": 6.9412,
+            "sync_and_update_us": 8.2467,
+            "total_us": 8.3172
+          },
+          {
+            "tid": 14,
+            "compute_main_us": 0.1024,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.1024,
+            "state_update_us": 1.638,
+            "sync_wait_us": 6.5786,
+            "sync_and_update_us": 8.2166,
+            "total_us": 8.319
+          },
+          {
+            "tid": 15,
+            "compute_main_us": 0.0363,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0363,
+            "state_update_us": 1.0072,
+            "sync_wait_us": 7.2884,
+            "sync_and_update_us": 8.2956,
+            "total_us": 8.3319
+          },
+          {
+            "tid": 16,
+            "compute_main_us": 0.0983,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0983,
+            "state_update_us": 1.2409,
+            "sync_wait_us": 6.9876,
+            "sync_and_update_us": 8.2285,
+            "total_us": 8.3269
+          },
+          {
+            "tid": 17,
+            "compute_main_us": 0.0911,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0911,
+            "state_update_us": 1.1258,
+            "sync_wait_us": 7.1092,
+            "sync_and_update_us": 8.235,
+            "total_us": 8.3262
+          },
+          {
+            "tid": 18,
+            "compute_main_us": 0.0222,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0222,
+            "state_update_us": 0.9549,
+            "sync_wait_us": 7.3467,
+            "sync_and_update_us": 8.3016,
+            "total_us": 8.3237
+          },
+          {
+            "tid": 19,
+            "compute_main_us": 0.0243,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0243,
+            "state_update_us": 0.9773,
+            "sync_wait_us": 7.3231,
+            "sync_and_update_us": 8.3004,
+            "total_us": 8.3247
+          },
+          {
+            "tid": 20,
+            "compute_main_us": 0.0283,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0283,
+            "state_update_us": 1.1814,
+            "sync_wait_us": 7.1089,
+            "sync_and_update_us": 8.2902,
+            "total_us": 8.3185
+          },
+          {
+            "tid": 21,
+            "compute_main_us": 0.0258,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0258,
+            "state_update_us": 0.9716,
+            "sync_wait_us": 7.326,
+            "sync_and_update_us": 8.2977,
+            "total_us": 8.3235
+          },
+          {
+            "tid": 22,
+            "compute_main_us": 0.0454,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0454,
+            "state_update_us": 1.269,
+            "sync_wait_us": 7.0116,
+            "sync_and_update_us": 8.2805,
+            "total_us": 8.3259
+          },
+          {
+            "tid": 23,
+            "compute_main_us": 0.0244,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0244,
+            "state_update_us": 1.0171,
+            "sync_wait_us": 7.2804,
+            "sync_and_update_us": 8.2974,
+            "total_us": 8.3218
+          }
+        ]
+      },
+      "on": {
+        "counter_hz": 2599934668.357243,
+        "avg_compute_main_us": 0.7128858236417782,
+        "avg_compute_spec_us": 0.06757414958853866,
+        "avg_compute_total_us": 0.7804599732303168,
+        "avg_state_update_us": 1.0532319826957564,
+        "avg_sync_wait_us": 4.706473994093959,
+        "avg_sync_and_update_us": 5.759705976789715,
+        "avg_total_us": 6.540165950020032,
+        "per_thread": [
+          {
+            "tid": 0,
+            "compute_main_us": 1.2369,
+            "compute_spec_us": 0.0609,
+            "compute_total_us": 1.2978,
+            "state_update_us": 1.5268,
+            "sync_wait_us": 3.7184,
+            "sync_and_update_us": 5.2452,
+            "total_us": 6.5429
+          },
+          {
+            "tid": 1,
+            "compute_main_us": 1.1671,
+            "compute_spec_us": 0.0649,
+            "compute_total_us": 1.2321,
+            "state_update_us": 1.617,
+            "sync_wait_us": 3.6994,
+            "sync_and_update_us": 5.3164,
+            "total_us": 6.5485
+          },
+          {
+            "tid": 2,
+            "compute_main_us": 1.2624,
+            "compute_spec_us": 0.0313,
+            "compute_total_us": 1.2937,
+            "state_update_us": 2.4313,
+            "sync_wait_us": 2.8183,
+            "sync_and_update_us": 5.2496,
+            "total_us": 6.5433
+          },
+          {
+            "tid": 3,
+            "compute_main_us": 0.876,
+            "compute_spec_us": 0.0556,
+            "compute_total_us": 0.9315,
+            "state_update_us": 1.4144,
+            "sync_wait_us": 4.1972,
+            "sync_and_update_us": 5.6116,
+            "total_us": 6.5432
+          },
+          {
+            "tid": 4,
+            "compute_main_us": 0.8866,
+            "compute_spec_us": 0.0197,
+            "compute_total_us": 0.9063,
+            "state_update_us": 1.5764,
+            "sync_wait_us": 4.0583,
+            "sync_and_update_us": 5.6346,
+            "total_us": 6.5409
+          },
+          {
+            "tid": 5,
+            "compute_main_us": 0.7964,
+            "compute_spec_us": 0.0419,
+            "compute_total_us": 0.8382,
+            "state_update_us": 1.4486,
+            "sync_wait_us": 4.2601,
+            "sync_and_update_us": 5.7086,
+            "total_us": 6.5469
+          },
+          {
+            "tid": 6,
+            "compute_main_us": 0.9996,
+            "compute_spec_us": 0.021,
+            "compute_total_us": 1.0206,
+            "state_update_us": 1.1301,
+            "sync_wait_us": 4.392,
+            "sync_and_update_us": 5.5221,
+            "total_us": 6.5426
+          },
+          {
+            "tid": 7,
+            "compute_main_us": 2.0574,
+            "compute_spec_us": 0.1325,
+            "compute_total_us": 2.1899,
+            "state_update_us": 2.0527,
+            "sync_wait_us": 2.3002,
+            "sync_and_update_us": 4.3529,
+            "total_us": 6.5428
+          },
+          {
+            "tid": 8,
+            "compute_main_us": 0.4185,
+            "compute_spec_us": 0.0366,
+            "compute_total_us": 0.4552,
+            "state_update_us": 0.5476,
+            "sync_wait_us": 5.4982,
+            "sync_and_update_us": 6.0458,
+            "total_us": 6.5009
+          },
+          {
+            "tid": 9,
+            "compute_main_us": 3.4033,
+            "compute_spec_us": 0.7186,
+            "compute_total_us": 4.1219,
+            "state_update_us": 1.997,
+            "sync_wait_us": 0.4155,
+            "sync_and_update_us": 2.4125,
+            "total_us": 6.5344
+          },
+          {
+            "tid": 10,
+            "compute_main_us": 2.4062,
+            "compute_spec_us": 0.1603,
+            "compute_total_us": 2.5665,
+            "state_update_us": 2.0073,
+            "sync_wait_us": 1.9624,
+            "sync_and_update_us": 3.9697,
+            "total_us": 6.5362
+          },
+          {
+            "tid": 11,
+            "compute_main_us": 0.8196,
+            "compute_spec_us": 0.0311,
+            "compute_total_us": 0.8507,
+            "state_update_us": 1.1948,
+            "sync_wait_us": 4.4963,
+            "sync_and_update_us": 5.6911,
+            "total_us": 6.5418
+          },
+          {
+            "tid": 12,
+            "compute_main_us": 0.2034,
+            "compute_spec_us": 0.0317,
+            "compute_total_us": 0.2351,
+            "state_update_us": 0.6471,
+            "sync_wait_us": 5.6554,
+            "sync_and_update_us": 6.3025,
+            "total_us": 6.5376
+          },
+          {
+            "tid": 13,
+            "compute_main_us": 0.0698,
+            "compute_spec_us": 0.0282,
+            "compute_total_us": 0.0981,
+            "state_update_us": 0.7002,
+            "sync_wait_us": 5.7405,
+            "sync_and_update_us": 6.4407,
+            "total_us": 6.5387
+          },
+          {
+            "tid": 14,
+            "compute_main_us": 0.0985,
+            "compute_spec_us": 0.021,
+            "compute_total_us": 0.1196,
+            "state_update_us": 0.7909,
+            "sync_wait_us": 5.6317,
+            "sync_and_update_us": 6.4226,
+            "total_us": 6.5421
+          },
+          {
+            "tid": 15,
+            "compute_main_us": 0.0294,
+            "compute_spec_us": 0.0184,
+            "compute_total_us": 0.0479,
+            "state_update_us": 0.3972,
+            "sync_wait_us": 6.1026,
+            "sync_and_update_us": 6.4998,
+            "total_us": 6.5477
+          },
+          {
+            "tid": 16,
+            "compute_main_us": 0.1314,
+            "compute_spec_us": 0.0228,
+            "compute_total_us": 0.1543,
+            "state_update_us": 0.6274,
+            "sync_wait_us": 5.7608,
+            "sync_and_update_us": 6.3882,
+            "total_us": 6.5425
+          },
+          {
+            "tid": 17,
+            "compute_main_us": 0.0953,
+            "compute_spec_us": 0.0189,
+            "compute_total_us": 0.1141,
+            "state_update_us": 0.5045,
+            "sync_wait_us": 5.923,
+            "sync_and_update_us": 6.4275,
+            "total_us": 6.5416
+          },
+          {
+            "tid": 18,
+            "compute_main_us": 0.0178,
+            "compute_spec_us": 0.0154,
+            "compute_total_us": 0.0332,
+            "state_update_us": 0.3559,
+            "sync_wait_us": 6.155,
+            "sync_and_update_us": 6.5109,
+            "total_us": 6.544
+          },
+          {
+            "tid": 19,
+            "compute_main_us": 0.0289,
+            "compute_spec_us": 0.0236,
+            "compute_total_us": 0.0524,
+            "state_update_us": 0.4918,
+            "sync_wait_us": 5.9933,
+            "sync_and_update_us": 6.4851,
+            "total_us": 6.5376
+          },
+          {
+            "tid": 20,
+            "compute_main_us": 0.0222,
+            "compute_spec_us": 0.0166,
+            "compute_total_us": 0.0388,
+            "state_update_us": 0.4072,
+            "sync_wait_us": 6.0981,
+            "sync_and_update_us": 6.5053,
+            "total_us": 6.5441
+          },
+          {
+            "tid": 21,
+            "compute_main_us": 0.0212,
+            "compute_spec_us": 0.0159,
+            "compute_total_us": 0.0371,
+            "state_update_us": 0.3914,
+            "sync_wait_us": 6.1132,
+            "sync_and_update_us": 6.5046,
+            "total_us": 6.5416
+          },
+          {
+            "tid": 22,
+            "compute_main_us": 0.0386,
+            "compute_spec_us": 0.0172,
+            "compute_total_us": 0.0558,
+            "state_update_us": 0.6109,
+            "sync_wait_us": 5.8744,
+            "sync_and_update_us": 6.4853,
+            "total_us": 6.5412
+          },
+          {
+            "tid": 23,
+            "compute_main_us": 0.0228,
+            "compute_spec_us": 0.0176,
+            "compute_total_us": 0.0404,
+            "state_update_us": 0.4092,
+            "sync_wait_us": 6.0911,
+            "sync_and_update_us": 6.5003,
+            "total_us": 6.5407
+          }
+        ]
+      }
+    },
+    {
+      "design": "boom_s_1",
+      "workload": "dhry",
+      "straggler_threads": [
+        9,
+        7
+      ],
+      "straggler_comparison": [
+        {
+          "tid": 9,
+          "p2sim": {
+            "tid": 9,
+            "compute_main_us": 3.3708,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 3.3708,
+            "state_update_us": 2.414,
+            "sync_wait_us": 1.9771,
+            "sync_and_update_us": 4.3911,
+            "total_us": 7.7619
+          },
+          "s2sim": {
+            "tid": 9,
+            "compute_main_us": 2.6946,
+            "compute_spec_us": 0.5897,
+            "compute_total_us": 3.2843,
+            "state_update_us": 1.6908,
+            "sync_wait_us": 0.5733,
+            "sync_and_update_us": 2.264,
+            "total_us": 5.5483
+          }
+        },
+        {
+          "tid": 7,
+          "p2sim": {
+            "tid": 7,
+            "compute_main_us": 2.8936,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 2.8936,
+            "state_update_us": 2.87,
+            "sync_wait_us": 2.0442,
+            "sync_and_update_us": 4.9141,
+            "total_us": 7.8078
+          },
+          "s2sim": {
+            "tid": 7,
+            "compute_main_us": 2.0906,
+            "compute_spec_us": 0.1397,
+            "compute_total_us": 2.2303,
+            "state_update_us": 2.0246,
+            "sync_wait_us": 1.2987,
+            "sync_and_update_us": 3.3233,
+            "total_us": 5.5536
+          }
+        }
+      ],
+      "off": {
+        "counter_hz": 2599926086.72338,
+        "avg_compute_main_us": 0.7676992657634069,
+        "avg_compute_spec_us": 0.0,
+        "avg_compute_total_us": 0.7676992657634069,
+        "avg_state_update_us": 1.5695935586613647,
+        "avg_sync_wait_us": 5.4625701808823734,
+        "avg_sync_and_update_us": 7.032163739543738,
+        "avg_total_us": 7.799863005307144,
+        "per_thread": [
+          {
+            "tid": 0,
+            "compute_main_us": 1.1006,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.1006,
+            "state_update_us": 2.2548,
+            "sync_wait_us": 4.4279,
+            "sync_and_update_us": 6.6827,
+            "total_us": 7.7834
+          },
+          {
+            "tid": 1,
+            "compute_main_us": 1.3505,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.3505,
+            "state_update_us": 2.2135,
+            "sync_wait_us": 4.2193,
+            "sync_and_update_us": 6.4328,
+            "total_us": 7.7833
+          },
+          {
+            "tid": 2,
+            "compute_main_us": 1.1274,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.1274,
+            "state_update_us": 2.7799,
+            "sync_wait_us": 3.8499,
+            "sync_and_update_us": 6.6298,
+            "total_us": 7.7572
+          },
+          {
+            "tid": 3,
+            "compute_main_us": 1.1524,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.1524,
+            "state_update_us": 2.0681,
+            "sync_wait_us": 4.5531,
+            "sync_and_update_us": 6.6212,
+            "total_us": 7.7736
+          },
+          {
+            "tid": 4,
+            "compute_main_us": 0.7656,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.7656,
+            "state_update_us": 1.9398,
+            "sync_wait_us": 4.9449,
+            "sync_and_update_us": 6.8846,
+            "total_us": 7.6502
+          },
+          {
+            "tid": 5,
+            "compute_main_us": 0.9949,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.9949,
+            "state_update_us": 2.2424,
+            "sync_wait_us": 4.5373,
+            "sync_and_update_us": 6.7797,
+            "total_us": 7.7747
+          },
+          {
+            "tid": 6,
+            "compute_main_us": 0.6498,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.6498,
+            "state_update_us": 1.4126,
+            "sync_wait_us": 5.495,
+            "sync_and_update_us": 6.9076,
+            "total_us": 7.5574
+          },
+          {
+            "tid": 7,
+            "compute_main_us": 2.8936,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 2.8936,
+            "state_update_us": 2.87,
+            "sync_wait_us": 2.0442,
+            "sync_and_update_us": 4.9141,
+            "total_us": 7.8078
+          },
+          {
+            "tid": 8,
+            "compute_main_us": 0.5737,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.5737,
+            "state_update_us": 1.1718,
+            "sync_wait_us": 6.1013,
+            "sync_and_update_us": 7.2731,
+            "total_us": 7.8467
+          },
+          {
+            "tid": 9,
+            "compute_main_us": 3.3708,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 3.3708,
+            "state_update_us": 2.414,
+            "sync_wait_us": 1.9771,
+            "sync_and_update_us": 4.3911,
+            "total_us": 7.7619
+          },
+          {
+            "tid": 10,
+            "compute_main_us": 2.5363,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 2.5363,
+            "state_update_us": 2.4546,
+            "sync_wait_us": 2.7999,
+            "sync_and_update_us": 5.2545,
+            "total_us": 7.7908
+          },
+          {
+            "tid": 11,
+            "compute_main_us": 1.2244,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.2244,
+            "state_update_us": 1.9002,
+            "sync_wait_us": 4.6231,
+            "sync_and_update_us": 6.5233,
+            "total_us": 7.7477
+          },
+          {
+            "tid": 12,
+            "compute_main_us": 0.1486,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.1486,
+            "state_update_us": 1.1185,
+            "sync_wait_us": 6.5749,
+            "sync_and_update_us": 7.6933,
+            "total_us": 7.8419
+          },
+          {
+            "tid": 13,
+            "compute_main_us": 0.0637,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0637,
+            "state_update_us": 1.0736,
+            "sync_wait_us": 6.7089,
+            "sync_and_update_us": 7.7825,
+            "total_us": 7.8462
+          },
+          {
+            "tid": 14,
+            "compute_main_us": 0.1156,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.1156,
+            "state_update_us": 1.4433,
+            "sync_wait_us": 6.2817,
+            "sync_and_update_us": 7.725,
+            "total_us": 7.8405
+          },
+          {
+            "tid": 15,
+            "compute_main_us": 0.0431,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0431,
+            "state_update_us": 0.9502,
+            "sync_wait_us": 6.8541,
+            "sync_and_update_us": 7.8044,
+            "total_us": 7.8474
+          },
+          {
+            "tid": 16,
+            "compute_main_us": 0.0906,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0906,
+            "state_update_us": 1.0409,
+            "sync_wait_us": 6.7169,
+            "sync_and_update_us": 7.7578,
+            "total_us": 7.8483
+          },
+          {
+            "tid": 17,
+            "compute_main_us": 0.0669,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0669,
+            "state_update_us": 0.8794,
+            "sync_wait_us": 6.9072,
+            "sync_and_update_us": 7.7867,
+            "total_us": 7.8535
+          },
+          {
+            "tid": 18,
+            "compute_main_us": 0.0203,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0203,
+            "state_update_us": 0.8694,
+            "sync_wait_us": 6.9594,
+            "sync_and_update_us": 7.8288,
+            "total_us": 7.8491
+          },
+          {
+            "tid": 19,
+            "compute_main_us": 0.0263,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0263,
+            "state_update_us": 0.9001,
+            "sync_wait_us": 6.9229,
+            "sync_and_update_us": 7.823,
+            "total_us": 7.8492
+          },
+          {
+            "tid": 20,
+            "compute_main_us": 0.0236,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0236,
+            "state_update_us": 0.8645,
+            "sync_wait_us": 6.9565,
+            "sync_and_update_us": 7.821,
+            "total_us": 7.8446
+          },
+          {
+            "tid": 21,
+            "compute_main_us": 0.0262,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0262,
+            "state_update_us": 0.8971,
+            "sync_wait_us": 6.9214,
+            "sync_and_update_us": 7.8186,
+            "total_us": 7.8447
+          },
+          {
+            "tid": 22,
+            "compute_main_us": 0.0377,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0377,
+            "state_update_us": 1.0688,
+            "sync_wait_us": 6.7417,
+            "sync_and_update_us": 7.8105,
+            "total_us": 7.8481
+          },
+          {
+            "tid": 23,
+            "compute_main_us": 0.0222,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0222,
+            "state_update_us": 0.8429,
+            "sync_wait_us": 6.9831,
+            "sync_and_update_us": 7.8259,
+            "total_us": 7.8482
+          }
+        ]
+      },
+      "on": {
+        "counter_hz": 2599948293.973848,
+        "avg_compute_main_us": 0.6494397019408511,
+        "avg_compute_spec_us": 0.061555982236625915,
+        "avg_compute_total_us": 0.7109956841774769,
+        "avg_state_update_us": 1.0282366602429402,
+        "avg_sync_wait_us": 3.808385573609257,
+        "avg_sync_and_update_us": 4.8366222338521965,
+        "avg_total_us": 5.547617918029673,
+        "per_thread": [
+          {
+            "tid": 0,
+            "compute_main_us": 0.8527,
+            "compute_spec_us": 0.0383,
+            "compute_total_us": 0.8909,
+            "state_update_us": 1.5173,
+            "sync_wait_us": 3.1455,
+            "sync_and_update_us": 4.6628,
+            "total_us": 5.5537
+          },
+          {
+            "tid": 1,
+            "compute_main_us": 1.3455,
+            "compute_spec_us": 0.0707,
+            "compute_total_us": 1.4162,
+            "state_update_us": 1.7673,
+            "sync_wait_us": 2.3681,
+            "sync_and_update_us": 4.1354,
+            "total_us": 5.5516
+          },
+          {
+            "tid": 2,
+            "compute_main_us": 1.0729,
+            "compute_spec_us": 0.0278,
+            "compute_total_us": 1.1007,
+            "state_update_us": 2.1955,
+            "sync_wait_us": 2.2553,
+            "sync_and_update_us": 4.4508,
+            "total_us": 5.5515
+          },
+          {
+            "tid": 3,
+            "compute_main_us": 0.7776,
+            "compute_spec_us": 0.0529,
+            "compute_total_us": 0.8305,
+            "state_update_us": 1.4609,
+            "sync_wait_us": 3.257,
+            "sync_and_update_us": 4.7179,
+            "total_us": 5.5484
+          },
+          {
+            "tid": 4,
+            "compute_main_us": 0.7354,
+            "compute_spec_us": 0.0179,
+            "compute_total_us": 0.7533,
+            "state_update_us": 1.4407,
+            "sync_wait_us": 3.3513,
+            "sync_and_update_us": 4.7921,
+            "total_us": 5.5454
+          },
+          {
+            "tid": 5,
+            "compute_main_us": 0.9644,
+            "compute_spec_us": 0.0559,
+            "compute_total_us": 1.0203,
+            "state_update_us": 1.7098,
+            "sync_wait_us": 2.8177,
+            "sync_and_update_us": 4.5275,
+            "total_us": 5.5478
+          },
+          {
+            "tid": 6,
+            "compute_main_us": 0.6205,
+            "compute_spec_us": 0.0154,
+            "compute_total_us": 0.6359,
+            "state_update_us": 1.0595,
+            "sync_wait_us": 3.8575,
+            "sync_and_update_us": 4.9171,
+            "total_us": 5.5529
+          },
+          {
+            "tid": 7,
+            "compute_main_us": 2.0906,
+            "compute_spec_us": 0.1397,
+            "compute_total_us": 2.2303,
+            "state_update_us": 2.0246,
+            "sync_wait_us": 1.2987,
+            "sync_and_update_us": 3.3233,
+            "total_us": 5.5536
+          },
+          {
+            "tid": 8,
+            "compute_main_us": 0.4159,
+            "compute_spec_us": 0.0357,
+            "compute_total_us": 0.4517,
+            "state_update_us": 0.5006,
+            "sync_wait_us": 4.5652,
+            "sync_and_update_us": 5.0658,
+            "total_us": 5.5175
+          },
+          {
+            "tid": 9,
+            "compute_main_us": 2.6946,
+            "compute_spec_us": 0.5897,
+            "compute_total_us": 3.2843,
+            "state_update_us": 1.6908,
+            "sync_wait_us": 0.5733,
+            "sync_and_update_us": 2.264,
+            "total_us": 5.5483
+          },
+          {
+            "tid": 10,
+            "compute_main_us": 2.2674,
+            "compute_spec_us": 0.1532,
+            "compute_total_us": 2.4206,
+            "state_update_us": 1.8284,
+            "sync_wait_us": 1.2962,
+            "sync_and_update_us": 3.1246,
+            "total_us": 5.5453
+          },
+          {
+            "tid": 11,
+            "compute_main_us": 1.0185,
+            "compute_spec_us": 0.0357,
+            "compute_total_us": 1.0542,
+            "state_update_us": 1.27,
+            "sync_wait_us": 3.2262,
+            "sync_and_update_us": 4.4961,
+            "total_us": 5.5503
+          },
+          {
+            "tid": 12,
+            "compute_main_us": 0.1295,
+            "compute_spec_us": 0.0246,
+            "compute_total_us": 0.154,
+            "state_update_us": 0.6118,
+            "sync_wait_us": 4.785,
+            "sync_and_update_us": 5.3968,
+            "total_us": 5.5508
+          },
+          {
+            "tid": 13,
+            "compute_main_us": 0.0587,
+            "compute_spec_us": 0.0234,
+            "compute_total_us": 0.082,
+            "state_update_us": 0.6388,
+            "sync_wait_us": 4.8261,
+            "sync_and_update_us": 5.4649,
+            "total_us": 5.5469
+          },
+          {
+            "tid": 14,
+            "compute_main_us": 0.0996,
+            "compute_spec_us": 0.0213,
+            "compute_total_us": 0.1209,
+            "state_update_us": 0.7782,
+            "sync_wait_us": 4.6487,
+            "sync_and_update_us": 5.4269,
+            "total_us": 5.5478
+          },
+          {
+            "tid": 15,
+            "compute_main_us": 0.0366,
+            "compute_spec_us": 0.0212,
+            "compute_total_us": 0.0578,
+            "state_update_us": 0.4131,
+            "sync_wait_us": 5.0772,
+            "sync_and_update_us": 5.4904,
+            "total_us": 5.5482
+          },
+          {
+            "tid": 16,
+            "compute_main_us": 0.1575,
+            "compute_spec_us": 0.0249,
+            "compute_total_us": 0.1823,
+            "state_update_us": 0.5887,
+            "sync_wait_us": 4.7733,
+            "sync_and_update_us": 5.362,
+            "total_us": 5.5443
+          },
+          {
+            "tid": 17,
+            "compute_main_us": 0.0961,
+            "compute_spec_us": 0.0185,
+            "compute_total_us": 0.1146,
+            "state_update_us": 0.4864,
+            "sync_wait_us": 4.9483,
+            "sync_and_update_us": 5.4347,
+            "total_us": 5.5493
+          },
+          {
+            "tid": 18,
+            "compute_main_us": 0.0229,
+            "compute_spec_us": 0.0207,
+            "compute_total_us": 0.0435,
+            "state_update_us": 0.4649,
+            "sync_wait_us": 5.0372,
+            "sync_and_update_us": 5.5021,
+            "total_us": 5.5457
+          },
+          {
+            "tid": 19,
+            "compute_main_us": 0.0235,
+            "compute_spec_us": 0.0198,
+            "compute_total_us": 0.0433,
+            "state_update_us": 0.4218,
+            "sync_wait_us": 5.082,
+            "sync_and_update_us": 5.5038,
+            "total_us": 5.5471
+          },
+          {
+            "tid": 20,
+            "compute_main_us": 0.027,
+            "compute_spec_us": 0.0193,
+            "compute_total_us": 0.0463,
+            "state_update_us": 0.4475,
+            "sync_wait_us": 5.0513,
+            "sync_and_update_us": 5.4988,
+            "total_us": 5.5451
+          },
+          {
+            "tid": 21,
+            "compute_main_us": 0.0198,
+            "compute_spec_us": 0.0152,
+            "compute_total_us": 0.035,
+            "state_update_us": 0.3629,
+            "sync_wait_us": 5.1536,
+            "sync_and_update_us": 5.5165,
+            "total_us": 5.5515
+          },
+          {
+            "tid": 22,
+            "compute_main_us": 0.0346,
+            "compute_spec_us": 0.0162,
+            "compute_total_us": 0.0508,
+            "state_update_us": 0.5698,
+            "sync_wait_us": 4.9323,
+            "sync_and_update_us": 5.5021,
+            "total_us": 5.5529
+          },
+          {
+            "tid": 23,
+            "compute_main_us": 0.0249,
+            "compute_spec_us": 0.0194,
+            "compute_total_us": 0.0443,
+            "state_update_us": 0.4285,
+            "sync_wait_us": 5.0742,
+            "sync_and_update_us": 5.5026,
+            "total_us": 5.5469
+          }
+        ]
+      }
+    },
+    {
+      "design": "boom_l_1",
+      "workload": "linux",
+      "straggler_threads": [
+        21,
+        23
+      ],
+      "straggler_comparison": [
+        {
+          "tid": 21,
+          "p2sim": {
+            "tid": 21,
+            "compute_main_us": 4.0887,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 4.0887,
+            "state_update_us": 1.88,
+            "sync_wait_us": 2.0546,
+            "sync_and_update_us": 3.9346,
+            "total_us": 8.0233
+          },
+          "s2sim": {
+            "tid": 21,
+            "compute_main_us": 2.1301,
+            "compute_spec_us": 0.3139,
+            "compute_total_us": 2.444,
+            "state_update_us": 1.064,
+            "sync_wait_us": 2.3445,
+            "sync_and_update_us": 3.4085,
+            "total_us": 5.8525
+          }
+        },
+        {
+          "tid": 23,
+          "p2sim": {
+            "tid": 23,
+            "compute_main_us": 2.9325,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 2.9325,
+            "state_update_us": 1.9053,
+            "sync_wait_us": 3.1682,
+            "sync_and_update_us": 5.0736,
+            "total_us": 8.006
+          },
+          "s2sim": {
+            "tid": 23,
+            "compute_main_us": 2.1877,
+            "compute_spec_us": 0.1352,
+            "compute_total_us": 2.3229,
+            "state_update_us": 1.3518,
+            "sync_wait_us": 2.1755,
+            "sync_and_update_us": 3.5273,
+            "total_us": 5.8502
+          }
+        }
+      ],
+      "off": {
+        "counter_hz": 2599844372.538908,
+        "avg_compute_main_us": 1.0983596661254635,
+        "avg_compute_spec_us": 0.0,
+        "avg_compute_total_us": 1.0983596661254635,
+        "avg_state_update_us": 1.5774564561384306,
+        "avg_sync_wait_us": 5.355220089976741,
+        "avg_sync_and_update_us": 6.932676546115171,
+        "avg_total_us": 8.031036212240634,
+        "per_thread": [
+          {
+            "tid": 0,
+            "compute_main_us": 0.3032,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.3032,
+            "state_update_us": 1.5072,
+            "sync_wait_us": 6.254,
+            "sync_and_update_us": 7.7612,
+            "total_us": 8.0644
+          },
+          {
+            "tid": 1,
+            "compute_main_us": 1.9489,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.9489,
+            "state_update_us": 1.2569,
+            "sync_wait_us": 4.7995,
+            "sync_and_update_us": 6.0564,
+            "total_us": 8.0054
+          },
+          {
+            "tid": 2,
+            "compute_main_us": 0.579,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.579,
+            "state_update_us": 1.5867,
+            "sync_wait_us": 5.7909,
+            "sync_and_update_us": 7.3776,
+            "total_us": 7.9566
+          },
+          {
+            "tid": 3,
+            "compute_main_us": 0.7441,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.7441,
+            "state_update_us": 1.591,
+            "sync_wait_us": 5.7283,
+            "sync_and_update_us": 7.3192,
+            "total_us": 8.0633
+          },
+          {
+            "tid": 4,
+            "compute_main_us": 0.5972,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.5972,
+            "state_update_us": 1.5198,
+            "sync_wait_us": 5.9514,
+            "sync_and_update_us": 7.4712,
+            "total_us": 8.0684
+          },
+          {
+            "tid": 5,
+            "compute_main_us": 0.0959,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0959,
+            "state_update_us": 1.4132,
+            "sync_wait_us": 6.4573,
+            "sync_and_update_us": 7.8706,
+            "total_us": 7.9664
+          },
+          {
+            "tid": 6,
+            "compute_main_us": 0.5907,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.5907,
+            "state_update_us": 1.3369,
+            "sync_wait_us": 6.1299,
+            "sync_and_update_us": 7.4668,
+            "total_us": 8.0576
+          },
+          {
+            "tid": 7,
+            "compute_main_us": 0.4658,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.4658,
+            "state_update_us": 1.3657,
+            "sync_wait_us": 6.2179,
+            "sync_and_update_us": 7.5836,
+            "total_us": 8.0494
+          },
+          {
+            "tid": 8,
+            "compute_main_us": 0.39,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.39,
+            "state_update_us": 1.296,
+            "sync_wait_us": 6.3034,
+            "sync_and_update_us": 7.5994,
+            "total_us": 7.9893
+          },
+          {
+            "tid": 9,
+            "compute_main_us": 0.0369,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0369,
+            "state_update_us": 0.8679,
+            "sync_wait_us": 7.1594,
+            "sync_and_update_us": 8.0274,
+            "total_us": 8.0642
+          },
+          {
+            "tid": 10,
+            "compute_main_us": 0.5749,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.5749,
+            "state_update_us": 1.5681,
+            "sync_wait_us": 5.8879,
+            "sync_and_update_us": 7.456,
+            "total_us": 8.0309
+          },
+          {
+            "tid": 11,
+            "compute_main_us": 0.0295,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0295,
+            "state_update_us": 0.7288,
+            "sync_wait_us": 7.3138,
+            "sync_and_update_us": 8.0426,
+            "total_us": 8.072
+          },
+          {
+            "tid": 12,
+            "compute_main_us": 0.773,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.773,
+            "state_update_us": 1.0715,
+            "sync_wait_us": 6.2127,
+            "sync_and_update_us": 7.2842,
+            "total_us": 8.0572
+          },
+          {
+            "tid": 13,
+            "compute_main_us": 1.1118,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.1118,
+            "state_update_us": 1.7523,
+            "sync_wait_us": 5.1699,
+            "sync_and_update_us": 6.9222,
+            "total_us": 8.034
+          },
+          {
+            "tid": 14,
+            "compute_main_us": 1.2364,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.2364,
+            "state_update_us": 2.1779,
+            "sync_wait_us": 4.6299,
+            "sync_and_update_us": 6.8077,
+            "total_us": 8.0441
+          },
+          {
+            "tid": 15,
+            "compute_main_us": 1.1549,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.1549,
+            "state_update_us": 1.5358,
+            "sync_wait_us": 5.3595,
+            "sync_and_update_us": 6.8953,
+            "total_us": 8.0502
+          },
+          {
+            "tid": 16,
+            "compute_main_us": 0.533,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.533,
+            "state_update_us": 1.5001,
+            "sync_wait_us": 5.9875,
+            "sync_and_update_us": 7.4876,
+            "total_us": 8.0206
+          },
+          {
+            "tid": 17,
+            "compute_main_us": 0.5716,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.5716,
+            "state_update_us": 1.495,
+            "sync_wait_us": 5.9826,
+            "sync_and_update_us": 7.4776,
+            "total_us": 8.0492
+          },
+          {
+            "tid": 18,
+            "compute_main_us": 1.5759,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.5759,
+            "state_update_us": 2.1098,
+            "sync_wait_us": 4.3433,
+            "sync_and_update_us": 6.4532,
+            "total_us": 8.029
+          },
+          {
+            "tid": 19,
+            "compute_main_us": 2.212,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 2.212,
+            "state_update_us": 2.591,
+            "sync_wait_us": 3.2275,
+            "sync_and_update_us": 5.8185,
+            "total_us": 8.0306
+          },
+          {
+            "tid": 20,
+            "compute_main_us": 1.359,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.359,
+            "state_update_us": 2.1498,
+            "sync_wait_us": 4.5084,
+            "sync_and_update_us": 6.6581,
+            "total_us": 8.0171
+          },
+          {
+            "tid": 21,
+            "compute_main_us": 4.0887,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 4.0887,
+            "state_update_us": 1.88,
+            "sync_wait_us": 2.0546,
+            "sync_and_update_us": 3.9346,
+            "total_us": 8.0233
+          },
+          {
+            "tid": 22,
+            "compute_main_us": 2.4558,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 2.4558,
+            "state_update_us": 1.6521,
+            "sync_wait_us": 3.8876,
+            "sync_and_update_us": 5.5397,
+            "total_us": 7.9955
+          },
+          {
+            "tid": 23,
+            "compute_main_us": 2.9325,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 2.9325,
+            "state_update_us": 1.9053,
+            "sync_wait_us": 3.1682,
+            "sync_and_update_us": 5.0736,
+            "total_us": 8.006
+          }
+        ]
+      },
+      "on": {
+        "counter_hz": 2599877536.709656,
+        "avg_compute_main_us": 0.9596903046086206,
+        "avg_compute_spec_us": 0.06259680714524413,
+        "avg_compute_total_us": 1.0222871117538646,
+        "avg_state_update_us": 1.0900141305129274,
+        "avg_sync_wait_us": 3.7397357574343104,
+        "avg_sync_and_update_us": 4.829749887947237,
+        "avg_total_us": 5.852036999701102,
+        "per_thread": [
+          {
+            "tid": 0,
+            "compute_main_us": 0.3244,
+            "compute_spec_us": 0.0445,
+            "compute_total_us": 0.369,
+            "state_update_us": 0.8751,
+            "sync_wait_us": 4.6089,
+            "sync_and_update_us": 5.484,
+            "total_us": 5.853
+          },
+          {
+            "tid": 1,
+            "compute_main_us": 2.0321,
+            "compute_spec_us": 0.2913,
+            "compute_total_us": 2.3234,
+            "state_update_us": 0.5948,
+            "sync_wait_us": 2.933,
+            "sync_and_update_us": 3.5279,
+            "total_us": 5.8513
+          },
+          {
+            "tid": 2,
+            "compute_main_us": 0.6698,
+            "compute_spec_us": 0.0316,
+            "compute_total_us": 0.7013,
+            "state_update_us": 1.1405,
+            "sync_wait_us": 4.0155,
+            "sync_and_update_us": 5.156,
+            "total_us": 5.8573
+          },
+          {
+            "tid": 3,
+            "compute_main_us": 0.8018,
+            "compute_spec_us": 0.0419,
+            "compute_total_us": 0.8437,
+            "state_update_us": 1.2507,
+            "sync_wait_us": 3.7517,
+            "sync_and_update_us": 5.0024,
+            "total_us": 5.8461
+          },
+          {
+            "tid": 4,
+            "compute_main_us": 0.5797,
+            "compute_spec_us": 0.0264,
+            "compute_total_us": 0.6061,
+            "state_update_us": 1.0655,
+            "sync_wait_us": 4.1806,
+            "sync_and_update_us": 5.2461,
+            "total_us": 5.8522
+          },
+          {
+            "tid": 5,
+            "compute_main_us": 0.0826,
+            "compute_spec_us": 0.0156,
+            "compute_total_us": 0.0982,
+            "state_update_us": 0.7228,
+            "sync_wait_us": 5.0369,
+            "sync_and_update_us": 5.7598,
+            "total_us": 5.858
+          },
+          {
+            "tid": 6,
+            "compute_main_us": 0.8279,
+            "compute_spec_us": 0.0579,
+            "compute_total_us": 0.8858,
+            "state_update_us": 1.2479,
+            "sync_wait_us": 3.7166,
+            "sync_and_update_us": 4.9645,
+            "total_us": 5.8503
+          },
+          {
+            "tid": 7,
+            "compute_main_us": 0.5046,
+            "compute_spec_us": 0.0226,
+            "compute_total_us": 0.5273,
+            "state_update_us": 0.9172,
+            "sync_wait_us": 4.4062,
+            "sync_and_update_us": 5.3234,
+            "total_us": 5.8507
+          },
+          {
+            "tid": 8,
+            "compute_main_us": 0.6011,
+            "compute_spec_us": 0.0231,
+            "compute_total_us": 0.6242,
+            "state_update_us": 1.0916,
+            "sync_wait_us": 4.1289,
+            "sync_and_update_us": 5.2205,
+            "total_us": 5.8448
+          },
+          {
+            "tid": 9,
+            "compute_main_us": 0.0232,
+            "compute_spec_us": 0.0159,
+            "compute_total_us": 0.0391,
+            "state_update_us": 0.2711,
+            "sync_wait_us": 5.5491,
+            "sync_and_update_us": 5.8202,
+            "total_us": 5.8593
+          },
+          {
+            "tid": 10,
+            "compute_main_us": 0.6157,
+            "compute_spec_us": 0.0264,
+            "compute_total_us": 0.6422,
+            "state_update_us": 1.2525,
+            "sync_wait_us": 3.9575,
+            "sync_and_update_us": 5.2101,
+            "total_us": 5.8522
+          },
+          {
+            "tid": 11,
+            "compute_main_us": 0.0253,
+            "compute_spec_us": 0.0153,
+            "compute_total_us": 0.0406,
+            "state_update_us": 0.1832,
+            "sync_wait_us": 5.6318,
+            "sync_and_update_us": 5.815,
+            "total_us": 5.8556
+          },
+          {
+            "tid": 12,
+            "compute_main_us": 0.8765,
+            "compute_spec_us": 0.0293,
+            "compute_total_us": 0.9058,
+            "state_update_us": 0.5238,
+            "sync_wait_us": 4.417,
+            "sync_and_update_us": 4.9408,
+            "total_us": 5.8466
+          },
+          {
+            "tid": 13,
+            "compute_main_us": 1.0126,
+            "compute_spec_us": 0.0287,
+            "compute_total_us": 1.0414,
+            "state_update_us": 1.3075,
+            "sync_wait_us": 3.5053,
+            "sync_and_update_us": 4.8128,
+            "total_us": 5.8542
+          },
+          {
+            "tid": 14,
+            "compute_main_us": 1.2731,
+            "compute_spec_us": 0.0348,
+            "compute_total_us": 1.3079,
+            "state_update_us": 1.8961,
+            "sync_wait_us": 2.6465,
+            "sync_and_update_us": 4.5426,
+            "total_us": 5.8505
+          },
+          {
+            "tid": 15,
+            "compute_main_us": 1.0071,
+            "compute_spec_us": 0.0216,
+            "compute_total_us": 1.0286,
+            "state_update_us": 0.9457,
+            "sync_wait_us": 3.8798,
+            "sync_and_update_us": 4.8255,
+            "total_us": 5.8541
+          },
+          {
+            "tid": 16,
+            "compute_main_us": 0.5701,
+            "compute_spec_us": 0.0202,
+            "compute_total_us": 0.5903,
+            "state_update_us": 1.0486,
+            "sync_wait_us": 4.2139,
+            "sync_and_update_us": 5.2625,
+            "total_us": 5.8528
+          },
+          {
+            "tid": 17,
+            "compute_main_us": 0.623,
+            "compute_spec_us": 0.0217,
+            "compute_total_us": 0.6447,
+            "state_update_us": 1.1335,
+            "sync_wait_us": 4.067,
+            "sync_and_update_us": 5.2004,
+            "total_us": 5.8451
+          },
+          {
+            "tid": 18,
+            "compute_main_us": 1.3543,
+            "compute_spec_us": 0.0311,
+            "compute_total_us": 1.3855,
+            "state_update_us": 1.5934,
+            "sync_wait_us": 2.8717,
+            "sync_and_update_us": 4.4651,
+            "total_us": 5.8506
+          },
+          {
+            "tid": 19,
+            "compute_main_us": 1.4105,
+            "compute_spec_us": 0.0672,
+            "compute_total_us": 1.4777,
+            "state_update_us": 2.0278,
+            "sync_wait_us": 2.35,
+            "sync_and_update_us": 4.3778,
+            "total_us": 5.8555
+          },
+          {
+            "tid": 20,
+            "compute_main_us": 1.1155,
+            "compute_spec_us": 0.0219,
+            "compute_total_us": 1.1374,
+            "state_update_us": 1.5131,
+            "sync_wait_us": 3.2012,
+            "sync_and_update_us": 4.7144,
+            "total_us": 5.8518
+          },
+          {
+            "tid": 21,
+            "compute_main_us": 2.1301,
+            "compute_spec_us": 0.3139,
+            "compute_total_us": 2.444,
+            "state_update_us": 1.064,
+            "sync_wait_us": 2.3445,
+            "sync_and_update_us": 3.4085,
+            "total_us": 5.8525
+          },
+          {
+            "tid": 22,
+            "compute_main_us": 2.3839,
+            "compute_spec_us": 0.164,
+            "compute_total_us": 2.5479,
+            "state_update_us": 1.142,
+            "sync_wait_us": 2.1643,
+            "sync_and_update_us": 3.3064,
+            "total_us": 5.8543
+          },
+          {
+            "tid": 23,
+            "compute_main_us": 2.1877,
+            "compute_spec_us": 0.1352,
+            "compute_total_us": 2.3229,
+            "state_update_us": 1.3518,
+            "sync_wait_us": 2.1755,
+            "sync_and_update_us": 3.5273,
+            "total_us": 5.8502
+          }
+        ]
+      }
+    },
+    {
+      "design": "boom_l_1",
+      "workload": "coremark",
+      "straggler_threads": [
+        22,
+        21
+      ],
+      "straggler_comparison": [
+        {
+          "tid": 22,
+          "p2sim": {
+            "tid": 22,
+            "compute_main_us": 7.1931,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 7.1931,
+            "state_update_us": 2.8935,
+            "sync_wait_us": 1.5067,
+            "sync_and_update_us": 4.4003,
+            "total_us": 11.5933
+          },
+          "s2sim": {
+            "tid": 22,
+            "compute_main_us": 6.8638,
+            "compute_spec_us": 0.3061,
+            "compute_total_us": 7.1699,
+            "state_update_us": 2.3141,
+            "sync_wait_us": 1.2558,
+            "sync_and_update_us": 3.5699,
+            "total_us": 10.7398
+          }
+        },
+        {
+          "tid": 21,
+          "p2sim": {
+            "tid": 21,
+            "compute_main_us": 5.632,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 5.632,
+            "state_update_us": 1.6992,
+            "sync_wait_us": 4.2479,
+            "sync_and_update_us": 5.9471,
+            "total_us": 11.5791
+          },
+          "s2sim": {
+            "tid": 21,
+            "compute_main_us": 4.9472,
+            "compute_spec_us": 0.594,
+            "compute_total_us": 5.5412,
+            "state_update_us": 1.3864,
+            "sync_wait_us": 3.8259,
+            "sync_and_update_us": 5.2124,
+            "total_us": 10.7536
+          }
+        }
+      ],
+      "off": {
+        "counter_hz": 2599932671.411326,
+        "avg_compute_main_us": 2.3599746663193293,
+        "avg_compute_spec_us": 0.0,
+        "avg_compute_total_us": 2.3599746663193293,
+        "avg_state_update_us": 1.965377364846482,
+        "avg_sync_wait_us": 7.284937747612997,
+        "avg_sync_and_update_us": 9.25031511245948,
+        "avg_total_us": 11.610289778778808,
+        "per_thread": [
+          {
+            "tid": 0,
+            "compute_main_us": 0.2672,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.2672,
+            "state_update_us": 1.0512,
+            "sync_wait_us": 10.3298,
+            "sync_and_update_us": 11.381,
+            "total_us": 11.6482
+          },
+          {
+            "tid": 1,
+            "compute_main_us": 1.1186,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.1186,
+            "state_update_us": 0.8454,
+            "sync_wait_us": 9.6239,
+            "sync_and_update_us": 10.4693,
+            "total_us": 11.5879
+          },
+          {
+            "tid": 2,
+            "compute_main_us": 0.7511,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.7511,
+            "state_update_us": 1.478,
+            "sync_wait_us": 9.387,
+            "sync_and_update_us": 10.865,
+            "total_us": 11.6161
+          },
+          {
+            "tid": 3,
+            "compute_main_us": 1.4152,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.4152,
+            "state_update_us": 1.6385,
+            "sync_wait_us": 8.6131,
+            "sync_and_update_us": 10.2516,
+            "total_us": 11.6668
+          },
+          {
+            "tid": 4,
+            "compute_main_us": 1.3716,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.3716,
+            "state_update_us": 1.9127,
+            "sync_wait_us": 8.3616,
+            "sync_and_update_us": 10.2744,
+            "total_us": 11.6459
+          },
+          {
+            "tid": 5,
+            "compute_main_us": 0.1104,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.1104,
+            "state_update_us": 0.943,
+            "sync_wait_us": 10.4805,
+            "sync_and_update_us": 11.4235,
+            "total_us": 11.5339
+          },
+          {
+            "tid": 6,
+            "compute_main_us": 2.505,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 2.505,
+            "state_update_us": 2.1721,
+            "sync_wait_us": 6.961,
+            "sync_and_update_us": 9.1331,
+            "total_us": 11.6381
+          },
+          {
+            "tid": 7,
+            "compute_main_us": 1.4718,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.4718,
+            "state_update_us": 1.7843,
+            "sync_wait_us": 8.3932,
+            "sync_and_update_us": 10.1775,
+            "total_us": 11.6493
+          },
+          {
+            "tid": 8,
+            "compute_main_us": 1.5193,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.5193,
+            "state_update_us": 1.9174,
+            "sync_wait_us": 8.1088,
+            "sync_and_update_us": 10.0262,
+            "total_us": 11.5455
+          },
+          {
+            "tid": 9,
+            "compute_main_us": 0.0287,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0287,
+            "state_update_us": 0.5744,
+            "sync_wait_us": 11.057,
+            "sync_and_update_us": 11.6315,
+            "total_us": 11.6602
+          },
+          {
+            "tid": 10,
+            "compute_main_us": 1.5092,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.5092,
+            "state_update_us": 2.0408,
+            "sync_wait_us": 8.1017,
+            "sync_and_update_us": 10.1426,
+            "total_us": 11.6518
+          },
+          {
+            "tid": 11,
+            "compute_main_us": 0.0305,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0305,
+            "state_update_us": 0.4824,
+            "sync_wait_us": 11.1528,
+            "sync_and_update_us": 11.6352,
+            "total_us": 11.6657
+          },
+          {
+            "tid": 12,
+            "compute_main_us": 2.3369,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 2.3369,
+            "state_update_us": 1.1958,
+            "sync_wait_us": 8.1242,
+            "sync_and_update_us": 9.32,
+            "total_us": 11.6569
+          },
+          {
+            "tid": 13,
+            "compute_main_us": 3.9073,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 3.9073,
+            "state_update_us": 3.1081,
+            "sync_wait_us": 4.5926,
+            "sync_and_update_us": 7.7007,
+            "total_us": 11.6081
+          },
+          {
+            "tid": 14,
+            "compute_main_us": 3.9177,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 3.9177,
+            "state_update_us": 3.0937,
+            "sync_wait_us": 4.599,
+            "sync_and_update_us": 7.6927,
+            "total_us": 11.6104
+          },
+          {
+            "tid": 15,
+            "compute_main_us": 3.6464,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 3.6464,
+            "state_update_us": 2.03,
+            "sync_wait_us": 5.973,
+            "sync_and_update_us": 8.003,
+            "total_us": 11.6494
+          },
+          {
+            "tid": 16,
+            "compute_main_us": 1.7806,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.7806,
+            "state_update_us": 2.24,
+            "sync_wait_us": 7.5604,
+            "sync_and_update_us": 9.8003,
+            "total_us": 11.5809
+          },
+          {
+            "tid": 17,
+            "compute_main_us": 1.5641,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.5641,
+            "state_update_us": 1.8525,
+            "sync_wait_us": 8.1776,
+            "sync_and_update_us": 10.0302,
+            "total_us": 11.5942
+          },
+          {
+            "tid": 18,
+            "compute_main_us": 1.9522,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.9522,
+            "state_update_us": 2.3173,
+            "sync_wait_us": 7.3626,
+            "sync_and_update_us": 9.6798,
+            "total_us": 11.6321
+          },
+          {
+            "tid": 19,
+            "compute_main_us": 3.5484,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 3.5484,
+            "state_update_us": 3.5512,
+            "sync_wait_us": 4.4904,
+            "sync_and_update_us": 8.0416,
+            "total_us": 11.59
+          },
+          {
+            "tid": 20,
+            "compute_main_us": 3.5113,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 3.5113,
+            "state_update_us": 3.14,
+            "sync_wait_us": 4.8776,
+            "sync_and_update_us": 8.0176,
+            "total_us": 11.5289
+          },
+          {
+            "tid": 21,
+            "compute_main_us": 5.632,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 5.632,
+            "state_update_us": 1.6992,
+            "sync_wait_us": 4.2479,
+            "sync_and_update_us": 5.9471,
+            "total_us": 11.5791
+          },
+          {
+            "tid": 22,
+            "compute_main_us": 7.1931,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 7.1931,
+            "state_update_us": 2.8935,
+            "sync_wait_us": 1.5067,
+            "sync_and_update_us": 4.4003,
+            "total_us": 11.5933
+          },
+          {
+            "tid": 23,
+            "compute_main_us": 5.5508,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 5.5508,
+            "state_update_us": 3.2076,
+            "sync_wait_us": 2.7558,
+            "sync_and_update_us": 5.9634,
+            "total_us": 11.5142
+          }
+        ]
+      },
+      "on": {
+        "counter_hz": 2599936353.539378,
+        "avg_compute_main_us": 2.452302829549541,
+        "avg_compute_spec_us": 0.09545028459209474,
+        "avg_compute_total_us": 2.547753114141636,
+        "avg_state_update_us": 1.714764278401457,
+        "avg_sync_wait_us": 6.488531214126826,
+        "avg_sync_and_update_us": 8.203295492528282,
+        "avg_total_us": 10.751048606669919,
+        "per_thread": [
+          {
+            "tid": 0,
+            "compute_main_us": 0.2456,
+            "compute_spec_us": 0.0388,
+            "compute_total_us": 0.2844,
+            "state_update_us": 0.6033,
+            "sync_wait_us": 9.8711,
+            "sync_and_update_us": 10.4744,
+            "total_us": 10.7588
+          },
+          {
+            "tid": 1,
+            "compute_main_us": 1.5572,
+            "compute_spec_us": 0.0785,
+            "compute_total_us": 1.6357,
+            "state_update_us": 0.5119,
+            "sync_wait_us": 8.6097,
+            "sync_and_update_us": 9.1215,
+            "total_us": 10.7573
+          },
+          {
+            "tid": 2,
+            "compute_main_us": 0.7645,
+            "compute_spec_us": 0.0496,
+            "compute_total_us": 0.8141,
+            "state_update_us": 1.1269,
+            "sync_wait_us": 8.8142,
+            "sync_and_update_us": 9.9411,
+            "total_us": 10.7553
+          },
+          {
+            "tid": 3,
+            "compute_main_us": 1.7242,
+            "compute_spec_us": 0.0745,
+            "compute_total_us": 1.7987,
+            "state_update_us": 1.6676,
+            "sync_wait_us": 7.2914,
+            "sync_and_update_us": 8.9591,
+            "total_us": 10.7578
+          },
+          {
+            "tid": 4,
+            "compute_main_us": 1.4284,
+            "compute_spec_us": 0.0326,
+            "compute_total_us": 1.461,
+            "state_update_us": 1.5234,
+            "sync_wait_us": 7.7694,
+            "sync_and_update_us": 9.2928,
+            "total_us": 10.7538
+          },
+          {
+            "tid": 5,
+            "compute_main_us": 0.134,
+            "compute_spec_us": 0.0188,
+            "compute_total_us": 0.1529,
+            "state_update_us": 0.6527,
+            "sync_wait_us": 9.9439,
+            "sync_and_update_us": 10.5966,
+            "total_us": 10.7495
+          },
+          {
+            "tid": 6,
+            "compute_main_us": 3.3044,
+            "compute_spec_us": 0.2494,
+            "compute_total_us": 3.5538,
+            "state_update_us": 2.4676,
+            "sync_wait_us": 4.7344,
+            "sync_and_update_us": 7.202,
+            "total_us": 10.7558
+          },
+          {
+            "tid": 7,
+            "compute_main_us": 1.6159,
+            "compute_spec_us": 0.0269,
+            "compute_total_us": 1.6428,
+            "state_update_us": 1.3834,
+            "sync_wait_us": 7.7286,
+            "sync_and_update_us": 9.112,
+            "total_us": 10.7548
+          },
+          {
+            "tid": 8,
+            "compute_main_us": 1.6786,
+            "compute_spec_us": 0.0246,
+            "compute_total_us": 1.7032,
+            "state_update_us": 1.7487,
+            "sync_wait_us": 7.2971,
+            "sync_and_update_us": 9.0458,
+            "total_us": 10.749
+          },
+          {
+            "tid": 9,
+            "compute_main_us": 0.0276,
+            "compute_spec_us": 0.0218,
+            "compute_total_us": 0.0493,
+            "state_update_us": 0.2499,
+            "sync_wait_us": 10.4576,
+            "sync_and_update_us": 10.7075,
+            "total_us": 10.7568
+          },
+          {
+            "tid": 10,
+            "compute_main_us": 1.4194,
+            "compute_spec_us": 0.0243,
+            "compute_total_us": 1.4437,
+            "state_update_us": 1.4864,
+            "sync_wait_us": 7.8313,
+            "sync_and_update_us": 9.3177,
+            "total_us": 10.7614
+          },
+          {
+            "tid": 11,
+            "compute_main_us": 0.0342,
+            "compute_spec_us": 0.0207,
+            "compute_total_us": 0.0549,
+            "state_update_us": 0.1724,
+            "sync_wait_us": 10.5225,
+            "sync_and_update_us": 10.6949,
+            "total_us": 10.7498
+          },
+          {
+            "tid": 12,
+            "compute_main_us": 2.4692,
+            "compute_spec_us": 0.0322,
+            "compute_total_us": 2.5013,
+            "state_update_us": 0.7003,
+            "sync_wait_us": 7.5414,
+            "sync_and_update_us": 8.2417,
+            "total_us": 10.7431
+          },
+          {
+            "tid": 13,
+            "compute_main_us": 4.2462,
+            "compute_spec_us": 0.0476,
+            "compute_total_us": 4.2938,
+            "state_update_us": 3.1045,
+            "sync_wait_us": 3.326,
+            "sync_and_update_us": 6.4305,
+            "total_us": 10.7244
+          },
+          {
+            "tid": 14,
+            "compute_main_us": 3.5645,
+            "compute_spec_us": 0.0435,
+            "compute_total_us": 3.608,
+            "state_update_us": 2.6105,
+            "sync_wait_us": 4.5369,
+            "sync_and_update_us": 7.1474,
+            "total_us": 10.7554
+          },
+          {
+            "tid": 15,
+            "compute_main_us": 4.2045,
+            "compute_spec_us": 0.0287,
+            "compute_total_us": 4.2333,
+            "state_update_us": 1.7055,
+            "sync_wait_us": 4.808,
+            "sync_and_update_us": 6.5135,
+            "total_us": 10.7468
+          },
+          {
+            "tid": 16,
+            "compute_main_us": 1.7625,
+            "compute_spec_us": 0.024,
+            "compute_total_us": 1.7865,
+            "state_update_us": 1.9127,
+            "sync_wait_us": 7.0459,
+            "sync_and_update_us": 8.9586,
+            "total_us": 10.7451
+          },
+          {
+            "tid": 17,
+            "compute_main_us": 1.7286,
+            "compute_spec_us": 0.024,
+            "compute_total_us": 1.7525,
+            "state_update_us": 1.6685,
+            "sync_wait_us": 7.334,
+            "sync_and_update_us": 9.0025,
+            "total_us": 10.755
+          },
+          {
+            "tid": 18,
+            "compute_main_us": 2.3726,
+            "compute_spec_us": 0.0527,
+            "compute_total_us": 2.4253,
+            "state_update_us": 1.9698,
+            "sync_wait_us": 6.3523,
+            "sync_and_update_us": 8.322,
+            "total_us": 10.7473
+          },
+          {
+            "tid": 19,
+            "compute_main_us": 3.3562,
+            "compute_spec_us": 0.2,
+            "compute_total_us": 3.5563,
+            "state_update_us": 3.6891,
+            "sync_wait_us": 3.512,
+            "sync_and_update_us": 7.2011,
+            "total_us": 10.7574
+          },
+          {
+            "tid": 20,
+            "compute_main_us": 3.9106,
+            "compute_spec_us": 0.0292,
+            "compute_total_us": 3.9397,
+            "state_update_us": 3.2138,
+            "sync_wait_us": 3.5953,
+            "sync_and_update_us": 6.809,
+            "total_us": 10.7488
+          },
+          {
+            "tid": 21,
+            "compute_main_us": 4.9472,
+            "compute_spec_us": 0.594,
+            "compute_total_us": 5.5412,
+            "state_update_us": 1.3864,
+            "sync_wait_us": 3.8259,
+            "sync_and_update_us": 5.2124,
+            "total_us": 10.7536
+          },
+          {
+            "tid": 22,
+            "compute_main_us": 6.8638,
+            "compute_spec_us": 0.3061,
+            "compute_total_us": 7.1699,
+            "state_update_us": 2.3141,
+            "sync_wait_us": 1.2558,
+            "sync_and_update_us": 3.5699,
+            "total_us": 10.7398
+          },
+          {
+            "tid": 23,
+            "compute_main_us": 5.4954,
+            "compute_spec_us": 0.2483,
+            "compute_total_us": 5.7437,
+            "state_update_us": 3.2847,
+            "sync_wait_us": 1.7201,
+            "sync_and_update_us": 5.0048,
+            "total_us": 10.7485
+          }
+        ]
+      }
+    },
+    {
+      "design": "boom_l_1",
+      "workload": "dhry",
+      "straggler_threads": [
+        22,
+        21
+      ],
+      "straggler_comparison": [
+        {
+          "tid": 22,
+          "p2sim": {
+            "tid": 22,
+            "compute_main_us": 7.2773,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 7.2773,
+            "state_update_us": 2.6531,
+            "sync_wait_us": 2.9457,
+            "sync_and_update_us": 5.5989,
+            "total_us": 12.8762
+          },
+          "s2sim": {
+            "tid": 22,
+            "compute_main_us": 8.2475,
+            "compute_spec_us": 0.3801,
+            "compute_total_us": 8.6276,
+            "state_update_us": 2.5262,
+            "sync_wait_us": 0.8487,
+            "sync_and_update_us": 3.3749,
+            "total_us": 12.0026
+          }
+        },
+        {
+          "tid": 21,
+          "p2sim": {
+            "tid": 21,
+            "compute_main_us": 6.0554,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 6.0554,
+            "state_update_us": 1.9538,
+            "sync_wait_us": 4.8556,
+            "sync_and_update_us": 6.8094,
+            "total_us": 12.8648
+          },
+          "s2sim": {
+            "tid": 21,
+            "compute_main_us": 5.9248,
+            "compute_spec_us": 0.7495,
+            "compute_total_us": 6.6743,
+            "state_update_us": 1.4491,
+            "sync_wait_us": 3.8979,
+            "sync_and_update_us": 5.347,
+            "total_us": 12.0213
+          }
+        }
+      ],
+      "off": {
+        "counter_hz": 2599942653.108413,
+        "avg_compute_main_us": 2.4826841392826333,
+        "avg_compute_spec_us": 0.0,
+        "avg_compute_total_us": 2.4826841392826333,
+        "avg_state_update_us": 2.128183388789259,
+        "avg_sync_wait_us": 8.280490471848477,
+        "avg_sync_and_update_us": 10.408673860637736,
+        "avg_total_us": 12.891357999920372,
+        "per_thread": [
+          {
+            "tid": 0,
+            "compute_main_us": 0.2711,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.2711,
+            "state_update_us": 1.1771,
+            "sync_wait_us": 11.4823,
+            "sync_and_update_us": 12.6595,
+            "total_us": 12.9306
+          },
+          {
+            "tid": 1,
+            "compute_main_us": 1.4822,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.4822,
+            "state_update_us": 1.0911,
+            "sync_wait_us": 10.3171,
+            "sync_and_update_us": 11.4083,
+            "total_us": 12.8905
+          },
+          {
+            "tid": 2,
+            "compute_main_us": 0.7584,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.7584,
+            "state_update_us": 1.598,
+            "sync_wait_us": 10.5322,
+            "sync_and_update_us": 12.1302,
+            "total_us": 12.8886
+          },
+          {
+            "tid": 3,
+            "compute_main_us": 1.8984,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.8984,
+            "state_update_us": 2.2076,
+            "sync_wait_us": 8.8306,
+            "sync_and_update_us": 11.0382,
+            "total_us": 12.9366
+          },
+          {
+            "tid": 4,
+            "compute_main_us": 1.6229,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.6229,
+            "state_update_us": 2.0043,
+            "sync_wait_us": 9.2897,
+            "sync_and_update_us": 11.2939,
+            "total_us": 12.9168
+          },
+          {
+            "tid": 5,
+            "compute_main_us": 0.1607,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.1607,
+            "state_update_us": 1.1482,
+            "sync_wait_us": 11.5216,
+            "sync_and_update_us": 12.6698,
+            "total_us": 12.8306
+          },
+          {
+            "tid": 6,
+            "compute_main_us": 2.5849,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 2.5849,
+            "state_update_us": 2.5559,
+            "sync_wait_us": 7.7538,
+            "sync_and_update_us": 10.3097,
+            "total_us": 12.8946
+          },
+          {
+            "tid": 7,
+            "compute_main_us": 1.3701,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.3701,
+            "state_update_us": 1.7621,
+            "sync_wait_us": 9.7856,
+            "sync_and_update_us": 11.5476,
+            "total_us": 12.9178
+          },
+          {
+            "tid": 8,
+            "compute_main_us": 1.468,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.468,
+            "state_update_us": 2.0038,
+            "sync_wait_us": 9.3515,
+            "sync_and_update_us": 11.3553,
+            "total_us": 12.8233
+          },
+          {
+            "tid": 9,
+            "compute_main_us": 0.0298,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.0298,
+            "state_update_us": 0.6578,
+            "sync_wait_us": 12.251,
+            "sync_and_update_us": 12.9088,
+            "total_us": 12.9387
+          },
+          {
+            "tid": 10,
+            "compute_main_us": 1.3166,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.3166,
+            "state_update_us": 2.1136,
+            "sync_wait_us": 9.4941,
+            "sync_and_update_us": 11.6077,
+            "total_us": 12.9243
+          },
+          {
+            "tid": 11,
+            "compute_main_us": 0.033,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 0.033,
+            "state_update_us": 0.6,
+            "sync_wait_us": 12.295,
+            "sync_and_update_us": 12.895,
+            "total_us": 12.928
+          },
+          {
+            "tid": 12,
+            "compute_main_us": 2.6103,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 2.6103,
+            "state_update_us": 1.2987,
+            "sync_wait_us": 9.0107,
+            "sync_and_update_us": 10.3094,
+            "total_us": 12.9198
+          },
+          {
+            "tid": 13,
+            "compute_main_us": 3.7545,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 3.7545,
+            "state_update_us": 3.0969,
+            "sync_wait_us": 6.023,
+            "sync_and_update_us": 9.1199,
+            "total_us": 12.8744
+          },
+          {
+            "tid": 14,
+            "compute_main_us": 3.6756,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 3.6756,
+            "state_update_us": 3.2418,
+            "sync_wait_us": 5.9872,
+            "sync_and_update_us": 9.229,
+            "total_us": 12.9046
+          },
+          {
+            "tid": 15,
+            "compute_main_us": 3.7314,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 3.7314,
+            "state_update_us": 1.951,
+            "sync_wait_us": 7.2444,
+            "sync_and_update_us": 9.1954,
+            "total_us": 12.9268
+          },
+          {
+            "tid": 16,
+            "compute_main_us": 1.8241,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.8241,
+            "state_update_us": 2.4182,
+            "sync_wait_us": 8.6219,
+            "sync_and_update_us": 11.0401,
+            "total_us": 12.8642
+          },
+          {
+            "tid": 17,
+            "compute_main_us": 1.5399,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 1.5399,
+            "state_update_us": 1.9981,
+            "sync_wait_us": 9.3512,
+            "sync_and_update_us": 11.3493,
+            "total_us": 12.8892
+          },
+          {
+            "tid": 18,
+            "compute_main_us": 2.605,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 2.605,
+            "state_update_us": 2.6889,
+            "sync_wait_us": 7.6086,
+            "sync_and_update_us": 10.2975,
+            "total_us": 12.9025
+          },
+          {
+            "tid": 19,
+            "compute_main_us": 3.65,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 3.65,
+            "state_update_us": 4.1571,
+            "sync_wait_us": 5.0755,
+            "sync_and_update_us": 9.2325,
+            "total_us": 12.8826
+          },
+          {
+            "tid": 20,
+            "compute_main_us": 4.0589,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 4.0589,
+            "state_update_us": 3.4399,
+            "sync_wait_us": 5.3476,
+            "sync_and_update_us": 8.7874,
+            "total_us": 12.8464
+          },
+          {
+            "tid": 21,
+            "compute_main_us": 6.0554,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 6.0554,
+            "state_update_us": 1.9538,
+            "sync_wait_us": 4.8556,
+            "sync_and_update_us": 6.8094,
+            "total_us": 12.8648
+          },
+          {
+            "tid": 22,
+            "compute_main_us": 7.2773,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 7.2773,
+            "state_update_us": 2.6531,
+            "sync_wait_us": 2.9457,
+            "sync_and_update_us": 5.5989,
+            "total_us": 12.8762
+          },
+          {
+            "tid": 23,
+            "compute_main_us": 5.8057,
+            "compute_spec_us": 0.0,
+            "compute_total_us": 5.8057,
+            "state_update_us": 3.2593,
+            "sync_wait_us": 3.7559,
+            "sync_and_update_us": 7.0153,
+            "total_us": 12.8209
+          }
+        ]
+      },
+      "on": {
+        "counter_hz": 2599939867.968335,
+        "avg_compute_main_us": 2.6667728990022073,
+        "avg_compute_spec_us": 0.11058963355615903,
+        "avg_compute_total_us": 2.777362532558366,
+        "avg_state_update_us": 1.7387760335969913,
+        "avg_sync_wait_us": 7.509249996118672,
+        "avg_sync_and_update_us": 9.248026029715662,
+        "avg_total_us": 12.025388562274026,
+        "per_thread": [
+          {
+            "tid": 0,
+            "compute_main_us": 0.2986,
+            "compute_spec_us": 0.0443,
+            "compute_total_us": 0.3429,
+            "state_update_us": 0.6341,
+            "sync_wait_us": 11.0572,
+            "sync_and_update_us": 11.6913,
+            "total_us": 12.0342
+          },
+          {
+            "tid": 1,
+            "compute_main_us": 1.6487,
+            "compute_spec_us": 0.0855,
+            "compute_total_us": 1.7342,
+            "state_update_us": 0.5206,
+            "sync_wait_us": 9.7706,
+            "sync_and_update_us": 10.2913,
+            "total_us": 12.0255
+          },
+          {
+            "tid": 2,
+            "compute_main_us": 0.7857,
+            "compute_spec_us": 0.052,
+            "compute_total_us": 0.8377,
+            "state_update_us": 1.1379,
+            "sync_wait_us": 10.0585,
+            "sync_and_update_us": 11.1963,
+            "total_us": 12.034
+          },
+          {
+            "tid": 3,
+            "compute_main_us": 2.0033,
+            "compute_spec_us": 0.1112,
+            "compute_total_us": 2.1145,
+            "state_update_us": 1.6826,
+            "sync_wait_us": 8.2388,
+            "sync_and_update_us": 9.9213,
+            "total_us": 12.0358
+          },
+          {
+            "tid": 4,
+            "compute_main_us": 1.8751,
+            "compute_spec_us": 0.0357,
+            "compute_total_us": 1.9108,
+            "state_update_us": 1.6285,
+            "sync_wait_us": 8.4899,
+            "sync_and_update_us": 10.1184,
+            "total_us": 12.0292
+          },
+          {
+            "tid": 5,
+            "compute_main_us": 0.1739,
+            "compute_spec_us": 0.0219,
+            "compute_total_us": 0.1958,
+            "state_update_us": 0.6787,
+            "sync_wait_us": 11.1445,
+            "sync_and_update_us": 11.8232,
+            "total_us": 12.019
+          },
+          {
+            "tid": 6,
+            "compute_main_us": 3.077,
+            "compute_spec_us": 0.2424,
+            "compute_total_us": 3.3193,
+            "state_update_us": 2.2609,
+            "sync_wait_us": 6.4398,
+            "sync_and_update_us": 8.7007,
+            "total_us": 12.02
+          },
+          {
+            "tid": 7,
+            "compute_main_us": 1.4768,
+            "compute_spec_us": 0.0246,
+            "compute_total_us": 1.5014,
+            "state_update_us": 1.3534,
+            "sync_wait_us": 9.1744,
+            "sync_and_update_us": 10.5278,
+            "total_us": 12.0292
+          },
+          {
+            "tid": 8,
+            "compute_main_us": 1.6961,
+            "compute_spec_us": 0.0274,
+            "compute_total_us": 1.7235,
+            "state_update_us": 1.6436,
+            "sync_wait_us": 8.6648,
+            "sync_and_update_us": 10.3084,
+            "total_us": 12.0319
+          },
+          {
+            "tid": 9,
+            "compute_main_us": 0.0286,
+            "compute_spec_us": 0.0214,
+            "compute_total_us": 0.0501,
+            "state_update_us": 0.2134,
+            "sync_wait_us": 11.7715,
+            "sync_and_update_us": 11.9848,
+            "total_us": 12.0349
+          },
+          {
+            "tid": 10,
+            "compute_main_us": 1.5297,
+            "compute_spec_us": 0.0286,
+            "compute_total_us": 1.5583,
+            "state_update_us": 1.5613,
+            "sync_wait_us": 8.9149,
+            "sync_and_update_us": 10.4762,
+            "total_us": 12.0345
+          },
+          {
+            "tid": 11,
+            "compute_main_us": 0.0358,
+            "compute_spec_us": 0.0195,
+            "compute_total_us": 0.0552,
+            "state_update_us": 0.1606,
+            "sync_wait_us": 11.8146,
+            "sync_and_update_us": 11.9752,
+            "total_us": 12.0305
+          },
+          {
+            "tid": 12,
+            "compute_main_us": 2.3137,
+            "compute_spec_us": 0.032,
+            "compute_total_us": 2.3457,
+            "state_update_us": 0.7,
+            "sync_wait_us": 8.9868,
+            "sync_and_update_us": 9.6869,
+            "total_us": 12.0326
+          },
+          {
+            "tid": 13,
+            "compute_main_us": 3.3108,
+            "compute_spec_us": 0.0426,
+            "compute_total_us": 3.3535,
+            "state_update_us": 2.9458,
+            "sync_wait_us": 5.7001,
+            "sync_and_update_us": 8.6459,
+            "total_us": 11.9994
+          },
+          {
+            "tid": 14,
+            "compute_main_us": 4.0392,
+            "compute_spec_us": 0.059,
+            "compute_total_us": 4.0981,
+            "state_update_us": 3.1208,
+            "sync_wait_us": 4.8102,
+            "sync_and_update_us": 7.931,
+            "total_us": 12.0292
+          },
+          {
+            "tid": 15,
+            "compute_main_us": 4.1652,
+            "compute_spec_us": 0.0296,
+            "compute_total_us": 4.1948,
+            "state_update_us": 1.5256,
+            "sync_wait_us": 6.3041,
+            "sync_and_update_us": 7.8296,
+            "total_us": 12.0244
+          },
+          {
+            "tid": 16,
+            "compute_main_us": 1.9634,
+            "compute_spec_us": 0.0275,
+            "compute_total_us": 1.9909,
+            "state_update_us": 1.8543,
+            "sync_wait_us": 8.1641,
+            "sync_and_update_us": 10.0184,
+            "total_us": 12.0092
+          },
+          {
+            "tid": 17,
+            "compute_main_us": 1.7016,
+            "compute_spec_us": 0.0242,
+            "compute_total_us": 1.7257,
+            "state_update_us": 1.5585,
+            "sync_wait_us": 8.7486,
+            "sync_and_update_us": 10.3071,
+            "total_us": 12.0329
+          },
+          {
+            "tid": 18,
+            "compute_main_us": 2.8597,
+            "compute_spec_us": 0.0622,
+            "compute_total_us": 2.922,
+            "state_update_us": 2.1907,
+            "sync_wait_us": 6.9106,
+            "sync_and_update_us": 9.1013,
+            "total_us": 12.0232
+          },
+          {
+            "tid": 19,
+            "compute_main_us": 3.8995,
+            "compute_spec_us": 0.2061,
+            "compute_total_us": 4.1055,
+            "state_update_us": 4.0683,
+            "sync_wait_us": 3.857,
+            "sync_and_update_us": 7.9253,
+            "total_us": 12.0308
+          },
+          {
+            "tid": 20,
+            "compute_main_us": 4.5038,
+            "compute_spec_us": 0.0348,
+            "compute_total_us": 4.5386,
+            "state_update_us": 3.3208,
+            "sync_wait_us": 4.1616,
+            "sync_and_update_us": 7.4824,
+            "total_us": 12.021
+          },
+          {
+            "tid": 21,
+            "compute_main_us": 5.9248,
+            "compute_spec_us": 0.7495,
+            "compute_total_us": 6.6743,
+            "state_update_us": 1.4491,
+            "sync_wait_us": 3.8979,
+            "sync_and_update_us": 5.347,
+            "total_us": 12.0213
+          },
+          {
+            "tid": 22,
+            "compute_main_us": 8.2475,
+            "compute_spec_us": 0.3801,
+            "compute_total_us": 8.6276,
+            "state_update_us": 2.5262,
+            "sync_wait_us": 0.8487,
+            "sync_and_update_us": 3.3749,
+            "total_us": 12.0026
+          },
+          {
+            "tid": 23,
+            "compute_main_us": 6.4442,
+            "compute_spec_us": 0.2921,
+            "compute_total_us": 6.7362,
+            "state_update_us": 2.9951,
+            "sync_wait_us": 2.2928,
+            "sync_and_update_us": 5.288,
+            "total_us": 12.0242
+          }
+        ]
+      }
+    }
+  ]
+}

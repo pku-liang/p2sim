@@ -1,0 +1,65 @@
+bload program to memory
+  program_size=3161444
+set reset to 1
+set reset to 0
+start simulation: max_cycles=5000000
+bl loadecycle=100000, last_freq=57.5236 kHz, freq=57.5236 kHz
+r
+[   cycle=200000, last_freq=78.2505 kHz, freq=66.305 kHz
+ 0.000000] Ocycle=300000, last_freq=141.467 kHz, freq=80.5749 kHz
+F: fdt: Igncycle=400000, last_freq=141.955 kHz, freq=90.3405 kHz
+oring memorycycle=500000, last_freq=141.483 kHz, freq=97.3806 kHz
+ range 0x80cycle=600000, last_freq=141.671 kHz, freq=102.733 kHz
+000000 - 0x8cycle=700000, last_freq=141.804 kHz, freq=106.943 kHz
+0200000
+[ cycle=800000, last_freq=139.488 kHz, freq=110.155 kHz
+   0.000000]cycle=900000, last_freq=142.606 kHz, freq=113.013 kHz
+ Linux verscycle=1000000, last_freq=142.747 kHz, freq=115.417 kHz
+ion 4.18.0-gcycle=1100000, last_freq=135.621 kHz, freq=117.001 kHz
+655055af-dicycle=1200000, last_freq=135.038 kHz, freq=118.318 kHz
+rty (yzh@990cycle=1300000, last_freq=140.248 kHz, freq=119.759 kHz
+0k) (gcc vecycle=1400000, last_freq=143.37 kHz, freq=121.184 kHz
+rsion 12.2.0cycle=1500000, last_freq=142.81 kHz, freq=122.42 kHz
+ (Debian 12cycle=1600000, last_freq=142.765 kHz, freq=123.52 kHz
+.2.0-13)) #1cycle=1700000, last_freq=142.351 kHz, freq=124.489 kHz
+787 Wed Febcycle=1800000, last_freq=143.747 kHz, freq=125.423 kHz
+ 12 10:28:18cycle=1900000, last_freq=143.731 kHz, freq=126.269 kHz
+ CST 2025
+cycle=2000000, last_freq=140.275 kHz, freq=126.903 kHz
+[    0.00000cycle=2100000, last_freq=143.471 kHz, freq=127.604 kHz
+0] bootconscycle=2200000, last_freq=142.887 kHz, freq=128.228 kHz
+ole [early0]cycle=2300000, last_freq=142.427 kHz, freq=128.786 kHz
+ enabled
+[cycle=2400000, last_freq=106.812 kHz, freq=127.691 kHz
+    0.000000cycle=2500000, last_freq=119.374 kHz, freq=127.337 kHz
+] Initial rcycle=2600000, last_freq=144.265 kHz, freq=127.914 kHz
+amdisk at: 0cycle=2700000, last_freq=136.477 kHz, freq=128.212 kHz
+x(____ptrvacycle=2800000, last_freq=143.912 kHz, freq=128.713 kHz
+l____) (2560cycle=2900000, last_freq=142.618 kHz, freq=129.147 kHz
+ bytes)
+[ cycle=3000000, last_freq=116.942 kHz, freq=128.7 kHz
+   0.000000]cycle=3100000, last_freq=143.487 kHz, freq=129.129 kHz
+ Zone rangecycle=3200000, last_freq=139.034 kHz, freq=129.417 kHz
+s:
+[    0.0cycle=3300000, last_freq=113.701 kHz, freq=128.877 kHz
+00000]   DMcycle=3400000, last_freq=143.869 kHz, freq=129.273 kHz
+A32    emptycycle=3500000, last_freq=136.792 kHz, freq=129.477 kHz
+
+[    0.00cycle=3600000, last_freq=143.904 kHz, freq=129.838 kHz
+0000]   Normcycle=3700000, last_freq=143.298 kHz, freq=130.169 kHz
+al   [mem 0cycle=3800000, last_freq=143.805 kHz, freq=130.494 kHz
+x00000000802cycle=3900000, last_freq=143.721 kHz, freq=130.803 kHz
+00000-0x000cycle=4000000, last_freq=143.523 kHz, freq=131.094 kHz
+00000803dfffcycle=4100000, last_freq=140.333 kHz, freq=131.304 kHz
+f]
+[    0.cycle=4200000, last_freq=143.32 kHz, freq=131.567 kHz
+000000] Movacycle=4300000, last_freq=143.4 kHz, freq=131.82 kHz
+ble zone stcycle=4400000, last_freq=141.331 kHz, freq=132.022 kHz
+art for eachcycle=4500000, last_freq=140.233 kHz, freq=132.194 kHz
+ node
+[   cycle=4600000, last_freq=142.787 kHz, freq=132.407 kHz
+ 0.000000] Ecycle=4700000, last_freq=142.909 kHz, freq=132.615 kHz
+arly memorycycle=4800000, last_freq=143.462 kHz, freq=132.824 kHz
+ node rangescycle=4900000, last_freq=138.097 kHz, freq=132.928 kHz
+
+[    0.0cycle=5000000, last_freq=144.188 kHz, freq=133.136 kHz
