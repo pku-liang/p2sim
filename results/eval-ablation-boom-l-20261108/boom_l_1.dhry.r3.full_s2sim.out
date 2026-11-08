@@ -79,3 +79,35 @@ Str_2_Loc:           DHRYSTONE PROGRAM, 2'ND STRING
 
 Microseconds for one run through Dhrystone: 177
 Dhrystones per Second:                      1212
+cycle=1900000, last_freq=129.852 kHz, freq=83.8889 kHz
+cycle=2000000, last_freq=152.309 kHz, freq=85.8164 kHz
+cycle=2100000, last_freq=152.219 kHz, freq=87.6369 kHz
+cycle=2200000, last_freq=151.959 kHz, freq=89.3561 kHz
+cycle=2300000, last_freq=138.326 kHz, freq=90.753 kHz
+cycle=2400000, last_freq=130.85 kHz, freq=91.9267 kHz
+cycle=2500000, last_freq=131.36 kHz, freq=93.044 kHz
+cycle=2600000, last_freq=106.162 kHz, freq=93.4883 kHz
+cycle=2700000, last_freq=112.392 kHz, freq=94.0743 kHz
+cycle=2800000, last_freq=153.001 kHz, freq=95.3863 kHz
+cycle=2900000, last_freq=153.784 kHz, freq=96.6519 kHz
+cycle=3000000, last_freq=152.745 kHz, freq=97.8497 kHz
+cycle=3100000, last_freq=141.439 kHz, freq=98.8322 kHz
+cycle=3200000, last_freq=149.297 kHz, freq=99.8874 kHz
+cycle=3300000, last_freq=150.004 kHz, freq=100.909 kHz
+cycle=3400000, last_freq=149.798 kHz, freq=101.887 kHz
+cycle=3500000, last_freq=145.595 kHz, freq=102.768 kHz
+cycle=3600000, last_freq=152.284 kHz, freq=103.705 kHz
+cycle=3700000, last_freq=149.744 kHz, freq=104.574 kHz
+cycle=3800000, last_freq=145.928 kHz, freq=105.36 kHz
+cycle=3900000, last_freq=149.246 kHz, freq=106.16 kHz
+cycle=4000000, last_freq=142.166 kHz, freq=106.837 kHz
+cycle=4100000, last_freq=137.727 kHz, freq=107.424 kHz
+cycle=4200000, last_freq=150.643 kHz, freq=108.163 kHz
+cycle=4300000, last_freq=142.416 kHz, freq=108.772 kHz
+cycle=4400000, last_freq=148.183 kHz, freq=109.433 kHz
+cycle=4500000, last_freq=138.91 kHz, freq=109.952 kHz
+cycle=4600000, last_freq=144.83 kHz, freq=110.53 kHz
+cycle=4700000, last_freq=129.525 kHz, freq=110.876 kHz
+cycle=4800000, last_freq=136.392 kHz, freq=111.31 kHz
+cycle=4900000, last_freq=145.607 kHz, freq=111.848 kHz
+cycle=5000000, last_freq=149.826 kHz, freq=112.418 kHz

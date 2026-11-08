@@ -824,6 +824,56 @@
       ],
       "khz": 106.648,
       "valid": true
+    },
+    {
+      "design": "boom_l_1",
+      "threads": 24,
+      "workload": "dhry",
+      "repeat": 3,
+      "variant": "full_s2sim",
+      "binary": "/home/keke/pro/p2sim-next/p2sim/build/spec-matrix-20261104/sims/boom_l_1/on/sim",
+      "binary_sha256": "caedfa2633e0276c772ce4c7cd1a528061768582b317b2e35f1017928236c071",
+      "log": "boom_l_1.dhry.r3.full_s2sim.out",
+      "log_sha256": "413cfb460fae7dcf4c8467dc3ed59d22aa051f42643fd3b0aa4bbb6d9a79187f",
+      "started": 1794139709.7496915,
+      "seconds": 44.654027700424194,
+      "load_before": [
+        66.953125,
+        67.82958984375,
+        65.47607421875
+      ],
+      "load_after": [
+        64.55517578125,
+        67.1474609375,
+        65.361328125
+      ],
+      "khz": 112.418,
+      "valid": true
+    },
+    {
+      "design": "boom_l_1",
+      "threads": 24,
+      "workload": "dhry",
+      "repeat": 3,
+      "variant": "p2sim",
+      "binary": "/home/keke/pro/p2sim-next/p2sim/build/spec-matrix-20261104/sims/boom_l_1/off/sim",
+      "binary_sha256": "9c49c3d4ccb6cc687a84ea8ac169e7dc17c824d05418efab771b75e2decf4747",
+      "log": "boom_l_1.dhry.r3.p2sim.out",
+      "log_sha256": "48b147ed72f347f88a6158bca3c018e8afe2d51ebd621a13397c6201e873c2c7",
+      "started": 1794139754.4257832,
+      "seconds": 54.37316155433655,
+      "load_before": [
+        64.55517578125,
+        67.1474609375,
+        65.361328125
+      ],
+      "load_after": [
+        63.87451171875,
+        66.71435546875,
+        65.32861328125
+      ],
+      "khz": 92.2603,
+      "valid": true
     }
   ]
 }

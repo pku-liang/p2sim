@@ -1,0 +1,12 @@
+sload program to memory
+  program_size=48320
+set reset to 1
+set reset to 0
+start simulation: max_cycles=5000000
+tart dhrystone
+
+Dhrystone Benchmark, Version C, Version 2.2
+Program compiled with 'register' attribute
+Using rdcycle(), HZ=1000000
+
+Trying 10000 runs through Dhrystone:
