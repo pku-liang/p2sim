@@ -41,6 +41,7 @@ pub struct CGenCfg {
     pub prof: ProfCfg,
     pub pgo: bool,
     pub disable_cacheline_task: bool,
+    pub spec_sim: bool,
 }
 
 impl Default for CGenCfg {
@@ -53,6 +54,7 @@ impl Default for CGenCfg {
             prof: ProfCfg::default(),
             pgo: false,
             disable_cacheline_task: false,
+            spec_sim: false,
         }
     }
 }

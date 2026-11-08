@@ -1,0 +1,352 @@
+[2026-10-28T07:02:17Z INFO  ggsim] Parsing design from designs/rocket_m_1.ggsim.sexp
+[2026-10-28T07:02:17Z INFO  ggsim] Design stats: blocks=7315, states=10987, resets=4
+[2026-10-28T07:02:17Z WARN  ggsim::pass] Clear empty block: BlockId(4049)
+[2026-10-28T07:02:17Z INFO  ggsim::pass] Start repcut partition
+[2026-10-28T07:02:17Z INFO  ggsim::pass] 1. Build transitive closure
+[2026-10-28T07:02:17Z INFO  ggsim::pass] 2. Find sink nodes
+[2026-10-28T07:02:17Z INFO  ggsim::pass] 3. Build Hypergraph
+[2026-10-28T07:02:17Z INFO  ggsim::pass] 4. Partition
+*******************************************************************************
+*                            Partitioning Context                             *
+*******************************************************************************
+Partitioning Parameters:
+  Hypergraph:                         
+  Mode:                               direct_kway
+  Objective:                          cut
+  Gain Policy:                        cut
+  Input File Format:                  hMetis
+  Instance Type:                      hypergraph
+  Preset Type:                        deterministic
+  Partition Type:                     multilevel_hypergraph_partitioning
+  k:                                  24
+  epsilon:                            0.1
+  seed:                               0
+  Number of V-Cycles:                 0
+  Ignore HE Size Threshold:           1000
+  Large HE Size Threshold:            100
+-------------------------------------------------------------------------------
+Preprocessing Parameters:
+  Use Community Detection:            true
+  Disable C. D. for Mesh Graphs:      true
+
+  Community Detection Parameters:
+    Edge Weight Function:                uniform
+    Maximum Louvain-Pass Iterations:     5
+    Minimum Vertex Move Fraction:        0.01
+    Vertex Degree Sampling Threshold:    200000
+    Number of subrounds (deterministic): 16
+-------------------------------------------------------------------------------
+Coarsening Parameters:
+  Algorithm:                          deterministic_multilevel_coarsener
+  Use Adaptive Edge Size:             true
+  Max Allowed Weight Multiplier:      1
+  Maximum Allowed Hypernode Weight:   85
+  Contraction Limit Multiplier:       160
+  Deep ML Contraction Limit Multi.:   4294967295
+  Contraction Limit:                  3840
+  Minimum Shrink Factor:              1.01
+  Maximum Shrink Factor:              2.5
+  Vertex Degree Sampling Threshold:   200000
+  Number of subrounds (deterministic):3
+
+  Rating Parameters:
+    Rating Function:                  heavy_edge
+    Heavy Node Penalty:               no_penalty
+    Acceptance Policy:                best_prefer_unmatched
+-------------------------------------------------------------------------------
+Initial Partitioning Parameters:
+  Initial Partitioning Mode:          recursive_bipartitioning
+  Number of Runs:                     20
+  Use Adaptive IP Runs:               false
+  Perform Refinement On Best:         false
+  Fm Refinement Rounds:               3
+  Remove Degree-Zero HNs Before IP:   true
+  Maximum Iterations of LP IP:        20
+  Initial Block Size of LP IP:        5
+
+Initial Partitioning Refinement Parameters:
+  Rebalancing Algorithm:              do_nothing
+  Refine Until No Improvement:        false
+  Relative Improvement Threshold:     0
+  Maximum Batch Size:                 1000
+  Min Border Vertices Per Thread:     0
+
+  Label Propagation Parameters:
+    Algorithm:                        deterministic
+    Maximum Iterations:               5
+    Unconstrained:                    false
+    Rebalancing:                      true
+    HE Size Activation Threshold:     100
+    Relative Improvement Threshold:   -1
+
+  FM Parameters: 
+    Algorithm:                        fm_do_nothing
+
+  Flow Parameters: 
+    Algorithm:                        do_nothing
+
+-------------------------------------------------------------------------------
+Refinement Parameters:
+  Rebalancing Algorithm:              advanced_rebalancer
+  Refine Until No Improvement:        false
+  Relative Improvement Threshold:     0
+  Maximum Batch Size:                 1000
+  Min Border Vertices Per Thread:     0
+
+  Label Propagation Parameters:
+    Algorithm:                        deterministic
+    Maximum Iterations:               5
+    Unconstrained:                    false
+    Rebalancing:                      true
+    HE Size Activation Threshold:     100
+    Relative Improvement Threshold:   -1
+
+  FM Parameters: 
+    Algorithm:                        fm_do_nothing
+
+  Flow Parameters: 
+    Algorithm:                        do_nothing
+-------------------------------------------------------------------------------
+Shared Memory Parameters:             
+  Number of Threads:                  112
+  Use Localized Random Shuffle:       false
+  Random Shuffle Block Size:          2
+------------------------------------------------------------------------------- 
+
+******************************************************************************** 
+*                                    Input                                     * 
+******************************************************************************** 
+Hypergraph Information 
+Name :  
+# HNs : 3527 # HEs : 7327 # pins: 314593 # graph edges: 664 
+HE size             HE weight             HN degree           HN weight 
+| min= 1            | min= 1              | min= 1            | min= 3           
+| Q1 = 1            | Q1 = 2              | Q1 = 17           | Q1 = 20          
+| med= 1            | med= 3              | med= 52           | med= 55          
+| Q3 = 9            | Q3 = 4              | Q3 = 123          | Q3 = 126         
+| max= 1314         | max= 536870912      | max= 384          | max= 408         
+| avg= 42.9361      | avg= 73286.7        | avg= 89.1956      | avg= 91.9484     
+| sd = 137.262      | sd = 6.27201e+06    | sd = 92.2054      | sd = 91.7639     
+
+******************************************************************************** 
+*                              Preprocessing...                                * 
+******************************************************************************** 
+# Communities : 4 
+# HNs Per Community # Internal Pins     Internal Degree Sum 
+| min= 1            | min= 1            | min= 1           
+| Q1 = 1            | Q1 = 1            | Q1 = 1           
+| med= 3            | med= 30           | med= 30          
+| Q3 = 1762         | Q3 = 157295       | Q3 = 157295      
+| max= 3520         | max= 314531       | max= 314531      
+| avg= 881.75       | avg= 78648.2      | avg= 78648.2     
+| sd = 1758.83      | sd = 157255       | sd = 157255      
+******************************************************************************** 
+*                                Coarsening...                                 * 
+******************************************************************************** 
+Hypergraph Information 
+Name : Coarsened Hypergraph 
+# HNs : 3527 # HEs : 7327 # pins: 314593 # graph edges: 664 
+HE size             HE weight             HN degree           HN weight 
+| min= 1            | min= 1              | min= 1            | min= 3           
+| Q1 = 1            | Q1 = 2              | Q1 = 17           | Q1 = 20          
+| med= 1            | med= 3              | med= 52           | med= 55          
+| Q3 = 9            | Q3 = 4              | Q3 = 123          | Q3 = 126         
+| max= 1314         | max= 536870912      | max= 384          | max= 408         
+| avg= 42.9361      | avg= 73286.7        | avg= 89.1956      | avg= 91.9484     
+| sd = 137.262      | sd = 6.27201e+06    | sd = 92.2054      | sd = 91.7639     
+
+******************************************************************************** 
+*                           Initial Partitioning...                            * 
+******************************************************************************** 
+Initial Partitioning Results: 
+cut       = 9372 
+imbalance = 0.0950936 
+Part sizes and weights: 
+|block 0 | =    93  w(  0 ) = 13097  max(  0 ) = 14864
+|block 1 | =   153  w(  1 ) = 13151  max(  1 ) = 14864
+|block 2 | =    77  w(  2 ) = 13122  max(  2 ) = 14864
+|block 3 | =    66  w(  3 ) = 14309  max(  3 ) = 14864
+|block 4 | =    61  w(  4 ) = 13530  max(  4 ) = 14864
+|block 5 | =    82  w(  5 ) = 13889  max(  5 ) = 14864
+|block 6 | =    60  w(  6 ) = 13730  max(  6 ) = 14864
+|block 7 | =    77  w(  7 ) = 13316  max(  7 ) = 14864
+|block 8 | =    65  w(  8 ) = 13502  max(  8 ) = 14864
+|block 9 | =    57  w(  9 ) = 13657  max(  9 ) = 14864
+|block 10| =    74  w( 10 ) = 13698  max( 10 ) = 14864
+|block 11| =    74  w( 11 ) = 13195  max( 11 ) = 14864
+|block 12| =   177  w( 12 ) = 14037  max( 12 ) = 14864
+|block 13| =   187  w( 13 ) = 13982  max( 13 ) = 14864
+|block 14| =   109  w( 14 ) = 12536  max( 14 ) = 14864
+|block 15| =   238  w( 15 ) = 14430  max( 15 ) = 14864
+|block 16| =   127  w( 16 ) = 12975  max( 16 ) = 14864
+|block 17| =   163  w( 17 ) = 13218  max( 17 ) = 14864
+|block 18| =   269  w( 18 ) = 14772  max( 18 ) = 14864
+|block 19| =   156  w( 19 ) = 12193  max( 19 ) = 14864
+|block 20| =   243  w( 20 ) = 12907  max( 20 ) = 14864
+|block 21| =   333  w( 21 ) = 12006  max( 21 ) = 14864
+|block 22| =   403  w( 22 ) = 14798  max( 22 ) = 14864
+|block 23| =   183  w( 23 ) = 14252  max( 23 ) = 14864
+ 
+Initial Partitioning Algorithm Summary: 
+Number of Initial Partitioning Calls = 23 
+Average Number of Thread per IP Call = 78.1304 
+ 
+[1mAlgorithm                      Avg. Quality    Total Time (s)  Total Best Total Best (%)[0m
+greedy_round_robin_fm          1125.35         0.468286        3          13.0435         
+greedy_global_fm               1017.62         0.465538        4          17.3913         
+greedy_sequential_fm           1077.32         0.452426        3          13.0435         
+random                         1.16924e+06     0.130639        0          0               
+bfs                            1248.41         0.183827        3          13.0435         
+label_propagation              1543.48         0.989782        1          4.34783         
+greedy_round_robin_max_net     997.95          0.405997        2          8.69565         
+greedy_global_max_net          788.028         0.34771         3          13.0435         
+greedy_sequential_max_net      795.4           0.390807        4          17.3913         
+
+******************************************************************************** 
+*                               Local Search...                                * 
+******************************************************************************** 
+Local Search Results: 
+cut       = 9339 
+imbalance = 0.0950936 
+Part sizes and weights: 
+|block 0 | =    93  w(  0 ) = 13097  max(  0 ) = 14864
+|block 1 | =   156  w(  1 ) = 13171  max(  1 ) = 14864
+|block 2 | =    77  w(  2 ) = 13122  max(  2 ) = 14864
+|block 3 | =    66  w(  3 ) = 14309  max(  3 ) = 14864
+|block 4 | =    61  w(  4 ) = 13530  max(  4 ) = 14864
+|block 5 | =    83  w(  5 ) = 14105  max(  5 ) = 14864
+|block 6 | =    60  w(  6 ) = 13730  max(  6 ) = 14864
+|block 7 | =    77  w(  7 ) = 13316  max(  7 ) = 14864
+|block 8 | =    65  w(  8 ) = 13502  max(  8 ) = 14864
+|block 9 | =    57  w(  9 ) = 13657  max(  9 ) = 14864
+|block 10| =    74  w( 10 ) = 13698  max( 10 ) = 14864
+|block 11| =    74  w( 11 ) = 13195  max( 11 ) = 14864
+|block 12| =   177  w( 12 ) = 14037  max( 12 ) = 14864
+|block 13| =   184  w( 13 ) = 13790  max( 13 ) = 14864
+|block 14| =   109  w( 14 ) = 12536  max( 14 ) = 14864
+|block 15| =   238  w( 15 ) = 14430  max( 15 ) = 14864
+|block 16| =   127  w( 16 ) = 12975  max( 16 ) = 14864
+|block 17| =   164  w( 17 ) = 13292  max( 17 ) = 14864
+|block 18| =   269  w( 18 ) = 14772  max( 18 ) = 14864
+|block 19| =   155  w( 19 ) = 12314  max( 19 ) = 14864
+|block 20| =   243  w( 20 ) = 12907  max( 20 ) = 14864
+|block 21| =   333  w( 21 ) = 12006  max( 21 ) = 14864
+|block 22| =   403  w( 22 ) = 14798  max( 22 ) = 14864
+|block 23| =   182  w( 23 ) = 14013  max( 23 ) = 14864
+ 
+Hypergraph Information 
+Name : Uncoarsened Hypergraph 
+# HNs : 3527 # HEs : 7327 # pins: 314593 # graph edges: 664 
+HE size             HE weight             HN degree           HN weight 
+| min= 1            | min= 1              | min= 1            | min= 3           
+| Q1 = 1            | Q1 = 2              | Q1 = 17           | Q1 = 20          
+| med= 1            | med= 3              | med= 52           | med= 55          
+| Q3 = 9            | Q3 = 4              | Q3 = 123          | Q3 = 126         
+| max= 1314         | max= 536870912      | max= 384          | max= 408         
+| avg= 42.9361      | avg= 73286.7        | avg= 89.1956      | avg= 91.9484     
+| sd = 137.262      | sd = 6.27201e+06    | sd = 92.2054      | sd = 91.7639     
+-------------------------------------------------------------------------------- 
+[2026-10-28T07:02:18Z INFO  ggsim::pass] 5. Extract partition
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Block Partition Stats:
+    Id  Blks Sinks Rsts Insts
+     0   528    93    1  8765
+     1   656   156    1 13218
+     2   467    77    1  8640
+     3   561    66    1  8638
+     4   451    61    1  7470
+     5   540    83    1  9353
+     6   417    60    1  7563
+     7   471    77    1  8531
+     8   424    65    1  7592
+     9   413    57    1  7463
+    10   448    74    1  8358
+    11   450    74    1  8325
+    12  1277   177    4 42770
+    13  1032   184    4 36693
+    14   326   109    2 10008
+    15   786   238    1 21383
+    16   849   127    1 18182
+    17   846   164    2 22611
+    18   679   269    1 13344
+    19   722   155    1 18211
+    20   874   243    2 19111
+    21   919   333    2 24714
+    22  1073   403    2 28062
+    23   653   182    1 18430
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Blocks: 7315 => 15862 (Dup 116.84%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 0: blocks=30/528 (5.7%), insts=234/8765 (2.7%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 1: blocks=36/656 (5.5%), insts=601/13218 (4.5%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 2: blocks=2/467 (0.4%), insts=31/8640 (0.4%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 3: blocks=19/561 (3.4%), insts=95/8638 (1.1%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 4: blocks=0/451 (0.0%), insts=0/7470 (0.0%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 5: blocks=21/540 (3.9%), insts=113/9353 (1.2%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 6: blocks=0/417 (0.0%), insts=0/7563 (0.0%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 7: blocks=7/471 (1.5%), insts=63/8531 (0.7%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 8: blocks=0/424 (0.0%), insts=0/7592 (0.0%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 9: blocks=0/413 (0.0%), insts=0/7463 (0.0%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 10: blocks=1/448 (0.2%), insts=0/8358 (0.0%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 11: blocks=4/450 (0.9%), insts=36/8325 (0.4%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 12: blocks=77/1277 (6.0%), insts=866/42770 (2.0%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 13: blocks=123/1032 (11.9%), insts=6291/36693 (17.1%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 14: blocks=0/326 (0.0%), insts=0/10008 (0.0%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 15: blocks=71/786 (9.0%), insts=634/21383 (3.0%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 16: blocks=31/849 (3.7%), insts=503/18182 (2.8%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 17: blocks=25/846 (3.0%), insts=181/22611 (0.8%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 18: blocks=85/679 (12.5%), insts=517/13344 (3.9%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 19: blocks=13/722 (1.8%), insts=105/18211 (0.6%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 20: blocks=60/874 (6.9%), insts=417/19111 (2.2%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 21: blocks=70/919 (7.6%), insts=610/24714 (2.5%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 22: blocks=116/1073 (10.8%), insts=981/28062 (3.5%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Speculative partition 23: blocks=37/653 (5.7%), insts=249/18430 (1.4%)
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Linear coarsen: 24 parts
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 528 => 90
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 656 => 134
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 467 => 75
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 561 => 78
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 451 => 53
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 540 => 84
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 417 => 87
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 471 => 115
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 424 => 88
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 413 => 71
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 448 => 106
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 450 => 103
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 1277 => 279
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 1032 => 228
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 326 => 51
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 786 => 210
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 849 => 182
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 846 => 180
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 679 => 163
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 722 => 159
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 874 => 188
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 919 => 327
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 1073 => 357
+[2026-10-28T07:02:18Z INFO  ggsim::pass]   Linear coarsen: 653 => 205
+[2026-10-28T07:02:18Z INFO  ggsim::pass] Shared dependency:
+        W0 W1 W2 W3 W4 W5 W6 W7 W8 W9 W10 W11 W12 W13 W14 W15 W16 W17 W18 W19 W20 W21 W22 W23
+     R0  0 25 41 39 41 34 25 25 21 23  18  24   8   3   1  24  33  58  90  28  26   9   8  10
+     R1 15  0 41 40 40 33 25 25 21 23  22  25  15   4   1  41  36  62  90  34  31  12  16  62
+     R2 15 38  0 40 40 33 25 25 21 23  22  25  15   3   1  24  33  58  90  27  26   9   8  10
+     R3 17 45 55  0 60 37 25 25 21 23  18  24   8   3   1  24  33  58  90  27  26   9   8  10
+     R4 15 25 41 40  0 33 25 25 21 23  18  24   8   3   1  24  33  58  90  27  26   9   8  10
+     R5 17 41 53 55 50  0 25 25 21 23  18  24   8   3   1  24  33  58  90  27  26   9   8  10
+     R6 15 22 41 33 40 32  0 25 21 23  18  24   7   2   1  24  33  58  90  25  26   9   8  10
+     R7 15 35 41 33 40 32 25  0 21 23  22  25  14   2   1  24  33  58  90  25  28   9   8  10
+     R8 15 22 41 33 40 32 25 25  0 23  18  24   7   2   1  24  33  58  90  25  26   9   8  10
+     R9 15 22 41 33 40 32 25 25 21  0  18  24   7   2   1  24  33  58  90  25  26   9   8  10
+    R10 15 35 41 33 40 32 25 25 21 23   0  25  14   2   1  24  33  58  90  25  28   9   8  10
+    R11 15 35 41 33 40 32 25 25 21 23  26   0  14   2   1  24  33  58  90  25  28   9   8  11
+    R12 15 35 41 33 40 32 25 25 21 23  22  25   0 176 246 202  48  79  90  32  33  15  16  62
+    R13 13 16 29 32 40 30  0  9  0  0   0   6 258   0 246 151  67  71  80  18  22  15  16  63
+    R14  0 13  6  0  0  0  0  0  0  0   4   1  72  38   0  68  14   1   0   5   4   3   8  10
+    R15  0  0  0  0  0  0  0  0  0  0   0   0 138  55  90   0  65  18   0   1   3   0   8  18
+    R16 15 22 41 33 40 32 25 25 21 23  18  26 113  57  51 148   0  99  94  36  34  12  16  63
+    R17 15 22 41 33 41 33 25 25 21 23  18  26  60  77  11 130  57   0  96  37  35  12  16  63
+    R18 13 16 35 32 40 30  0  9  0  0   0   4   2   2   1  41  34  10   0  24  10  12  16  58
+    R19 15 22 41 33 41 33 25 25 21 23  18  26  10   3   1  41  39  66 106   0  67  58  80 140
+    R20 15 35 41 33 41 33 25 25 21 23  22  27  17   3   1  41  39  72  97  62   0  20  48  63
+    R21 13 16 35 32 40 30  0  9  0  0   4   6   6   2   1  41  36  53 100  41  49   0 162  92
+    R22 13 16 35 32 40 30  0  9  0  0   0   4   6   2   1  41  36  53 100  49  49 150   0  83
+    R23 13 29 35 32 40 30  0 11  0  0   4   7  23   2   9  74  41  61 104  47  38  52  48   0
+[2026-10-28T07:02:18Z INFO  ggsim::cgen] Running 141 cgen tasks

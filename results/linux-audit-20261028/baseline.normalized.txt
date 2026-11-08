@@ -1,0 +1,15 @@
+load program to memory
+  program_size=3161444
+set reset to 1
+set reset to 0
+start simulation: max_cycles=5000000
+bbl loader
+[    0.000000] OF: fdt: Ignoring memory range 0x80000000 - 0x80200000
+[    0.000000] Linux version 4.18.0-g655055af-dirty (yzh@9900k) (gcc version 12.2.0 (Debian 12.2.0-13)) #1787 Wed Feb 12 10:28:18 CST 2025
+[    0.000000] bootconsole [early0] enabled
+[    0.000000] Initial ramdisk at: 0x(____ptrval____) (2560 bytes)
+[    0.000000] Zone ranges:
+[    0.000000]   DMA32    empty
+[    0.000000]   Normal   [mem 0x0000000080200000-0x00000000803dffff]
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory n

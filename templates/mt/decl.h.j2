@@ -25,8 +25,13 @@ struct {{ cls }}_decl {
     {{ cls }}* impl = nullptr;
     void init({{ ctx.name }}_shared * shared);
     void step();
-    void pull();
-    void push();
+    {%- if ctx.cfg.spec_sim %}
+    void step_spec();
+    void step_repair();
+    void advance_epoch();
+    {%- endif %}
+    void pull({{ ctx.name }}_shared * shared);
+    void push({{ ctx.name }}_shared * shared);
     ~{{ cls }}_decl();
     prof_obj * prof;
     {%- for lm in ctx.large_mem %}
@@ -40,6 +45,10 @@ struct {{ cls }}_decl {
 
 struct alignas(64) {{ ctx.name }} {
     {{ ctx.name }}_shared * shared = nullptr;
+    {%- if ctx.cfg.spec_sim %}
+    {{ ctx.name }}_shared * shared_alt = nullptr;
+    int shared_epoch = 0;
+    {%- endif %}
     {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
     {%- set cls = ctx.name ~ "_" ~ part_id.0 %}
     {{ cls }}_decl part_{{ part_id.0 }};

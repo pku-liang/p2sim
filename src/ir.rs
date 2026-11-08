@@ -178,6 +178,10 @@ pub struct Block {
     pub insts: Vec<Inst>,
     #[serde(default)]
     pub pushes: Option<PushTask>,
+    #[serde(skip)]
+    pub speculative: bool,
+    #[serde(skip)]
+    pub observer: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

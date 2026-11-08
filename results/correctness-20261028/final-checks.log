@@ -1,0 +1,2 @@
+Removed buffer-1 dirty propagation in 2 groups
+PASS original bug reproduced; missing-buffer-update mutation rejected

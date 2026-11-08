@@ -1,0 +1,279 @@
+load program to memory
+  program_size=3161444
+set reset to 1
+set reset to 0
+start simulation: max_cycles=100000000
+cycle=100000, last_freq=347.542 kHz, freq=347.542 kHz
+bbl loader
+cycle=200000, last_freq=336.569 kHz, freq=341.967 kHz
+cycle=300000, last_freq=341.051 kHz, freq=341.661 kHz
+cycle=400000, last_freq=357.783 kHz, freq=345.554 kHz
+cycle=500000, last_freq=388.396 kHz, freq=353.349 kHz
+cycle=600000, last_freq=384.305 kHz, freq=358.157 kHz
+cycle=700000, last_freq=385.877 kHz, freq=361.871 kHz
+cycle=800000, last_freq=379.094 kHz, freq=363.937 kHz
+cycle=900000, last_freq=369.002 kHz, freq=364.493 kHz
+[    0.000000] OF: fdt: Ignoring memory range 0x80000000 - 0x80200000
+cycle=1000000, last_freq=389.284 kHz, freq=366.829 kHz
+cycle=1100000, last_freq=390.18 kHz, freq=368.836 kHz
+cycle=1200000, last_freq=387.845 kHz, freq=370.348 kHz
+cycle=1300000, last_freq=391.233 kHz, freq=371.875 kHz
+cycle=1400000, last_freq=383.361 kHz, freq=372.673 kHz
+cycle=1500000, last_freq=387.771 kHz, freq=373.643 kHz
+cycle=1600000, last_freq=381.611 kHz, freq=374.131 kHz
+cycle=1700000, last_freq=379.465 kHz, freq=374.44 kHz
+cycle=1800000, last_freq=381.835 kHz, freq=374.844 kHz
+cycle=1900000, last_freq=375.032 kHz, freq=374.853 kHz
+cycle=2000000, last_freq=381.806 kHz, freq=375.195 kHz
+cycle=2100000, last_freq=380.516 kHz, freq=375.445 kHz
+[    0.000000] Linux version 4.18.0-g655055af-dirty (yzh@9900k) (gcc version 12.2.0 (Debian 12.2.0-13)) #1787 Wed Feb 12 10:28:18 CST 2025
+cycle=2200000, last_freq=376.309 kHz, freq=375.484 kHz
+cycle=2300000, last_freq=381.665 kHz, freq=375.749 kHz
+cycle=2400000, last_freq=388.716 kHz, freq=376.272 kHz
+cycle=2500000, last_freq=371.257 kHz, freq=376.069 kHz
+[    0.000000] bootconsole [early0] enabled
+cycle=2600000, last_freq=364.303 kHz, freq=375.602 kHz
+cycle=2700000, last_freq=377.216 kHz, freq=375.661 kHz
+cycle=2800000, last_freq=374.092 kHz, freq=375.605 kHz
+cycle=2900000, last_freq=383.212 kHz, freq=375.862 kHz
+cycle=3000000, last_freq=383.798 kHz, freq=376.122 kHz
+cycle=3100000, last_freq=381.962 kHz, freq=376.307 kHz
+[    0.000000] Initial ramdisk at: 0x(____ptrval____) (2560 bytes)
+cycle=3200000, last_freq=332.63 kHz, freq=374.769 kHz
+cycle=3300000, last_freq=354.298 kHz, freq=374.114 kHz
+cycle=3400000, last_freq=377.559 kHz, freq=374.215 kHz
+[    0.000000] Zone ranges:
+cycle=3500000, last_freq=370.573 kHz, freq=374.11 kHz
+cycle=3600000, last_freq=374.626 kHz, freq=374.124 kHz
+cycle=3700000, last_freq=371.385 kHz, freq=374.049 kHz
+[    0.000000]   DMA32    empty
+cycle=3800000, last_freq=380.071 kHz, freq=374.205 kHz
+cycle=3900000, last_freq=373.931 kHz, freq=374.198 kHz
+cycle=4000000, last_freq=380.234 kHz, freq=374.347 kHz
+cycle=4100000, last_freq=376.091 kHz, freq=374.389 kHz
+cycle=4200000, last_freq=382.253 kHz, freq=374.573 kHz
+cycle=4300000, last_freq=376.726 kHz, freq=374.622 kHz
+[    0.000000]   Normal   [mem 0x0000000080200000-0x00000000803dffff]
+cycle=4400000, last_freq=389.257 kHz, freq=374.943 kHz
+cycle=4500000, last_freq=387.033 kHz, freq=375.203 kHz
+cycle=4600000, last_freq=388.241 kHz, freq=375.477 kHz
+cycle=4700000, last_freq=376.688 kHz, freq=375.503 kHz
+[    0.000000] Movable zone start for each node
+cycle=4800000, last_freq=384.71 kHz, freq=375.69 kHz
+cycle=4900000, last_freq=380.215 kHz, freq=375.782 kHz
+cycle=5000000, last_freq=379.727 kHz, freq=375.86 kHz
+cycle=5100000, last_freq=377.467 kHz, freq=375.891 kHz
+[    0.000000] Early memory node ranges
+cycle=5200000, last_freq=384.615 kHz, freq=376.055 kHz
+cycle=5300000, last_freq=388.635 kHz, freq=376.285 kHz
+cycle=5400000, last_freq=359.186 kHz, freq=375.953 kHz
+cycle=5500000, last_freq=241.106 kHz, freq=372.169 kHz
+cycle=5600000, last_freq=262.21 kHz, freq=369.403 kHz
+cycle=5700000, last_freq=265.014 kHz, freq=366.867 kHz
+[    0.000000]   node   0: [mem 0x0000000080200000-0x00000000803dffff]
+cycle=5800000, last_freq=378.832 kHz, freq=367.067 kHz
+cycle=5900000, last_freq=385.689 kHz, freq=367.368 kHz
+cycle=6000000, last_freq=387.842 kHz, freq=367.691 kHz
+cycle=6100000, last_freq=357.142 kHz, freq=367.513 kHz
+cycle=6200000, last_freq=356.51 kHz, freq=367.33 kHz
+cycle=6300000, last_freq=385.088 kHz, freq=367.599 kHz
+cycle=6400000, last_freq=372.505 kHz, freq=367.675 kHz
+[    0.000000] Initmem setup node 0 [mem 0x0000000080200000-0x00000000803dffff]
+cycle=6500000, last_freq=352.904 kHz, freq=367.439 kHz
+cycle=6600000, last_freq=348.294 kHz, freq=367.133 kHz
+cycle=6700000, last_freq=345.496 kHz, freq=366.79 kHz
+cycle=6800000, last_freq=346.546 kHz, freq=366.475 kHz
+cycle=6900000, last_freq=348.935 kHz, freq=366.208 kHz
+cycle=7000000, last_freq=387.097 kHz, freq=366.491 kHz
+cycle=7100000, last_freq=386.578 kHz, freq=366.759 kHz
+cycle=7200000, last_freq=301.756 kHz, freq=365.665 kHz
+[    0.000000] elf_hwcap is 0x112d
+cycle=7300000, last_freq=276.686 kHz, freq=364.061 kHz
+cycle=7400000, last_freq=277.552 kHz, freq=362.534 kHz
+cycle=7500000, last_freq=277.473 kHz, freq=361.058 kHz
+cycle=7600000, last_freq=277.799 kHz, freq=359.64 kHz
+cycle=7700000, last_freq=280.451 kHz, freq=358.326 kHz
+cycle=7800000, last_freq=279.703 kHz, freq=357.04 kHz
+[    0.000000] Built 1 zonelists, mobility grouping off.  Total pages: 473
+cycle=7900000, last_freq=279.881 kHz, freq=355.798 kHz
+cycle=8000000, last_freq=283.443 kHz, freq=354.666 kHz
+cycle=8100000, last_freq=384.799 kHz, freq=355.009 kHz
+cycle=8200000, last_freq=385.697 kHz, freq=355.354 kHz
+[    0.000000] Kernel command line: earlycon
+cycle=8300000, last_freq=369.695 kHz, freq=355.52 kHz
+cycle=8400000, last_freq=276.039 kHz, freq=354.306 kHz
+cycle=8500000, last_freq=273.292 kHz, freq=353.075 kHz
+cycle=8600000, last_freq=319.331 kHz, freq=352.641 kHz
+cycle=8700000, last_freq=357.269 kHz, freq=352.694 kHz
+cycle=8800000, last_freq=360.796 kHz, freq=352.784 kHz
+cycle=8900000, last_freq=347.958 kHz, freq=352.729 kHz
+[    0.000000] Dentry cache hash table entries: 512 (order: 0, 4096 bytes)
+cycle=9000000, last_freq=362.176 kHz, freq=352.831 kHz
+cycle=9100000, last_freq=365.098 kHz, freq=352.961 kHz
+cycle=9200000, last_freq=362.072 kHz, freq=353.058 kHz
+cycle=9300000, last_freq=357.193 kHz, freq=353.102 kHz
+cycle=9400000, last_freq=298.235 kHz, freq=352.412 kHz
+cycle=9500000, last_freq=300.295 kHz, freq=351.769 kHz
+[    0.000000] Inode-cache hash table entries: 512 (order: 0, 4096 bytes)
+cycle=9600000, last_freq=291.068 kHz, freq=351.007 kHz
+cycle=9700000, last_freq=283.423 kHz, freq=350.146 kHz
+cycle=9800000, last_freq=298.421 kHz, freq=349.528 kHz
+cycle=9900000, last_freq=284.685 kHz, freq=348.726 kHz
+[    0.000000] Sorting __ex_table...
+cycle=10000000, last_freq=282.211 kHz, freq=347.906 kHz
+cycle=10100000, last_freq=288.528 kHz, freq=347.198 kHz
+cycle=10200000, last_freq=272.526 kHz, freq=346.268 kHz
+cycle=10300000, last_freq=268.082 kHz, freq=345.29 kHz
+cycle=10400000, last_freq=259.576 kHz, freq=344.197 kHz
+cycle=10500000, last_freq=260.726 kHz, freq=343.151 kHz
+cycle=10600000, last_freq=261.307 kHz, freq=342.14 kHz
+cycle=10700000, last_freq=282.528 kHz, freq=341.467 kHz
+cycle=10800000, last_freq=280.422 kHz, freq=340.78 kHz
+cycle=10900000, last_freq=276.507 kHz, freq=340.055 kHz
+cycle=11000000, last_freq=276.712 kHz, freq=339.349 kHz
+cycle=11100000, last_freq=279.921 kHz, freq=338.701 kHz
+cycle=11200000, last_freq=277.606 kHz, freq=338.036 kHz
+[    0.000000] Memory: 776K/1920K available (694K kernel code, 80K rwdata, 100K rodata, 60K init, 98K bss, 1144K reserved, 0K cma-reserved)
+cycle=11300000, last_freq=260.534 kHz, freq=337.149 kHz
+cycle=11400000, last_freq=246.713 kHz, freq=336.068 kHz
+cycle=11500000, last_freq=245.886 kHz, freq=335 kHz
+cycle=11600000, last_freq=249.281 kHz, freq=334.01 kHz
+cycle=11700000, last_freq=261.736 kHz, freq=333.223 kHz
+cycle=11800000, last_freq=260.947 kHz, freq=332.443 kHz
+cycle=11900000, last_freq=260.468 kHz, freq=331.673 kHz
+[    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+cycle=12000000, last_freq=260.346 kHz, freq=330.917 kHz
+cycle=12100000, last_freq=262.808 kHz, freq=330.21 kHz
+cycle=12200000, last_freq=264.586 kHz, freq=329.54 kHz
+cycle=12300000, last_freq=260.328 kHz, freq=328.829 kHz
+cycle=12400000, last_freq=258.214 kHz, freq=328.106 kHz
+[    0.000000] NR_IRQS: 0, nr_irqs: 0, preallocated irqs: 0
+cycle=12500000, last_freq=264.571 kHz, freq=327.477 kHz
+cycle=12600000, last_freq=255.086 kHz, freq=326.741 kHz
+cycle=12700000, last_freq=249.82 kHz, freq=325.95 kHz
+cycle=12800000, last_freq=258.465 kHz, freq=325.287 kHz
+cycle=12900000, last_freq=272.53 kHz, freq=324.799 kHz
+cycle=13000000, last_freq=273.015 kHz, freq=324.326 kHz
+cycle=13100000, last_freq=265.177 kHz, freq=323.775 kHz
+cycle=13200000, last_freq=262.061 kHz, freq=323.198 kHz
+cycle=13300000, last_freq=257.226 kHz, freq=322.576 kHz
+cycle=13400000, last_freq=257.005 kHz, freq=321.963 kHz
+cycle=13500000, last_freq=260.558 kHz, freq=321.402 kHz
+[    0.000000] clocksource: riscv_clocksource: mask: 0xffffffffffffffff max_cycles: 0x1d854df40, max_idle_ns: 3526361616960 ns
+cycle=13600000, last_freq=261.257 kHz, freq=320.859 kHz
+cycle=13700000, last_freq=270.59 kHz, freq=320.425 kHz
+cycle=13800000, last_freq=267.093 kHz, freq=319.962 kHz
+cycle=13900000, last_freq=265.485 kHz, freq=319.49 kHz
+[    0.000000] console [hvc0] enabled
+cycle=14000000, last_freq=267.215 kHz, freq=319.044 kHz
+cycle=14100000, last_freq=259.429 kHz, freq=318.525 kHz
+cycle=14200000, last_freq=259.934 kHz, freq=318.02 kHz
+[    0.000000] console [hvc0] enabled
+cycle=14300000, last_freq=263.84 kHz, freq=317.564 kHz
+cycle=14400000, last_freq=262.219 kHz, freq=317.099 kHz
+cycle=14500000, last_freq=262.885 kHz, freq=316.649 kHz
+cycle=14600000, last_freq=260.75 kHz, freq=316.185 kHz
+[    0.000000] bootconsole [early0] disabled
+cycle=14700000, last_freq=263.215 kHz, freq=315.752 kHz
+cycle=14800000, last_freq=260.171 kHz, freq=315.297 kHz
+cycle=14900000, last_freq=260.9 kHz, freq=314.857 kHz
+cycle=15000000, last_freq=261.169 kHz, freq=314.426 kHz
+[    0.000000] bootconsole [early0] disabled
+cycle=15100000, last_freq=264.605 kHz, freq=314.034 kHz
+cycle=15200000, last_freq=259.112 kHz, freq=313.597 kHz
+cycle=15300000, last_freq=265.215 kHz, freq=313.223 kHz
+cycle=15400000, last_freq=268.944 kHz, freq=312.889 kHz
+cycle=15500000, last_freq=267.733 kHz, freq=312.549 kHz
+cycle=15600000, last_freq=262.433 kHz, freq=312.167 kHz
+cycle=15700000, last_freq=263.656 kHz, freq=311.801 kHz
+cycle=15800000, last_freq=264.577 kHz, freq=311.449 kHz
+cycle=15900000, last_freq=263.595 kHz, freq=311.094 kHz
+cycle=16000000, last_freq=264.426 kHz, freq=310.751 kHz
+[    0.010000] Calibrating delay loop (skipped), value calculated using timer frequency.. 2.00 BogoMIPS (lpj=10000)
+cycle=16100000, last_freq=267.028 kHz, freq=310.436 kHz
+cycle=16200000, last_freq=264.069 kHz, freq=310.1 kHz
+cycle=16300000, last_freq=272.138 kHz, freq=309.834 kHz
+cycle=16400000, last_freq=263.985 kHz, freq=309.507 kHz
+cycle=16500000, last_freq=258.469 kHz, freq=309.137 kHz
+[    0.020000] pid_max: default: 4096 minimum: 301
+cycle=16600000, last_freq=255.467 kHz, freq=308.746 kHz
+cycle=16700000, last_freq=258.792 kHz, freq=308.39 kHz
+cycle=16800000, last_freq=260.567 kHz, freq=308.053 kHz
+cycle=16900000, last_freq=258.35 kHz, freq=307.703 kHz
+cycle=17000000, last_freq=208.837 kHz, freq=306.848 kHz
+cycle=17100000, last_freq=263.074 kHz, freq=306.55 kHz
+cycle=17200000, last_freq=261.003 kHz, freq=306.239 kHz
+[    0.020000] Mount-cache hash table entries: 512 (order: 0, 4096 bytes)
+cycle=17300000, last_freq=260.86 kHz, freq=305.932 kHz
+cycle=17400000, last_freq=261.08 kHz, freq=305.63 kHz
+cycle=17500000, last_freq=252.657 kHz, freq=305.264 kHz
+cycle=17600000, last_freq=257.545 kHz, freq=304.943 kHz
+cycle=17700000, last_freq=256.457 kHz, freq=304.618 kHz
+cycle=17800000, last_freq=264.169 kHz, freq=304.356 kHz
+cycle=17900000, last_freq=262.24 kHz, freq=304.083 kHz
+[    0.030000] Mountpoint-cache hash table entries: 512 (order: 0, 4096 bytes)
+cycle=18000000, last_freq=250.989 kHz, freq=303.726 kHz
+cycle=18100000, last_freq=255.012 kHz, freq=303.406 kHz
+cycle=18200000, last_freq=253.862 kHz, freq=303.081 kHz
+cycle=18300000, last_freq=251.429 kHz, freq=302.741 kHz
+cycle=18400000, last_freq=242.323 kHz, freq=302.331 kHz
+cycle=18500000, last_freq=247.207 kHz, freq=301.967 kHz
+cycle=18600000, last_freq=251.102 kHz, freq=301.639 kHz
+cycle=18700000, last_freq=257.593 kHz, freq=301.363 kHz
+cycle=18800000, last_freq=257.414 kHz, freq=301.09 kHz
+cycle=18900000, last_freq=255.853 kHz, freq=300.808 kHz
+cycle=19000000, last_freq=239.844 kHz, freq=300.407 kHz
+cycle=19100000, last_freq=237.382 kHz, freq=299.99 kHz
+cycle=19200000, last_freq=238.382 kHz, freq=299.586 kHz
+cycle=19300000, last_freq=238.034 kHz, freq=299.185 kHz
+cycle=19400000, last_freq=237.608 kHz, freq=298.786 kHz
+cycle=19500000, last_freq=236.199 kHz, freq=298.381 kHz
+[    0.040000] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
+cycle=19600000, last_freq=221.617 kHz, freq=297.854 kHz
+cycle=19700000, last_freq=224.47 kHz, freq=297.361 kHz
+cycle=19800000, last_freq=230.993 kHz, freq=296.93 kHz
+cycle=19900000, last_freq=237 kHz, freq=296.553 kHz
+cycle=20000000, last_freq=236.419 kHz, freq=296.177 kHz
+cycle=20100000, last_freq=236.411 kHz, freq=295.805 kHz
+cycle=20200000, last_freq=237.479 kHz, freq=295.445 kHz
+cycle=20300000, last_freq=240.74 kHz, freq=295.115 kHz
+[    0.050000] clocksource: Switched to clocksource riscv_clocksource
+cycle=20400000, last_freq=225.566 kHz, freq=294.67 kHz
+cycle=20500000, last_freq=227.921 kHz, freq=294.249 kHz
+cycle=20600000, last_freq=226.228 kHz, freq=293.82 kHz
+cycle=20700000, last_freq=239.17 kHz, freq=293.496 kHz
+cycle=20800000, last_freq=240.552 kHz, freq=293.186 kHz
+cycle=20900000, last_freq=236.702 kHz, freq=292.852 kHz
+[    0.060000] Unpacking initramfs...
+cycle=21000000, last_freq=227.964 kHz, freq=292.455 kHz
+cycle=21100000, last_freq=214.794 kHz, freq=291.955 kHz
+cycle=21200000, last_freq=241.242 kHz, freq=291.666 kHz
+cycle=21300000, last_freq=241.079 kHz, freq=291.379 kHz
+cycle=21400000, last_freq=239.507 kHz, freq=291.084 kHz
+cycle=21500000, last_freq=239.843 kHz, freq=290.795 kHz
+cycle=21600000, last_freq=242.127 kHz, freq=290.525 kHz
+cycle=21700000, last_freq=237.564 kHz, freq=290.227 kHz
+[    0.060000] workingset: timestamp_bits=62 max_order=8 bucket_order=0
+cycle=21800000, last_freq=230.573 kHz, freq=289.883 kHz
+cycle=21900000, last_freq=226.999 kHz, freq=289.516 kHz
+cycle=22000000, last_freq=227.798 kHz, freq=289.16 kHz
+cycle=22100000, last_freq=234.253 kHz, freq=288.854 kHz
+cycle=22200000, last_freq=235.973 kHz, freq=288.563 kHz
+cycle=22300000, last_freq=238.686 kHz, freq=288.293 kHz
+cycle=22400000, last_freq=238.881 kHz, freq=288.027 kHz
+cycle=22500000, last_freq=239.082 kHz, freq=287.765 kHz
+[    0.070000] Freeing unused kernel memory: 60K
+cycle=22600000, last_freq=238.71 kHz, freq=287.503 kHz
+cycle=22700000, last_freq=239.631 kHz, freq=287.251 kHz
+cycle=22800000, last_freq=240.17 kHz, freq=287.004 kHz
+cycle=22900000, last_freq=239.991 kHz, freq=286.758 kHz
+cycle=23000000, last_freq=238.6 kHz, freq=286.507 kHz
+cycle=23100000, last_freq=239.474 kHz, freq=286.264 kHz
+cycle=23200000, last_freq=236.987 kHz, freq=286.007 kHz
+[    0.070000] This architecture does not have kernel memory protection.
+cycle=23300000, last_freq=234.208 kHz, freq=285.736 kHz
+cycle=23400000, last_freq=238.065 kHz, freq=285.492 kHz
+Hello, RISC-V World!
+cycle=23500000, last_freq=241.207 kHz, freq=285.269 kHz
+hanging
+cycle=23600000, last_freq=240.69 kHz, freq=285.045 kHz

@@ -1,0 +1,43 @@
+load program to memory
+  program_size=3161444
+set reset to 1
+set reset to 0
+start simulation: max_cycles=100000000
+bbl loader
+[    0.000000] OF: fdt: Ignoring memory range 0x80000000 - 0x80200000
+[    0.000000] Linux version 4.18.0-g655055af-dirty (yzh@9900k) (gcc version 12.2.0 (Debian 12.2.0-13)) #1787 Wed Feb 12 10:28:18 CST 2025
+[    0.000000] bootconsole [early0] enabled
+[    0.000000] Initial ramdisk at: 0x(____ptrval____) (2560 bytes)
+[    0.000000] Zone ranges:
+[    0.000000]   DMA32    empty
+[    0.000000]   Normal   [mem 0x0000000080200000-0x00000000803dffff]
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000080200000-0x00000000803dffff]
+[    0.000000] Initmem setup node 0 [mem 0x0000000080200000-0x00000000803dffff]
+[    0.000000] elf_hwcap is 0x112d
+[    0.000000] Built 1 zonelists, mobility grouping off.  Total pages: 473
+[    0.000000] Kernel command line: earlycon
+[    0.000000] Dentry cache hash table entries: 512 (order: 0, 4096 bytes)
+[    0.000000] Inode-cache hash table entries: 512 (order: 0, 4096 bytes)
+[    0.000000] Sorting __ex_table...
+[    0.000000] Memory: 776K/1920K available (694K kernel code, 80K rwdata, 100K rodata, 60K init, 98K bss, 1144K reserved, 0K cma-reserved)
+[    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+[    0.000000] NR_IRQS: 0, nr_irqs: 0, preallocated irqs: 0
+[    0.000000] clocksource: riscv_clocksource: mask: 0xffffffffffffffff max_cycles: 0x1d854df40, max_idle_ns: 3526361616960 ns
+[    0.000000] console [hvc0] enabled
+[    0.000000] console [hvc0] enabled
+[    0.000000] bootconsole [early0] disabled
+[    0.000000] bootconsole [early0] disabled
+[    0.010000] Calibrating delay loop (skipped), value calculated using timer frequency.. 2.00 BogoMIPS (lpj=10000)
+[    0.020000] pid_max: default: 4096 minimum: 301
+[    0.020000] Mount-cache hash table entries: 512 (order: 0, 4096 bytes)
+[    0.030000] Mountpoint-cache hash table entries: 512 (order: 0, 4096 bytes)
+[    0.040000] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
+[    0.050000] clocksource: Switched to clocksource riscv_clocksource
+[    0.060000] Unpacking initramfs...
+[    0.060000] workingset: timestamp_bits=62 max_order=8 bucket_order=0
+[    0.070000] Freeing unused kernel memory: 60K
+[    0.070000] This architecture does not have kernel memory protection.
+Hello, RISC-V World!
+hanging

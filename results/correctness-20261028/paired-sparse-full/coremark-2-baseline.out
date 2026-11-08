@@ -1,0 +1,76 @@
+sload program to memory
+  program_size=51792
+set reset to 1
+set reset to 0
+start simulation: max_cycles=5000000
+tart coremark
+initializing
+determine number of iterations
+start iteration
+icycle=100000, last_freq=123.229 kHz, freq=123.229 kHz
+cycle=200000, last_freq=121.123 kHz, freq=122.167 kHz
+cycle=300000, last_freq=133.87 kHz, freq=125.834 kHz
+cycle=400000, last_freq=134.104 kHz, freq=127.804 kHz
+cycle=500000, last_freq=131.419 kHz, freq=128.511 kHz
+cycle=600000, last_freq=132.82 kHz, freq=129.21 kHz
+cycle=700000, last_freq=130.602 kHz, freq=129.407 kHz
+cycle=800000, last_freq=131.023 kHz, freq=129.607 kHz
+cycle=900000, last_freq=133.606 kHz, freq=130.039 kHz
+cycle=1000000, last_freq=132.363 kHz, freq=130.268 kHz
+cycle=1100000, last_freq=123.32 kHz, freq=129.604 kHz
+cycle=1200000, last_freq=121.934 kHz, freq=128.928 kHz
+cycle=1300000, last_freq=132.378 kHz, freq=129.187 kHz
+cycle=1400000, last_freq=126.666 kHz, freq=129.004 kHz
+cycle=1500000, last_freq=126.365 kHz, freq=128.824 kHz
+cycle=1600000, last_freq=121.416 kHz, freq=128.335 kHz
+cycle=1700000, last_freq=120.372 kHz, freq=127.838 kHz
+cycle=1800000, last_freq=119.818 kHz, freq=127.364 kHz
+cycle=1900000, last_freq=123.735 kHz, freq=127.168 kHz
+cycle=2000000, last_freq=123.755 kHz, freq=126.993 kHz
+cycle=2100000, last_freq=119.206 kHz, freq=126.599 kHz
+cycle=2200000, last_freq=119.671 kHz, freq=126.267 kHz
+cycle=2300000, last_freq=117.267 kHz, freq=125.847 kHz
+cycle=2400000, last_freq=121.219 kHz, freq=125.647 kHz
+cycle=2500000, last_freq=139.255 kHz, freq=126.14 kHz
+cycle=2600000, last_freq=134.084 kHz, freq=126.428 kHz
+cycle=2700000, last_freq=131.906 kHz, freq=126.623 kHz
+cycle=2800000, last_freq=129.205 kHz, freq=126.713 kHz
+cycle=2900000, last_freq=139.522 kHz, freq=127.116 kHz
+cycle=3000000, last_freq=142.087 kHz, freq=127.564 kHz
+cycle=3100000, last_freq=138.009 kHz, freq=127.876 kHz
+cycle=3200000, last_freq=132.56 kHz, freq=128.017 kHz
+cycle=3300000, last_freq=125.436 kHz, freq=127.937 kHz
+cycle=3400000, last_freq=134.176 kHz, freq=128.113 kHz
+cycle=3500000, last_freq=132.229 kHz, freq=128.227 kHz
+cycle=3600000, last_freq=142.883 kHz, freq=128.593 kHz
+cycle=3700000, last_freq=138.468 kHz, freq=128.841 kHz
+cycle=3800000, last_freq=139.348 kHz, freq=129.097 kHz
+cycle=3900000, last_freq=137.538 kHz, freq=129.301 kHz
+cycle=4000000, last_freq=139.489 kHz, freq=129.537 kHz
+cycle=4100000, last_freq=139.906 kHz, freq=129.772 kHz
+cycle=4200000, last_freq=137.464 kHz, freq=129.945 kHz
+cycle=4300000, last_freq=139.63 kHz, freq=130.155 kHz
+cycle=4400000, last_freq=136.239 kHz, freq=130.287 kHz
+cycle=4500000, last_freq=128.363 kHz, freq=130.244 kHz
+terate done
+2K performance run parameters for coremark.
+CoreMark Size    : 666
+Total ticks      : 4546741
+Total time (secs): 0
+ERROR! Must execute for at least 10 secs for a valid result!
+Iterations       : 10
+Compiler version : GCC14.2.0
+Compiler flags   : -O2
+Memory location  : Please put data memory location here
+			(e.g. code in flash, data on heap etc)
+seedcrc          : 0xe9f5
+cycle=4600000, last_freq=129.518 kHz, freq=130.228 kHz
+[0]crclist       : 0xe714
+[0]crcmatrix     : 0x1fd7
+[0]crcstate      : 0x8e3a
+[0]crcfinal      : 0xfcaf
+Errors detected
+cycle=4700000, last_freq=138.025 kHz, freq=130.385 kHz
+cycle=4800000, last_freq=141.739 kHz, freq=130.603 kHz
+cycle=4900000, last_freq=143.167 kHz, freq=130.837 kHz
+cycle=5000000, last_freq=140.603 kHz, freq=131.019 kHz

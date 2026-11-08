@@ -1,0 +1,9 @@
+PASS order-base
+Traceback (most recent call last):
+  File "/home/keke/pro/p2sim-next/p2sim/build/correctness-20261028/source-sparse/tests/observer-order.py", line 81, in <module>
+    main()
+  File "/home/keke/pro/p2sim-next/p2sim/build/correctness-20261028/source-sparse/tests/observer-order.py", line 74, in main
+    output = run([str(out / 'sim'), *extra], out / f'{method}.log', expected=-signal.SIGABRT if fail else 0)
+  File "/home/keke/pro/p2sim-next/p2sim/build/correctness-20261028/source-sparse/tests/observer-order.py", line 19, in run
+    raise RuntimeError(f"{command} exited {result.returncode}, expected {expected}; see {log}")
+RuntimeError: ['/home/keke/pro/p2sim-next/p2sim/build/correctness-20261028/observer-before-final/order-spec/sim'] exited -6, expected 0; see /home/keke/pro/p2sim-next/p2sim/build/correctness-20261028/observer-before-final/order-spec/mt.log

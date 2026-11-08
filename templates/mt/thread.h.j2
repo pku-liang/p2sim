@@ -18,14 +18,40 @@ struct {{ cls }} {
 
     static void gprintf(const char *fmt, ...);
     void step();
+    {%- if ctx.cfg.spec_sim %}
+    void step_spec();
+    void step_repair();
+    void advance_epoch();
+    {%- endif %}
     void init();
-    void pull();
-    void push();
+    void pull({{ ctx.name }}_shared * io_shared);
+    void push({{ ctx.name }}_shared * io_shared);
 
+    {%- if ctx.cfg.spec_sim %}
+    static constexpr unsigned ACT_MASK_WIDTH = {{ ctx.cfg.act_mask_width }};
+    static constexpr unsigned ACT_MASK_WORDS = {{ part.blocks.len() as u32 / ctx.cfg.act_mask_width + 1 }};
+    act_t __act_storage[2][ACT_MASK_WORDS];
+    // Each publication buffer must receive every change, even across serial/MT calls.
+    act_t __publish_pending[2][ACT_MASK_WORDS];
+    act_t * __act_mask;
+    act_t * __next_act_mask;
+    inline __attribute__((always_inline)) void activate(act_t changed, unsigned current, unsigned target) {
+        act_t * mask = target > current ? __act_mask : __next_act_mask;
+        mask[target / ACT_MASK_WIDTH] |= changed << (target % ACT_MASK_WIDTH);
+    }
+    {%- else %}
     act_t __act_mask[{{ part.blocks.len() as u32 / ctx.cfg.act_mask_width + 1 }}];
+    inline __attribute__((always_inline)) void activate(act_t changed, unsigned current, unsigned target) {
+        __act_mask[target / {{ ctx.cfg.act_mask_width }}] |= changed << (target % {{ ctx.cfg.act_mask_width }});
+    }
+    {%- endif %}
 
     {%- for grp_id in 0..part.block_groups.len() %}
     void step_{{ grp_id }}();
+    {%- if ctx.cfg.spec_sim %}
+    void step_spec_{{ grp_id }}();
+    void step_repair_{{ grp_id }}();
+    {%- endif %}
     {%- endfor %}
 
     {%- for grp_id in 0..part.reset_groups.len() %}

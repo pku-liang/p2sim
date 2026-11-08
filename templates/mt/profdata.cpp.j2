@@ -7,4 +7,4 @@ __attribute__((section(".rodata.profdata"))) uint32_t {{ record_name }}[] = {
     {%- endfor %}
 };
 __attribute__((section(".rodata.profdata"))) uint64_t {{ record_name }}_length = {{ records.len() }};
-__attribute__((section(".rodata.profdata"))) uint64_t {{ record_name }}_size = sizeof({{ record_name }});
+__attribute__((section(".rodata.profdata"))) uint64_t {{ record_name }}_size = sizeof({{ record_name }}) / sizeof(uint32_t);

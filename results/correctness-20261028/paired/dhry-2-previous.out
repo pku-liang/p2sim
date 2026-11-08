@@ -1,0 +1,113 @@
+sload program to memory
+  program_size=48320
+set reset to 1
+set reset to 0
+start simulation: max_cycles=5000000
+tart dhrystone
+
+Dhrystone Benchmark, Version C, Version 2.2
+Program compiled with 'register' attribute
+Using rdcycle(), HZ=1000000
+
+Trying 10000 runs through Dhrystone:
+Fcycle=100000, last_freq=165.11 kHz, freq=165.11 kHz
+cycle=200000, last_freq=155.949 kHz, freq=160.399 kHz
+cycle=300000, last_freq=148.973 kHz, freq=156.4 kHz
+cycle=400000, last_freq=149.747 kHz, freq=154.682 kHz
+cycle=500000, last_freq=154.597 kHz, freq=154.665 kHz
+cycle=600000, last_freq=153.818 kHz, freq=154.523 kHz
+cycle=700000, last_freq=155.527 kHz, freq=154.666 kHz
+cycle=800000, last_freq=154.552 kHz, freq=154.651 kHz
+cycle=900000, last_freq=135.911 kHz, freq=152.318 kHz
+cycle=1000000, last_freq=129.414 kHz, freq=149.669 kHz
+cycle=1100000, last_freq=137.007 kHz, freq=148.422 kHz
+cycle=1200000, last_freq=149.145 kHz, freq=148.482 kHz
+cycle=1300000, last_freq=150.287 kHz, freq=148.619 kHz
+cycle=1400000, last_freq=143.701 kHz, freq=148.257 kHz
+cycle=1500000, last_freq=144.271 kHz, freq=147.984 kHz
+cycle=1600000, last_freq=142.563 kHz, freq=147.633 kHz
+cycle=1700000, last_freq=133.813 kHz, freq=146.742 kHz
+cycle=1800000, last_freq=158.743 kHz, freq=147.361 kHz
+cycle=1900000, last_freq=150.176 kHz, freq=147.506 kHz
+cycle=2000000, last_freq=173.022 kHz, freq=148.602 kHz
+cycle=2100000, last_freq=177.063 kHz, freq=149.748 kHz
+cycle=2200000, last_freq=162.881 kHz, freq=150.299 kHz
+cycle=2300000, last_freq=161.943 kHz, freq=150.77 kHz
+cycle=2400000, last_freq=165.977 kHz, freq=151.348 kHz
+cycle=2500000, last_freq=153.337 kHz, freq=151.427 kHz
+cycle=2600000, last_freq=157.857 kHz, freq=151.664 kHz
+cycle=2700000, last_freq=148 kHz, freq=151.525 kHz
+cycle=2800000, last_freq=147.922 kHz, freq=151.394 kHz
+cycle=2900000, last_freq=157.869 kHz, freq=151.608 kHz
+cycle=3000000, last_freq=173.248 kHz, freq=152.242 kHz
+cycle=3100000, last_freq=168.902 kHz, freq=152.728 kHz
+cycle=3200000, last_freq=166.847 kHz, freq=153.133 kHz
+cycle=3300000, last_freq=162.854 kHz, freq=153.41 kHz
+cycle=3400000, last_freq=158.323 kHz, freq=153.55 kHz
+inal values of the variables used in the benchmark:
+
+Int_Glob:            5
+        should be:   5
+Bool_Glob:           1
+        should be:   1
+Ch_1_Glob:           A
+        should be:   A
+Ch_2_Glob:           B
+        should be:   B
+Arr_1_Glob[8]:       7
+        should be:   7
+Arr_2_Glob[8][7]:    10010
+        should be:   Number_Of_Runs + 10
+Ptr_Glob->
+  Ptr_Comp:          2147864272
+        should be:   (implementation-dependent)
+  Discr:             0
+        should be:   0
+  Enum_Comp:         2
+        should be:   2
+  Int_Comp:          17
+        should be:   17
+  Str_Comp:          DHRYSTONE PROGRAM, SOME STRING
+        should be:   DHRYSTONE PROGRAM, SOME STRING
+Next_Ptr_Glob->
+  Ptr_Comp:          2147864272
+        should be:   (implementation-dependent), same as above
+  Discr:             0
+        should be:   0
+  Enum_Comp:         1
+        should be:   1
+  Int_Comp:          18
+        should be:   18
+  Str_Comp:          DHRYSTONE PROGRAM, SOME STRING
+        should be:   DHRYSTONE PROGRAM, SOME STRING
+Int_1_Loc:           5
+        should be:   5
+Int_2_Loc:           13
+        should be:   13
+Int_3_Loc:           7
+        should be:   7
+Enum_Loc:            1
+        should be:   1
+Str_1_Loc:           DHRYSTONE PROGRAM, 1'cycle=3500000, last_freq=158.076 kHz, freq=153.676 kHz
+ST STRING
+        should be:   DHRYSTONE PROGRAM, 1'ST STRING
+Str_2_Loc:           DHRYSTONE PROGRAM, 2'ND STRING
+        should be:   DHRYSTONE PROGRAM, 2'ND STRING
+
+Microseconds for one run through Dhrystone: 339
+Dhrystones per Second:                      633
+cycle=3600000, last_freq=189.29 kHz, freq=154.484 kHz
+cycle=3700000, last_freq=196.863 kHz, freq=155.388 kHz
+cycle=3800000, last_freq=194.215 kHz, freq=156.209 kHz
+cycle=3900000, last_freq=195.72 kHz, freq=157.022 kHz
+cycle=4000000, last_freq=198.645 kHz, freq=157.849 kHz
+cycle=4100000, last_freq=199.166 kHz, freq=158.652 kHz
+cycle=4200000, last_freq=200.47 kHz, freq=159.444 kHz
+cycle=4300000, last_freq=200.331 kHz, freq=160.204 kHz
+cycle=4400000, last_freq=198.732 kHz, freq=160.913 kHz
+cycle=4500000, last_freq=197.883 kHz, freq=161.584 kHz
+cycle=4600000, last_freq=197.478 kHz, freq=162.225 kHz
+cycle=4700000, last_freq=194.525 kHz, freq=162.8 kHz
+cycle=4800000, last_freq=193.119 kHz, freq=163.334 kHz
+cycle=4900000, last_freq=191.474 kHz, freq=163.826 kHz
+cycle=5000000, last_freq=193.546 kHz, freq=164.33 kHz

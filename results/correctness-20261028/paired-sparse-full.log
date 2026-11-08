@@ -1,0 +1,40 @@
+dhry #1 baseline: 100.771 kHz; correctness PASS
+dhry #1 previous: 128.971 kHz; correctness PASS
+dhry #1 candidate: 155.744 kHz; correctness PASS
+dhry #2 previous: 157.183 kHz; correctness PASS
+dhry #2 candidate: 188.727 kHz; correctness PASS
+dhry #2 baseline: 127.105 kHz; correctness PASS
+dhry #3 candidate: 212.326 kHz; correctness PASS
+dhry #3 baseline: 121.888 kHz; correctness PASS
+dhry #3 previous: 179.331 kHz; correctness PASS
+coremark #1 baseline: 119.193 kHz; correctness PASS
+coremark #1 previous: 136.357 kHz; correctness PASS
+coremark #1 candidate: 201.427 kHz; correctness PASS
+coremark #2 previous: 177.762 kHz; correctness PASS
+coremark #2 candidate: 198.460 kHz; correctness PASS
+coremark #2 baseline: 131.019 kHz; correctness PASS
+coremark #3 candidate: 220.739 kHz; correctness PASS
+coremark #3 baseline: 129.576 kHz; correctness PASS
+coremark #3 previous: 182.789 kHz; correctness PASS
+{
+  "dhry": {
+    "median_khz": {
+      "baseline": 121.888,
+      "previous": 157.183,
+      "candidate": 188.727
+    },
+    "speedup": 1.548364071934891,
+    "previous_speedup": 1.2895691126279862,
+    "retention": 1.2006832799984732
+  },
+  "coremark": {
+    "median_khz": {
+      "baseline": 129.576,
+      "previous": 177.762,
+      "candidate": 201.427
+    },
+    "speedup": 1.5545085509662284,
+    "previous_speedup": 1.3718744211891092,
+    "retention": 1.1331274400603053
+  }
+}

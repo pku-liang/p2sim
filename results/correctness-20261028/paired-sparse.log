@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/keke/pro/p2sim-next/p2sim/build/correctness-20261028/source-sparse/scripts/audit-spec-benchmarks.py", line 123, in <module>
+    main()
+  File "/home/keke/pro/p2sim-next/p2sim/build/correctness-20261028/source-sparse/scripts/audit-spec-benchmarks.py", line 103, in main
+    raise RuntimeError(f'simulator failed: {log}')
+RuntimeError: simulator failed: ../paired-sparse/dhry-1-baseline.out

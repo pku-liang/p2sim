@@ -1,0 +1,10 @@
+Linux hina 5.15.0-190-generic #200-Ubuntu SMP Fri Aug 7 15:06:04 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+rustc 1.97.0-nightly (67bcaa9c4 2026-05-01)
+clang version 21.1.2 (https://github.com/conda-forge/clangdev-feedstock 2a9fbe20f1cb5cecf12a19e97ad0bcd3a1b4e17f)
+Target: x86_64-conda-linux-gnu
+Thread model: posix
+InstalledDir: /home/keke/pro/p2sim-next/p2sim/.pixi/envs/default/bin
+Configuration file: /home/keke/pro/p2sim-next/p2sim/.pixi/envs/default/bin/x86_64-conda-linux-gnu.cfg
+a78b8e94f5023f4c5a17f8c947dda7ca57a11d69299935f37dc91c93eb8962a3  designs/rocket_m_1.ggsim.sexp
+07d5b9c633cb2915d29660c8a66cd263db9dbe657c73b76e667107ba6d354e2d  exe/div-1-dhrystone.bin
+178bef9b222dc6fb1faf991ba9b47aa777978a281610a8820c10c8f1230b7117  exe/div-1-coremark.bin

@@ -3,10 +3,12 @@
 #include <cstdio>
 #include <cstdarg>
 #include <cassert>
+#include <cstdlib>
 #include <random>
 
 #define gdiv(a, b) ((b) == 0 ? 0 : (a) / (b))
-#define gAssert(cond, ...) do { if (!(cond)) {fprintf(stderr, "\33[1;31m");fprintf(stderr, __VA_ARGS__);fprintf(stderr, "\33[0m\n");assert(cond);}} while (0)
+// RTL assertions remain active in every scheduling mode, including NDEBUG builds.
+#define gAssert(cond, ...) do { if (!(cond)) {fprintf(stderr, "\33[1;31m");fprintf(stderr, __VA_ARGS__);fprintf(stderr, "\33[0m\n");std::abort();}} while (0)
 
 #ifndef __BITINT_MAXWIDTH__
 #error  BITINT support is required

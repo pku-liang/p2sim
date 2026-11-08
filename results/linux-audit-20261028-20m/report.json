@@ -1,0 +1,16 @@
+{
+  "cycles": 20000000,
+  "runs": {
+    "baseline": {
+      "frequency_khz": 115.146,
+      "log_sha256": "7db263f89ea3673d506a0b3da72ab2ebac7090e5f5c9440b5c4709ce34ff0427"
+    },
+    "fixed": {
+      "frequency_khz": 222.592,
+      "log_sha256": "87a94a8fe92ef2f716c11e0110b4f989a1c9bf5a00a6112006912910a47e0efe"
+    }
+  },
+  "normalized_output_identical": true,
+  "speedup": 1.933128376148542,
+  "userspace_reached": false
+}

@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/keke/pro/p2sim-next/p2sim/build/correctness-20261028/source-sparse/tests/publication-buffers.py", line 73, in <module>
+    main()
+  File "/home/keke/pro/p2sim-next/p2sim/build/correctness-20261028/source-sparse/tests/publication-buffers.py", line 67, in main
+    run(['make', '-C', str(out), '-j2'], out / 'compile.log')
+  File "/home/keke/pro/p2sim-next/p2sim/build/correctness-20261028/source-sparse/tests/publication-buffers.py", line 12, in run
+    raise RuntimeError(f'{command} exited {result.returncode}; see {log}')
+RuntimeError: ['make', '-C', '/home/keke/pro/p2sim-next/p2sim/build/correctness-20261028/publication-sparse/T1-base', '-j2'] exited 2; see /home/keke/pro/p2sim-next/p2sim/build/correctness-20261028/publication-sparse/T1-base/compile.log

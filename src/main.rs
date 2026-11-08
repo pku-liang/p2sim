@@ -4,7 +4,11 @@ use std::borrow::Cow;
 
 use clap::{Args, Parser, ValueEnum};
 use ggsim::{
-    act::{ProfData, compute_block_act_map}, comp::parse_file, ir::BlockId, mt::ProfCfg, pass
+    act::{ProfData, compute_block_act_map},
+    comp::parse_file,
+    ir::BlockId,
+    mt::ProfCfg,
+    pass,
 };
 use itertools::Itertools;
 use log::info;
@@ -50,6 +54,10 @@ struct Cli {
     repr_cc: ReprCCArgs,
     #[arg(long)]
     pgo: bool,
+    #[arg(long, default_value_t = 100.0)]
+    pgo_scale: f64,
+    #[arg(long, default_value_t = 1.0)]
+    pgo_base: f64,
     #[arg(long)]
     prof_data: Option<String>,
     #[arg(short, long)]
@@ -60,6 +68,12 @@ struct Cli {
     dump_stats: Option<String>,
     #[arg(long)]
     diff_test: bool,
+    #[arg(long)]
+    spec_sim: bool,
+    #[arg(long, requires = "spec_sim")]
+    spec_sim_no_speculate: bool,
+    #[arg(long, requires = "spec_sim")]
+    spec_allow_remote: bool,
     #[command(flatten)]
     prof: ProfArgs,
     #[arg(long)]
@@ -126,12 +140,20 @@ fn main() {
         let profdata = args.prof_data.unwrap();
         let prof = ProfData::from_file(&profdata).unwrap();
         let blk_act_map = compute_block_act_map(&prof);
-        pass::partition(&design, args.k.unwrap_or(2), |x| (blk_act_map[x.0 as usize] * 10000.0) as i32, &part_config)
+        pass::partition(
+            &design,
+            args.k.unwrap_or(2),
+            |x| (args.pgo_base + blk_act_map[x.0 as usize] * args.pgo_scale).round() as i32,
+            &part_config,
+        )
     } else {
         pass::partition(&design, args.k.unwrap_or(2), |x| 1, &part_config)
     };
     pass::print_part_stats(&pd);
     let mut td = pass::build_tdesign(&pd);
+    if args.spec_sim && !args.spec_sim_no_speculate {
+        pass::classify_speculative(&mut td, !args.spec_allow_remote);
+    }
     pass::linear_coarsen(&mut td);
     pass::print_shared_comm(&td);
     pass::compute_shared_layout(&mut td);
@@ -171,6 +193,7 @@ fn main() {
                 debug: args.repr_cc.debug,
             },
             disable_cacheline_task: args.prof.disable_cacheline_task,
+            spec_sim: args.spec_sim,
             prof: ProfCfg {
                 act_cnt: args.prof.prof_act_cnt,
                 rdtsc_ticks: args.prof.prof_rdtsc_ticks,

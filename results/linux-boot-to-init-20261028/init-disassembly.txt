@@ -1,0 +1,50 @@
+
+build/linux-audit-20261028/init.elf:	file format elf64-littleriscv
+Contents of section .text:
+ 100e8 97070000 93878703 55470545 be853a86  ........UG.E..:.
+ 100f8 93080004 73000000 97070000 93878703  ....s...........
+ 10108 21470545 be853a86 93080004 73000000  !G.E..:.....s...
+ 10118 01a0                                 ..
+Contents of section .rodata:
+ 10120 48656c6c 6f2c2052 4953432d 5620576f  Hello, RISC-V Wo
+ 10130 726c6421 0a000000 68616e67 696e670a  rld!....hanging.
+ 10140 00                                   .
+
+Disassembly of section .text:
+
+00000000000100e8 <_start>:
+   100e8: 00000797     	auipc	a5, 0x0
+   100ec: 03878793     	addi	a5, a5, 0x38
+   100f0: 4755         	li	a4, 0x15
+   100f2: 4505         	li	a0, 0x1
+   100f4: 85be         	mv	a1, a5
+   100f6: 863a         	mv	a2, a4
+   100f8: 04000893     	li	a7, 0x40
+   100fc: 00000073     	ecall
+   10100: 00000797     	auipc	a5, 0x0
+   10104: 03878793     	addi	a5, a5, 0x38
+   10108: 4721         	li	a4, 0x8
+   1010a: 4505         	li	a0, 0x1
+   1010c: 85be         	mv	a1, a5
+   1010e: 863a         	mv	a2, a4
+   10110: 04000893     	li	a7, 0x40
+   10114: 00000073     	ecall
+   10118: a001         	j	0x10118 <_start+0x30>
+
+Disassembly of section .rodata:
+
+0000000000010120 <.rodata>:
+   10120: 6548         	ld	a0, 0x88(a0)
+   10122: 6c6c         	ld	a1, 0xd8(s0)
+   10124: 52202c6f     	jal	s8, 0x12646 <_end+0x14fe>
+   10128: 5349         	li	t1, -0xe
+   1012a: 20562d43     	fmadd.s	fs10, fa2, ft5, ft4, rdn
+   1012e: 6c726f57     	<unknown>
+   10132: 2164         	fld	fs1, 0xc0(a0)
+   10134: 000a         	c.slli	zero, 0x2
+   10136: 0000         	unimp
+   10138: 6168         	ld	a0, 0xc0(a0)
+   1013a: 676e         	ld	a4, 0xd8(sp)
+   1013c: 6e69         	lui	t3, 0x1a
+   1013e: 67           	<unknown>
+   1013f: 000a         	c.slli	zero, 0x2

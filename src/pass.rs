@@ -1,5 +1,5 @@
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet, VecDeque},
     ops::Range,
 };
 
@@ -718,6 +718,109 @@ pub fn build_tdesign(pd: &PartDesign) -> TDesign {
     }
 }
 
+fn has_non_speculative_side_effect(block: &Block) -> bool {
+    block.insts.iter().any(|inst| match inst {
+        Inst::CppCode { inst, .. } => {
+            inst.contains("gAssert(")
+                || inst.contains("gprintf(")
+                || inst.contains("printf(")
+                || inst.contains("fprintf(")
+                || inst.contains("assert(")
+                || inst.contains("assert (")
+                || inst.contains("abort(")
+                || inst.contains("exit(")
+        }
+        _ => false,
+    })
+}
+
+pub fn classify_speculative_part(part: &mut TPart, part_id: PartId, wait_remote: bool) {
+    let classes = {
+        let dep = get_dep_info(part);
+        let mut non_speculative = vec![false; part.blocks.len()];
+        let mut observer = vec![false; part.blocks.len()];
+        let mut queue = VecDeque::new();
+
+        for (block_id, block) in part.blocks.enumerate_ids() {
+            let touches_array = block
+                .reads
+                .iter()
+                .chain(block.writes.iter())
+                .any(|state_id| part.states[*state_id].is_array());
+            let reads_remote = block.reads.iter().any(|state_id| {
+                part.states[*state_id]
+                    .mirror
+                    .as_ref()
+                    .is_some_and(|mirror| mirror.ty.has_read())
+            });
+            observer[block_id.index()] = has_non_speculative_side_effect(block);
+            if touches_array
+                || (wait_remote && reads_remote)
+                || block.always
+                || observer[block_id.index()]
+            {
+                non_speculative[block_id.index()] = true;
+                queue.push_back(block_id);
+            }
+        }
+
+        // The early pass must be closed over same-cycle dependencies. If a
+        // block waits for the full state, all of its combinational successors
+        // must also wait. Cross-cycle sdep edges intentionally do not propagate.
+        while let Some(block_id) = queue.pop_front() {
+            for successor in dep
+                .cdep
+                .neighbors_directed(block_id.node_index(), Direction::Outgoing)
+            {
+                let successor = BlockId(successor.index() as u32);
+                if !non_speculative[successor.index()] {
+                    non_speculative[successor.index()] = true;
+                    queue.push_back(successor);
+                }
+            }
+        }
+
+        non_speculative
+            .into_iter()
+            .zip(observer)
+            .map(|(non_speculative, observer)| (!non_speculative, observer))
+            .collect_vec()
+    };
+
+    let mut speculative_blocks = 0usize;
+    let mut speculative_insts = 0usize;
+    let total_insts = part
+        .blocks
+        .iter()
+        .map(|block| block.insts.len())
+        .sum::<usize>();
+    for (block_id, block) in part.blocks.enumerate_ids_mut() {
+        let (speculative, observer) = classes[block_id.index()];
+        block.speculative = speculative;
+        block.observer = observer;
+        if block.speculative {
+            speculative_blocks += 1;
+            speculative_insts += block.insts.len();
+        }
+    }
+    info!(
+        "Speculative partition {}: blocks={}/{} ({:.1}%), insts={}/{} ({:.1}%)",
+        part_id.index(),
+        speculative_blocks,
+        part.blocks.len(),
+        speculative_blocks as f64 * 100.0 / part.blocks.len().max(1) as f64,
+        speculative_insts,
+        total_insts,
+        speculative_insts as f64 * 100.0 / total_insts.max(1) as f64,
+    );
+}
+
+pub fn classify_speculative(design: &mut TDesign, wait_remote: bool) {
+    for (part_id, part) in design.parts.enumerate_ids_mut() {
+        classify_speculative_part(part, part_id, wait_remote);
+    }
+}
+
 pub fn solve_linear_part(dfg: &DiGraph<usize, ()>, bound: usize) -> Vec<Range<usize>> {
     let mut cost = vec![(usize::MAX, 0); dfg.node_count() + 1];
     for i in 0..dfg.node_count() {
@@ -751,6 +854,17 @@ pub fn solve_linear_part(dfg: &DiGraph<usize, ()>, bound: usize) -> Vec<Range<us
 }
 
 pub fn merge_block(blocks: &[Block]) -> Block {
+    let speculative = blocks
+        .first()
+        .map(|block| block.speculative)
+        .unwrap_or(false);
+    let observer = blocks.first().map(|block| block.observer).unwrap_or(false);
+    assert!(
+        blocks
+            .iter()
+            .all(|block| block.speculative == speculative && block.observer == observer),
+        "cannot merge blocks from different speculative classes"
+    );
     let always = blocks.iter().any(|b| b.always);
     let next = vec![];
     let mut writes = BTreeSet::new();
@@ -777,6 +891,8 @@ pub fn merge_block(blocks: &[Block]) -> Block {
         writes: writes.into_iter().collect_vec(),
         reads: reads.into_iter().collect_vec(),
         insts,
+        speculative,
+        observer,
         ..Block::default()
     }
 }
@@ -784,11 +900,26 @@ pub fn merge_block(blocks: &[Block]) -> Block {
 pub fn linear_coarsen_part(part: &mut TPart) {
     let dep = get_dep_info(part);
     let sol = solve_linear_part(&dep.cdep, 140);
+    let mut class_preserving_sol = vec![];
+    for range in sol {
+        let mut start = range.start;
+        while start < range.end {
+            let class = (part.blocks[start].speculative, part.blocks[start].observer);
+            let mut end = start + 1;
+            while end < range.end
+                && (part.blocks[end].speculative, part.blocks[end].observer) == class
+            {
+                end += 1;
+            }
+            class_preserving_sol.push(start..end);
+            start = end;
+        }
+    }
     let mut new_blocks: Vec<Block> = vec![];
     let mut state_reads = vec![0; part.states.len()];
     let mut state_writes = vec![None; part.states.len()];
     let mut block_id_map = vec![];
-    for (i, s) in sol.iter().enumerate() {
+    for (i, s) in class_preserving_sol.iter().enumerate() {
         let new_block = merge_block(&part.blocks[s.clone()]);
         for read in new_block.reads.iter() {
             state_reads[*read] += 1;
@@ -1099,6 +1230,8 @@ pub fn compute_shared_layout(td: &mut TDesign) {
                         writes: vec![],
                         insts: vec![],
                         pushes: Some(push),
+                        speculative: false,
+                        observer: false,
                     };
                     td.parts[wth.index()].blocks.push(blk);
                 }

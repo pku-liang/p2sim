@@ -1,0 +1,42 @@
+{
+  "image_sha256": "b78d2853698703765b4a958a9cc4364524242626a13cfe9faaae15db73e11665",
+  "runs": {
+    "baseline": {
+      "success": true,
+      "reason": "stopped_after_expected_userspace_output",
+      "returncode": -15,
+      "elapsed_seconds": 186.23186230659485,
+      "last_sample": [
+        "23500000",
+        "126.644"
+      ],
+      "errors": [],
+      "binary_sha256": "fcd0750efb03ef780d1f6452d710af4c317ca2469a787190178919a9c7ca1af7",
+      "log_sha256": "e724b0cf0adce280daf3aa226b8d02f0c9969803f3d54bb5727b1742eabef5bd"
+    },
+    "fixed": {
+      "success": true,
+      "reason": "stopped_after_expected_userspace_output",
+      "returncode": -15,
+      "elapsed_seconds": 83.10842370986938,
+      "last_sample": [
+        "23600000",
+        "285.045"
+      ],
+      "errors": [],
+      "binary_sha256": "856f4e46d45dd78d99a21dfe75e5f4dc40d2eddecc75f7ff5c2591af634d69c5",
+      "log_sha256": "6064f81164dd093b1b44f959bc0a4b6581e2aca163a5df034873c43fcd3beda6"
+    }
+  },
+  "normalized_output_identical": true,
+  "passed": true,
+  "common_cycle_comparison": {
+    "cycles": 23500000,
+    "frequency_khz": {
+      "baseline": 126.644,
+      "fixed": 285.269
+    },
+    "speedup": 2.2525267679479484,
+    "repeats": 1
+  }
+}

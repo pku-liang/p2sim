@@ -11,42 +11,71 @@
 {%- call gprintf::emit_gprintf(cls ~ "::gprintf") %}
 
 void {{ cls }}::step() {
+{%- if ctx.cfg.spec_sim %}
+    // Preserve observer/read-before-write ordering within the repair pass.
+    step_repair();
+{%- else %}
 {%- for grp_id in 0..part.reset_groups.len() %}
     reset_{{ grp_id }}();
 {%- endfor %}
 {%- for grp_id in 0..part.block_groups.len() %}
     step_{{ grp_id }}();
 {%- endfor %}
+{%- endif %}
 }
 
-void {{ cls }}::pull() {
+{%- if ctx.cfg.spec_sim %}
+void {{ cls }}::step_spec() {
+{%- for grp_id in 0..part.block_groups.len() %}
+    step_spec_{{ grp_id }}();
+{%- endfor %}
+}
+
+void {{ cls }}::step_repair() {
+{%- for grp_id in 0..part.reset_groups.len() %}
+    reset_{{ grp_id }}();
+{%- endfor %}
+{%- for grp_id in 0..part.block_groups.len() %}
+    step_repair_{{ grp_id }}();
+{%- endfor %}
+}
+
+void {{ cls }}::advance_epoch() {
+    auto * old_mask = __act_mask;
+    __act_mask = __next_act_mask;
+    __next_act_mask = old_mask;
+    memset(__next_act_mask, 0, sizeof(__act_storage[0]));
+}
+{%- endif %}
+
+void {{ cls }}::pull({{ ctx.name }}_shared * io_shared) {
 {%- for (grp_id, iter) in part.iter_pull_act() %}
     {%- if !ctx.cfg.disable_cacheline_task %}
-    if(shared->__s_act_mask[{{ grp_id }}])
+    if(io_shared->__s_act_mask[{{ grp_id }}])
     {%- endif %}
     {
     {%- for (blk_id, pull) in iter %}
         {%- let item_id = pull.act_id as u32 % ctx.cfg.act_mask_width %}
         {%- if !ctx.cfg.disable_cacheline_task %}
-        if(shared->__s_act_mask[{{ grp_id }}] & (1 << {{ item_id }}))
+        if(io_shared->__s_act_mask[{{ grp_id }}] & (1 << {{ item_id }}))
         {%- endif %}
         {
             // {{ pull | debug }}
             {%- if !ctx.cfg.disable_cacheline_task %}
-            shared->__s_act_mask[{{ grp_id }}] &= ~(1 << {{ item_id }});
+            io_shared->__s_act_mask[{{ grp_id }}] &= ~(1 << {{ item_id }});
             {%- endif %}
             {%- for pull in pull.pulls %}
                 {%- if part.is_array(pull.local_id) %}
-                bool {{ part.name(pull.local_id) }}$CHG = memcmp(&{{ part.name(pull.local_id) }}, &shared->{{ ctx.name(pull.shared_id) }}, sizeof({{ part.name(pull.local_id) }})) != 0;
+                bool {{ part.name(pull.local_id) }}$CHG = memcmp(&{{ part.name(pull.local_id) }}, &io_shared->{{ ctx.name(pull.shared_id) }}, sizeof({{ part.name(pull.local_id) }})) != 0;
                 {%- else %}
-                bool {{ part.name(pull.local_id) }}$CHG = {{ part.name(pull.local_id) }} != shared->{{ ctx.name(pull.shared_id) }};
+                bool {{ part.name(pull.local_id) }}$CHG = {{ part.name(pull.local_id) }} != io_shared->{{ ctx.name(pull.shared_id) }};
                 {%- endif %}
             {%- endfor %}
             {%- for pull in pull.pulls %}
                 {%- if part.is_array(pull.local_id) %}
-                memcpy(&{{ part.name(pull.local_id) }}, &shared->{{ ctx.name(pull.shared_id) }}, sizeof({{ part.name(pull.local_id) }}));
+                memcpy(&{{ part.name(pull.local_id) }}, &io_shared->{{ ctx.name(pull.shared_id) }}, sizeof({{ part.name(pull.local_id) }}));
                 {%- else %}
-                {{ part.name(pull.local_id) }} = shared->{{ ctx.name(pull.shared_id) }};
+                {{ part.name(pull.local_id) }} = io_shared->{{ ctx.name(pull.shared_id) }};
                 {%- endif %}
             {%- endfor %}
             {%- for pull in pull.pulls %}
@@ -68,30 +97,54 @@ void {{ cls }}::pull() {
 {%- endfor %}
 }
 
-void {{ cls }}::push() {
+void {{ cls }}::push({{ ctx.name }}_shared * io_shared) {
+{%- if ctx.cfg.spec_sim %}
+    const unsigned publish_buffer = io_shared == shared ? 0 : 1;
+{%- endif %}
 {%- for (grp_id, iter) in part.iter_push() %}
+    {%- if ctx.cfg.spec_sim %}
+    // Changes are pending for BOTH buffers until each has received a copy.
+    const act_t changed_{{ grp_id }} = __act_mask[{{ grp_id }}];
+    __publish_pending[0][{{ grp_id }}] |= changed_{{ grp_id }};
+    __publish_pending[1][{{ grp_id }}] |= changed_{{ grp_id }};
+    const act_t pending_{{ grp_id }} = __publish_pending[publish_buffer][{{ grp_id }}];
+    __publish_pending[publish_buffer][{{ grp_id }}] = 0;
+    if(pending_{{ grp_id }})
+    {%- else %}
     {%- if !ctx.cfg.disable_cacheline_task %}
     if(__act_mask[{{ grp_id }}])
     {%- endif %}
+    {%- endif %}
     {
         {%- for (blk_id, push) in iter%}
+        {%- if ctx.cfg.spec_sim %}
+        bool push_changed_{{ blk_id.0 }} = changed_{{ grp_id }} & ((act_t)1 << {{ blk_id.0 % ctx.cfg.act_mask_width }});
+        if(pending_{{ grp_id }} & ((act_t)1 << {{ blk_id.0 % ctx.cfg.act_mask_width }}))
+        {%- else %}
         {%- if !ctx.cfg.disable_cacheline_task %}
         if(__act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] & (1 << {{ blk_id.0 % ctx.cfg.act_mask_width }}))
         {%- endif %}
+        {%- endif %}
         {
-            {%- if !ctx.cfg.disable_cacheline_task %}
+            {%- if ctx.cfg.spec_sim || !ctx.cfg.disable_cacheline_task %}
             __act_mask[{{ blk_id.0 / ctx.cfg.act_mask_width }}] &= ~(1 << {{ blk_id.0 % ctx.cfg.act_mask_width }});
             {%- endif %}
             {%- for push in push.pushes %}
             {%- if part.is_array(push.local_id) %}
-            memcpy(&shared->{{ ctx.name(push.shared_id) }}, &{{ part.name(push.local_id) }}, sizeof({{ part.name(push.local_id) }}));
+            memcpy(&io_shared->{{ ctx.name(push.shared_id) }}, &{{ part.name(push.local_id) }}, sizeof({{ part.name(push.local_id) }}));
             {%- else %}
-            shared->{{ ctx.name(push.shared_id) }} = {{ part.name(push.local_id) }};
+            io_shared->{{ ctx.name(push.shared_id) }} = {{ part.name(push.local_id) }};
             {%- endif %}
             {%- endfor %}
             {%- let act_grp_id = push.act_id as u32 / ctx.cfg.act_mask_width %}
             {%- let act_item_id = push.act_id as u32 % ctx.cfg.act_mask_width %}
-            shared->__s_act_mask[{{ act_grp_id }}] |= (1 << {{ act_item_id }});
+            {%- if ctx.cfg.spec_sim %}
+            if(push_changed_{{ blk_id.0 }}) {
+                io_shared->__s_act_mask[{{ act_grp_id }}] |= (1 << {{ act_item_id }});
+            }
+            {%- else %}
+            io_shared->__s_act_mask[{{ act_grp_id }}] |= (1 << {{ act_item_id }});
+            {%- endif %}
         }
     {%- endfor %}
     }
@@ -100,7 +153,15 @@ void {{ cls }}::push() {
 
 void {{ cls }}::init() {
     memset(__state_start, 0, sizeof(__state_end) - sizeof(__state_start));
+    {%- if ctx.cfg.spec_sim %}
+    memset(__act_storage[0], 0xff, sizeof(__act_storage[0]));
+    memset(__act_storage[1], 0, sizeof(__act_storage[1]));
+    memset(__publish_pending, 0xff, sizeof(__publish_pending));
+    __act_mask = __act_storage[0];
+    __next_act_mask = __act_storage[1];
+    {%- else %}
     memset(__act_mask, 0xff, sizeof(__act_mask));
+    {%- endif %}
     prof.init({{ part.blocks.len() }});
     cur_act_hash.reset();
 }
@@ -120,11 +181,22 @@ void {{ cls }}_decl::init({{ ctx.name }}_shared * shared) {
 void {{ cls }}_decl::step() {
     impl->step();
 }
-void {{ cls }}_decl::pull() {
-    impl->pull();
+{%- if ctx.cfg.spec_sim %}
+void {{ cls }}_decl::step_spec() {
+    impl->step_spec();
 }
-void {{ cls }}_decl::push() {
-    impl->push();
+void {{ cls }}_decl::step_repair() {
+    impl->step_repair();
+}
+void {{ cls }}_decl::advance_epoch() {
+    impl->advance_epoch();
+}
+{%- endif %}
+void {{ cls }}_decl::pull({{ ctx.name }}_shared * shared) {
+    impl->pull(shared);
+}
+void {{ cls }}_decl::push({{ ctx.name }}_shared * shared) {
+    impl->push(shared);
 }
 {{ cls }}_decl::~{{ cls }}_decl() {
     if(impl) {

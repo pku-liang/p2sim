@@ -56,6 +56,12 @@ void {{ ctx.name }}::init() {
   shared = new {{ ctx.name }}_shared;
   memset(shared, 0, sizeof({{ ctx.name }}_shared));
   memset(shared->__s_act_mask, 0xff, sizeof(shared->__s_act_mask));
+  {%- if ctx.cfg.spec_sim %}
+  shared_alt = new {{ ctx.name }}_shared;
+  memset(shared_alt, 0, sizeof({{ ctx.name }}_shared));
+  memset(shared_alt->__s_act_mask, 0, sizeof(shared_alt->__s_act_mask));
+  shared_epoch = 0;
+  {%- endif %}
   {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
   part_{{ part_id.0 }}.init(shared);
   {%- endfor %}
@@ -67,13 +73,22 @@ void {{ ctx.name }}::init() {
 void {{ ctx.name }}::step(int cycles) {
   perf_monitor monitor;
   while(cycles--) {
+    auto * io_shared = shared;
+    {%- if ctx.cfg.spec_sim %}
+    if(shared_epoch & 1) io_shared = shared_alt;
+    {%- endif %}
     {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
-      part_{{ part_id.0 }}.pull();
+      part_{{ part_id.0 }}.pull(io_shared);
       part_{{ part_id.0 }}.step();
     {%- endfor %}
     {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
-      part_{{ part_id.0 }}.push();
+      part_{{ part_id.0 }}.push(io_shared);
     {%- endfor %}
+    {%- if ctx.cfg.spec_sim %}
+    {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
+      part_{{ part_id.0 }}.advance_epoch();
+    {%- endfor %}
+    {%- endif %}
     monitor.tick();
   }
 }
@@ -81,13 +96,21 @@ void {{ ctx.name }}::step(int cycles) {
 {%- for s in ctx.ext_states %}
 {%- let first_id = s.acts.first().unwrap().0 %}
 {{ s.width | int_ty }} {{ ctx.name }}::get_{{ s.name }}() {
-  return shared->{{ ctx.name(first_id) }};
+  auto * io_shared = shared;
+  {%- if ctx.cfg.spec_sim %}
+  if(shared_epoch & 1) io_shared = shared_alt;
+  {%- endif %}
+  return io_shared->{{ ctx.name(first_id) }};
 }
 void {{ ctx.name }}::set_{{ s.name }}({{ s.width | int_ty }} value) {
   {%- for (sid, act_id) in s.acts %}
   /* set {{ s.name }} */ {
     shared->{{ ctx.name(sid) }} = value;
     shared->__s_act_mask[{{ act_id as u32 / ctx.cfg.act_mask_width }}] |= (1 << {{ act_id as u32 % ctx.cfg.act_mask_width }});
+    {%- if ctx.cfg.spec_sim %}
+    shared_alt->{{ ctx.name(sid) }} = value;
+    shared_alt->__s_act_mask[{{ act_id as u32 / ctx.cfg.act_mask_width }}] |= (1 << {{ act_id as u32 % ctx.cfg.act_mask_width }});
+    {%- endif %}
   }
   {%- endfor %}
 }
@@ -121,16 +144,21 @@ struct at_barrier {
   aligned_atomic<unsigned> step;
   const int count;
   at_barrier(int count) : count(count), arrive(count), step(0) {}
-  void arrive_and_wait(int i, int & local_epoch) noexcept {
-    auto cur_step = step.v.load();
-    if(!--arrive.v) {
-      arrive.v = count;
-      ++step.v;
-    } else {
-      while(step.v.load() == cur_step) {
-        _mm_pause();
-      }
+  unsigned arrive_only() noexcept {
+    auto cur_step = step.v.load(std::memory_order_acquire);
+    if(arrive.v.fetch_sub(1, std::memory_order_acq_rel) == 1) {
+      arrive.v.store(count, std::memory_order_relaxed);
+      step.v.fetch_add(1, std::memory_order_release);
     }
+    return cur_step;
+  }
+  void wait(unsigned cur_step) noexcept {
+    while(step.v.load(std::memory_order_acquire) == cur_step) {
+      _mm_pause();
+    }
+  }
+  void arrive_and_wait(int i, int & local_epoch) noexcept {
+    wait(arrive_only());
   }
 };
 
@@ -142,6 +170,9 @@ inline uint64_t rdtsc() {
 void {{ ctx.name }}::step_mt(int cycles) {
   at_barrier barrier({{ ctx.parts.len() }});
   std::vector<std::thread> threads;
+  {%- if ctx.cfg.spec_sim %}
+  const int base_epoch = shared_epoch;
+  {%- endif %}
   {%- for (part_id, part) in ctx.parts.enumerate_ids() %}
   /* thread {{ part_id.0 }} */ {
     {%- let master = part_id.0 == 0 %}
@@ -166,17 +197,40 @@ void {{ ctx.name }}::step_mt(int cycles) {
             *({{ ref_obj }}->cur_act_hash) = MH::from_gen(rng);
           }
           {%- endif %}
+          {%- if ctx.cfg.spec_sim %}
+          auto * input_shared = ((base_epoch + i) & 1) ? shared_alt : shared;
+          auto * output_shared = ((base_epoch + i + 1) & 1) ? shared_alt : shared;
+          uint64_t t1 = rdtsc();
+          {{ ref_obj }}->pull(input_shared);
+          uint64_t t2 = rdtsc();
+          // Repair pass: speculative blocks whose inputs stayed stable have
+          // clear activation bits and are skipped. Late pulls and memory work
+          // reactivate only the affected pure combinational blocks.
+          {{ ref_obj }}->step();
+          uint64_t t3 = rdtsc();
+          {{ ref_obj }}->push(output_shared);
+          auto barrier_epoch = barrier.arrive_only();
+          uint64_t t4 = rdtsc();
+          {{ ref_obj }}->advance_epoch();
+          if(i + 1 < cycles) {
+            {{ ref_obj }}->step_spec();
+          }
+          uint64_t t5 = rdtsc();
+          barrier.wait(barrier_epoch);
+          uint64_t t6 = rdtsc();
+          {%- else %}
           uint64_t t1 = rdtsc();
           barrier.arrive_and_wait({{part_id.0}}, local_epoch);
           uint64_t t2 = rdtsc();
-          {{ ref_obj }}->pull();
+          {{ ref_obj }}->pull(shared);
           uint64_t t3 = rdtsc();
           {{ ref_obj }}->step();
           uint64_t t4 = rdtsc();
           barrier.arrive_and_wait({{part_id.0}}, local_epoch);
           uint64_t t5 = rdtsc();
-          {{ ref_obj }}->push();
+          {{ ref_obj }}->push(shared);
           uint64_t t6 = rdtsc();
+          {%- endif %}
           {%- if ctx.cfg.prof.rdtsc_ticks %}
           /* rdtsc ticks */ {
             prof->rdtsc_ticks[old_size + i*6 + 0] = t1;
@@ -210,6 +264,9 @@ void {{ ctx.name }}::step_mt(int cycles) {
   for(auto & thread: threads) {
     thread.join();
   }
+  {%- if ctx.cfg.spec_sim %}
+  shared_epoch = (base_epoch + cycles) & 1;
+  {%- endif %}
 }
 
 void prof_obj::init(int num_blocks) {
@@ -267,4 +324,9 @@ bool {{ ctx.name }}::dump_prof(const char * filename) {
   if(shared) {
     delete shared;
   }
+  {%- if ctx.cfg.spec_sim %}
+  if(shared_alt) {
+    delete shared_alt;
+  }
+  {%- endif %}
 }
